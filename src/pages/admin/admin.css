@@ -169,9 +169,9 @@
   font-size: 12px;
 }
 .form-actions {
-  display: flex;
+  display: flex !important;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: space-between !important;
 }
 .btn-outline {
   padding: 8px 16px;

@@ -178,7 +178,9 @@ function CreateInternshipModal({ onClose, onCreate }) {
         <form onSubmit={onSubmit}>
           <div className="form-row cols-2-1">
             <div className="form-group">
-              <label className="form-label" htmlFor="title">Vị trí</label>
+              <label className="form-label" htmlFor="title">
+                Vị trí
+              </label>
               <input
                 id="title"
                 className="form-input"
@@ -187,7 +189,9 @@ function CreateInternshipModal({ onClose, onCreate }) {
               />
             </div>
             <div className="form-group">
-              <label className="form-label" htmlFor="studentEmail">Email</label>
+              <label className="form-label" htmlFor="studentEmail">
+                Email
+              </label>
               <input
                 id="studentEmail"
                 type="email"
@@ -200,7 +204,9 @@ function CreateInternshipModal({ onClose, onCreate }) {
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label" htmlFor="student">Sinh viên</label>
+              <label className="form-label" htmlFor="student">
+                Sinh viên
+              </label>
               <input
                 id="student"
                 className="form-input"
@@ -209,7 +215,9 @@ function CreateInternshipModal({ onClose, onCreate }) {
               />
             </div>
             <div className="form-group">
-              <label className="form-label" htmlFor="status">Trạng thái</label>
+              <label className="form-label" htmlFor="status">
+                Trạng thái
+              </label>
               <select
                 id="status"
                 className="form-select"
@@ -251,7 +259,7 @@ function CreateInternshipModal({ onClose, onCreate }) {
             <button type="button" className="btn-outline" onClick={onClose}>
               Hủy
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn-primary">
               Tạo
             </button>
           </div>
@@ -414,7 +422,7 @@ function EditInternshipModal({ data, onClose, onSave }) {
             <button type="button" className="btn-outline" onClick={onClose}>
               Hủy
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn-primary">
               Lưu
             </button>
           </div>
