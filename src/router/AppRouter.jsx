@@ -5,7 +5,6 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import Dashboard from "../pages/dashboard/Index";
 import InternshipList from "../pages/internships/InternshipList";
-import StudentList from "../pages/students/StudentList";
 import Users from "../pages/admin/Users";
 import Permissions from "../pages/admin/Permissions";
 import OAuthCallback from "../pages/auth/OAuthCallback";
@@ -38,14 +37,6 @@ export default function AppRouter() {
               element={
                 <RoleGuard roles={["HR", "ADMIN"]}>
                   <InternshipList />
-                </RoleGuard>
-              }
-            />
-            <Route
-              path="/students"
-              element={
-                <RoleGuard roles={["HR", "ADMIN"]}>
-                  <StudentList />
                 </RoleGuard>
               }
             />

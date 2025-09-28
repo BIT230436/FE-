@@ -129,65 +129,18 @@ export default function Profile() {
 
   return (
     <div className="profile-container">
-      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
+      <div className="profile-header">
         {/* Avatar */}
-        <div style={{ position: "relative" }}>
+        <div className="avatar-wrapper">
           <div
             onClick={() => document.getElementById('avatar-upload').click()}
-            style={{
-              width: "64px",
-              height: "64px",
-              borderRadius: "50%",
-              backgroundColor: avatarUrl ? "transparent" : "#007bff",
-              backgroundImage: avatarUrl ? `url(${avatarUrl})` : "none",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: "24px",
-              fontWeight: "600",
-              cursor: "pointer",
-              border: "2px solid #e5e5e5",
-              transition: "all 0.2s",
-              position: "relative",
-              overflow: "hidden",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = "scale(1)";
-            }}
+            className={`avatar ${avatarUrl ? 'avatar--has-image' : ''}`}
+            style={{ backgroundImage: avatarUrl ? `url(${avatarUrl})` : 'none' }}
           >
             {!avatarUrl && (user?.fullName?.charAt(0)?.toUpperCase() || "U")}
             
             {/* Overlay khi hover */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: 0,
-                transition: "opacity 0.2s",
-                fontSize: "12px",
-                textAlign: "center",
-                padding: "4px",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.opacity = 1;
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.opacity = 0;
-              }}
-            >
+            <div className="avatar-overlay">
               {uploadingAvatar ? "Đang tải..." : "Thay đổi ảnh"}
             </div>
           </div>
@@ -198,14 +151,14 @@ export default function Profile() {
             type="file"
             accept="image/*"
             onChange={handleAvatarUpload}
-            style={{ display: "none" }}
+            className="hidden-input"
           />
         </div>
         <div>
-          <h1 className="profile-title" style={{ margin: 0 }}>
+          <h1 className="profile-title m-0">
             {user?.fullName || "Người dùng"}
           </h1>
-          <p style={{ margin: "4px 0 0 0", color: "#666", fontSize: "14px" }}>
+          <p className="user-subtitle">
             {user?.role || "Unknown"} • {user?.email || "No email"}
           </p>
         </div>
@@ -214,26 +167,15 @@ export default function Profile() {
 
 
       {/* Thông tin cơ bản */}
-      <div className="upload-card" style={{ marginBottom: 16 }}>
+      <div className="upload-card mb-16">
         {/* Header with Edit button */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600" }}>Thông tin cá nhân</h3>
-          <div style={{ display: "flex", gap: "8px" }}>
+        <div className="section-header">
+          <h3 className="profile-section-title">Thông tin cá nhân</h3>
+          <div className="button-group">
             {!isEditing ? (
               <button
                 onClick={handleEdit}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px"
-                }}
+                className="p-btn p-btn-primary"
               >
                 ✏️ Chỉnh sửa
               </button>
@@ -242,33 +184,14 @@ export default function Profile() {
                 <button
                   onClick={handleCancel}
                   disabled={saving}
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    fontSize: "14px",
-                    cursor: saving ? "not-allowed" : "pointer"
-                  }}
+                  className="p-btn p-btn-secondary"
                 >
                   Hủy
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    fontSize: "14px",
-                    cursor: saving ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px"
-                  }}
+                  className="p-btn p-btn-success"
                 >
                   {saving ? "Đang lưu..." : "✓ Lưu"}
                 </button>
@@ -400,22 +323,7 @@ function EditableField({ label, value, isEditing, onChange, type = "text" }) {
         type={type}
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "8px 12px",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          fontSize: "14px",
-          backgroundColor: "#fff",
-          transition: "border-color 0.2s"
-        }}
-        onFocus={(e) => {
-          e.target.style.borderColor = "#007bff";
-          e.target.style.outline = "none";
-        }}
-        onBlur={(e) => {
-          e.target.style.borderColor = "#ddd";
-        }}
+        className="input"
       />
     </div>
   );
