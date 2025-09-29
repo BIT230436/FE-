@@ -97,7 +97,7 @@ export async function updateUser({ id, fullName, role, status }) {
     );
     return { success: true };
   }
-  const { data } = await api.patch(`/admin/users/${id}`, {
+  const { data } = await api.put(`/admin/users/${id}`, {
     fullName,
     role,
     status,
@@ -112,5 +112,17 @@ export async function deleteUser(id) {
     return { success: true };
   }
   const { data } = await api.delete(`/admin/users/${id}`);
+  return data;
+}
+
+// APPROVE
+export async function approveUser(id) {
+  if (MOCK) {
+    mockUsers = mockUsers.map((u) =>
+      u.id === id ? { ...u, status: "ACTIVE" } : u
+    );
+    return { message: `User ${id} đã được duyệt!` };
+  }
+  const { data } = await api.put(`/admin/approve/${id}`);
   return data;
 }

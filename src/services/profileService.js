@@ -1,108 +1,37 @@
-// src/services/profileService.js
-// TODO(stagewise): Replace mock data with real API calls
+import api from "./apiClient";
+
+// Lấy profile của user hiện tại
 export async function getMyProfile(user) {
-  await delay(300);
-  
-  // Return profile data based on current user
-  const profileData = {
-    fullName: user?.fullName || "Unknown User",
-    email: user?.email || "unknown@example.com",
-    role: user?.role || "INTERN",
-  };
-  
-  // Add role-specific data
-  if (user?.role === "USER") {
-    return {
-      ...profileData,
-      status: "Ứng viên",
-      appliedDate: "2025-01-15", // TODO(stagewise): Get from user data
-      university: "HCMUT", // TODO(stagewise): Get from user data
-      major: "Software Engineering", // TODO(stagewise): Get from user data
-      expectedStartDate: "2025-03-01", // TODO(stagewise): Get from user data
-    };
-  } else if (user?.role === "INTERN") {
-    return {
-      ...profileData,
-      status: "Thực tập sinh",
-      university: "HCMUT", // TODO(stagewise): Get from user data
-      major: "Software Engineering", // TODO(stagewise): Get from user data
-      mentorName: "Mentor One", // TODO(stagewise): Get from user data
-      startDate: "2025-03-01", // TODO(stagewise): Get from user data
-      endDate: "2025-06-30", // TODO(stagewise): Get from user data
-    };
-  } else if (user?.role === "HR") {
-    return {
-      ...profileData,
-      department: "Human Resources",
-      joinDate: "2023-01-15",
-      position: "HR Manager",
-    };
-  } else if (user?.role === "ADMIN") {
-    return {
-      ...profileData,
-      department: "IT Administration",
-      joinDate: "2022-06-01",
-      position: "System Administrator",
-      permissions: "Full Access",
-    };
-  } else {
-    return profileData;
-  }
+  // Nếu backend có endpoint /profile/me
+  // const response = await api.get("/profile/me");
+  // return response.data;
+
+  // Tạm thời mock data dựa trên user từ auth
+  // TODO: Thay bằng API call thật khi backend có endpoint
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const mockProfile = {
+        ...user,
+        university: user.role === "INTERN" || user.role === "USER" ? "Đại học Bách Khoa Hà Nội" : undefined,
+        major: user.role === "INTERN" || user.role === "USER" ? "Công nghệ thông tin" : undefined,
+        mentorName: user.role === "INTERN" ? "Nguyễn Văn Mentor" : undefined,
+        startDate: user.role === "INTERN" ? "2024-01-15" : undefined,
+        endDate: user.role === "INTERN" ? "2024-06-15" : undefined,
+        department: user.role === "HR" || user.role === "ADMIN" ? "IT Department" : undefined,
+        position: user.role === "HR" ? "HR Manager" : user.role === "ADMIN" ? "System Admin" : undefined,
+        joinDate: user.role === "HR" || user.role === "ADMIN" ? "2020-01-01" : undefined,
+        permissions: user.role === "ADMIN" ? "Full Access" : undefined,
+        status: user.role === "USER" ? "PENDING" : "ACTIVE",
+        appliedDate: user.role === "USER" ? new Date().toISOString().split('T')[0] : undefined,
+        expectedStartDate: user.role === "USER" ? "2024-09-01" : undefined,
+      };
+      resolve(mockProfile);
+    }, 500);
+  });
 }
 
-export async function getMyDocuments(user) {
-  await delay(300);
-  
-  // TODO(stagewise): Replace with real API call based on user ID
-  // Return documents specific to the user
-  if (user?.role === "USER") {
-    return [
-      {
-        id: 1,
-        type: "CV",
-        fileName: `CV_${user.fullName?.replace(" ", "_")}.pdf`,
-        uploadedAt: "2025-01-15",
-        status: "PENDING",
-        note: "Đang chờ HR xem xét",
-        url: "#",
-      },
-    ];
-  } else if (user?.role === "INTERN") {
-    return [
-      {
-        id: 1,
-        type: "CV",
-        fileName: `CV_${user.fullName?.replace(" ", "_")}.pdf`,
-        uploadedAt: "2025-03-02",
-        status: "APPROVED",
-        note: "OK",
-        url: "#",
-      },
-      {
-        id: 2,
-        type: "APPLICATION",
-        fileName: "Application.pdf",
-        uploadedAt: "2025-03-03",
-        status: "APPROVED",
-        note: "Đã duyệt",
-        url: "#",
-      },
-      {
-        id: 3,
-        type: "CONTRACT",
-        fileName: "Contract.pdf",
-        uploadedAt: "2025-03-05",
-        status: "PENDING",
-        note: "Chờ ký hợp đồng",
-        url: "#",
-      },
-    ];
-  } else {
-    // HR/ADMIN users might not have documents or have different types
-    return [];
-  }
-}
-
-function delay(ms) {
-  return new Promise((r) => setTimeout(r, ms));
+// Cập nhật profile
+export async function updateMyProfile(data) {
+  const response = await api.put("/profile/me", data);
+  return response.data;
 }

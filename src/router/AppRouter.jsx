@@ -17,6 +17,7 @@ import RoleGuard from "../components/layout/RoleGuard";
 import DocQueue from "../pages/hr/DocQueue";
 import Profile from "../pages/students/Profile";
 import DocumentUpload from "../pages/students/DocumentUpload";
+import MyDocuments from "../pages/students/MyDocuments";
 
 export default function AppRouter() {
   return (
@@ -70,6 +71,14 @@ export default function AppRouter() {
               element={
                 <RoleGuard roles={["USER"]}>
                   <DocumentUpload />
+                </RoleGuard>
+              } 
+            />
+            <Route 
+              path="/my-documents" 
+              element={
+                <RoleGuard roles={["USER"]}>
+                  <MyDocuments />
                 </RoleGuard>
               } 
             />

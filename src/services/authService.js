@@ -1,9 +1,23 @@
 import api from "./apiClient";
 
-// Spring Boot: POST /api/auth/login  -> body { email, password }
-// response: { token, user: { id, email, fullName, role } }
-export async function loginApi(email, password) {
-  const { data } = await api.post("/auth/login", { email, password });
-  return data;
+// Đăng nhập - API thật
+export async function login(data) {
+  const response = await api.post("/auth/login", {
+    email: data.email,
+    password: data.password,
+  });
+  return response.data;
 }
 
+// Đăng ký - API thật
+export async function register(data) {
+  const response = await api.post("/auth/register", {
+    email: data.email,
+    password: data.password,
+    fullName: data.fullName,
+  });
+  return response.data;
+}
+
+// Alias cho tương thích (nếu có code cũ dùng loginApi)
+export const loginApi = login;

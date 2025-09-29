@@ -1,103 +1,77 @@
 import api from "./apiClient";
 
-const MOCK = true; // bật mock
-
-// Định nghĩa các quyền có thể có trong hệ thống
-export const PERMISSIONS = {
-  // Dashboard
-  VIEW_DASHBOARD: "VIEW_DASHBOARD",
-
-  // Internships
-  VIEW_INTERNSHIPS: "VIEW_INTERNSHIPS",
-  CREATE_INTERNSHIP: "CREATE_INTERNSHIP",
-  EDIT_INTERNSHIP: "EDIT_INTERNSHIP",
-  DELETE_INTERNSHIP: "DELETE_INTERNSHIP",
-
-  // Students
-  VIEW_STUDENTS: "VIEW_STUDENTS",
-  CREATE_STUDENT: "CREATE_STUDENT",
-  EDIT_STUDENT: "EDIT_STUDENT",
-  DELETE_STUDENT: "DELETE_STUDENT",
-
-  // Admin
-  MANAGE_USERS: "MANAGE_USERS",
-  MANAGE_PERMISSIONS: "MANAGE_PERMISSIONS",
-  VIEW_REPORTS: "VIEW_REPORTS",
-};
-
-// Nhóm quyền theo module
+// Định nghĩa nhóm quyền (cho UI)
 export const PERMISSION_GROUPS = {
-  Dashboard: [PERMISSIONS.VIEW_DASHBOARD],
-  "Quản lý Thực tập": [
-    PERMISSIONS.VIEW_INTERNSHIPS,
-    PERMISSIONS.CREATE_INTERNSHIP,
-    PERMISSIONS.EDIT_INTERNSHIP,
-    PERMISSIONS.DELETE_INTERNSHIP,
+  Dashboard: ["VIEW_DASHBOARD"],
+  "Quản lý thực tập": [
+    "VIEW_INTERNSHIPS",
+    "CREATE_INTERNSHIP",
+    "EDIT_INTERNSHIP",
+    "DELETE_INTERNSHIP",
   ],
-  "Quản lý Sinh viên": [
-    PERMISSIONS.VIEW_STUDENTS,
-    // PERMISSIONS.CREATE_STUDENT,
-    PERMISSIONS.EDIT_STUDENT,
-    PERMISSIONS.DELETE_STUDENT,
+  "Quản lý sinh viên": [
+    "VIEW_STUDENTS",
+    "CREATE_STUDENT",
+    "EDIT_STUDENT",
+    "DELETE_STUDENT",
   ],
-  "Quản trị": [
-    PERMISSIONS.MANAGE_USERS,
-    // PERMISSIONS.MANAGE_PERMISSIONS,
-    PERMISSIONS.VIEW_REPORTS,
-  ],
+  "Quản lý người dùng": ["MANAGE_USERS"],
+  "Quản lý phân quyền": ["MANAGE_PERMISSIONS"],
+  "Báo cáo": ["VIEW_REPORTS"],
 };
 
-// Mock data - quyền mặc định cho từng role
-const mockRolePermissions = {
-  ADMIN: Object.values(PERMISSIONS), // Admin có tất cả quyền
-  HR: [
-    PERMISSIONS.VIEW_DASHBOARD,
-    PERMISSIONS.VIEW_INTERNSHIPS,
-    PERMISSIONS.CREATE_INTERNSHIP,
-    PERMISSIONS.EDIT_INTERNSHIP,
-    PERMISSIONS.VIEW_STUDENTS,
-    PERMISSIONS.CREATE_STUDENT,
-    PERMISSIONS.EDIT_STUDENT,
-  ],
-  MENTOR: [
-    PERMISSIONS.VIEW_DASHBOARD,
-    PERMISSIONS.VIEW_INTERNSHIPS,
-    PERMISSIONS.VIEW_STUDENTS,
-  ],
-  INTERN: [PERMISSIONS.VIEW_DASHBOARD],
-};
-
-// Lấy danh sách quyền của một role
-export async function getRolePermissions(role) {
-  if (MOCK) {
-    return { permissions: mockRolePermissions[role] || [] };
-  }
-  const { data } = await api.get(`/admin/roles/${role}/permissions`);
-  return data;
+// Lấy tất cả permissions
+export async function getAllPermissions() {
+  const response = await api.get("/admin/permissions");
+  return response.data;
 }
 
-// Cập nhật quyền cho một role
-export async function updateRolePermissions(role, permissions) {
-  if (MOCK) {
-    mockRolePermissions[role] = permissions;
-    return { success: true };
-  }
-  const { data } = await api.put(`/admin/roles/${role}/permissions`, {
-    permissions,
-  });
-  return data;
+// Lấy tất cả roles
+export async function getAllRoles() {
+  const response = await api.get("/admin/permissions/roles");
+  return response.data;
 }
 
-// Lấy tất cả roles và quyền của chúng
+// Lấy permissions của một role
+export async function getRolePermissions(roleId) {
+  const response = await api.get(`/admin/permissions/role/${roleId}`);
+  return response.data;
+}
+
+// Lấy tất cả roles với permissions (cho Permissions page)
 export async function getAllRolePermissions() {
-  if (MOCK) {
-    return {
-      roles: Object.keys(mockRolePermissions).map((role) => ({
-        role,
-        permissions: mockRolePermissions[role],
-      })),
-    };
+  const roles = await getAllRoles();
+  const result = { roles: [] };
+
+  for (const role of roles) {
+    const roleDetail = await getRolePermissions(role.id);
+    result.roles.push({
+      role: role.name,
+      permissions: roleDetail.permissions.map((p) => p.name),
+    });
   }
-  const { data } = await api.get("/admin/roles/permissions");
-  return data;
+
+  return result;
+}
+
+// Cập nhật permissions cho role
+export async function updateRolePermissions(roleName, permissions) {
+  // Lấy ID của role từ tên
+  const roles = await getAllRoles();
+  const role = roles.find((r) => r.name === roleName);
+  if (!role) throw new Error(`Role ${roleName} không tồn tại`);
+
+  // Lấy tất cả permissions để map tên -> ID
+  const allPermissions = await getAllPermissions();
+  const permissionIds = permissions
+    .map((permName) => {
+      const perm = allPermissions.find((p) => p.name === permName);
+      return perm ? perm.id : null;
+    })
+    .filter(Boolean);
+
+  const response = await api.put(`/admin/permissions/role/${role.id}`, {
+    permissionIds,
+  });
+  return response.data;
 }

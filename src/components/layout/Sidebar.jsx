@@ -55,6 +55,12 @@ export default function Sidebar({ isOpen, onClose }) {
       icon: "📄",
       roles: ["USER"], // Chỉ USER mới thấy menu này
     },
+    {
+      label: "Hồ sơ của tôi",
+      path: "/my-documents",
+      icon: "📝",
+      roles: ["USER"],
+    },
   ];
 
   const visibleItems = menuItems.filter((item) =>

@@ -1,17 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import { register } from "../../services/authService"; // Import từ authService
 import "./auth.css";
 
 import teamworkImage from "../../assets/Hinh-anh-ky-nang-lam-viec-nhom.jpg";
 import logoTeam from "../../assets/logoTeam.jpg";
-
-let mockUsers = [
-  { id: 1, email: "admin@company.com", password: "admin123", fullName: "Admin User", role: "ADMIN" },
-  { id: 2, email: "hr@company.com", password: "hr123", fullName: "HR Manager", role: "HR" },
-  { id: 3, email: "mentor@company.com", password: "mentor123", fullName: "Mentor", role: "MENTOR" },
-  { id: 4, email: "intern@company.com", password: "intern123", fullName: "Intern", role: "INTERN" },
-];
 
 export default function Register() {
   const navigate = useNavigate();
@@ -23,6 +17,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   function validate(values) {
     const errs = {};
@@ -51,10 +46,11 @@ export default function Register() {
     return errs;
   }
 
-  function onRegister(e) {
+  async function onRegister(e) {
     e.preventDefault();
     setError("");
     setFieldErrors({});
+    setLoading(true);
 
     const values = {
       fullName: fullName.trim(),
@@ -67,46 +63,55 @@ export default function Register() {
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs);
       setError("Vui lòng kiểm tra lại thông tin");
+      setLoading(false);
       return;
     }
 
-    const existUser = mockUsers.find((u) => u.email.toLowerCase() === values.email);
-    if (existUser) {
-      setError("Email đã tồn tại");
-      return;
-    }
+    try {
+      // Gọi API register từ authService
+      const response = await register({
+        fullName: values.fullName,
+        email: values.email,
+        password: values.password,
+        role: "USER", // Người đăng ký mặc định là USER
+      });
 
-    const newUser = {
-      id: mockUsers.length + 1,
-      email: values.email,
-      password: values.password,
-      fullName: values.fullName || "New User",
-      role: "USER", // Người tự đăng ký là USER, chỉ có quyền nộp CV
-    };
+      if (!response.success) {
+        setError(response.message || "Đăng ký thất bại");
+        setLoading(false);
+        return;
+      }
 
-    mockUsers.push(newUser);
+      // Backend trả về user sau khi đăng ký
+      const token = response.token || "session";
+      setAuth(response.user, token);
 
-    const token = `mock-jwt-token-${newUser.id}`;
-    console.log('Register - New user created:', newUser);
-    setAuth(newUser, token);
-    
-    // Chuyển hướng dựa trên vai trò - chỉ USER mới đến trang upload
-    if (newUser.role === "USER") {
-      console.log('Redirecting new USER to upload-documents');
-      navigate("/upload-documents");
-    } else {
-      navigate("/"); // INTERN và các role khác vào Dashboard
+      // Hiển thị thông báo thành công
+      alert("Đăng ký thành công!");
+
+      // Chuyển về trang login hoặc upload-documents
+      if (response.user.role === "USER") {
+        navigate("/upload-documents");
+      } else {
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("Register error:", err);
+      setError(
+        err.response?.data?.message || 
+        "Đăng ký thất bại. Vui lòng thử lại."
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <div className="auth-container">
-      {/* Bên trái */}
       <div className="auth-left">
         <img src={teamworkImage} alt="Teamwork" />
       </div>
 
-      {/* Form bên phải */}
       <div className="auth-right">
         <div className="auth-logo">
           <img src={logoTeam} alt="Logo Register" />
@@ -116,52 +121,62 @@ export default function Register() {
 
         {error && <div className="auth-alert">{error}</div>}
 
-        <input
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          placeholder="Họ và tên"
-          className="auth-input"
-        />
-        {fieldErrors.fullName && (
-          <div className="auth-inline-error">{fieldErrors.fullName}</div>
-        )}
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className="auth-input"
-        />
-        {fieldErrors.email && (
-          <div className="auth-inline-error">{fieldErrors.email}</div>
-        )}
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Mật khẩu"
-          className="auth-input"
-        />
-        {fieldErrors.password && (
-          <div className="auth-inline-error">{fieldErrors.password}</div>
-        )}
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Xác nhận mật khẩu"
-          className="auth-input"
-        />
-        {fieldErrors.confirmPassword && (
-          <div className="auth-inline-error">{fieldErrors.confirmPassword}</div>
-        )}
+        <form onSubmit={onRegister}>
+          <input
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Họ và tên"
+            className="auth-input"
+            disabled={loading}
+          />
+          {fieldErrors.fullName && (
+            <div className="auth-inline-error">{fieldErrors.fullName}</div>
+          )}
+          
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className="auth-input"
+            type="email"
+            disabled={loading}
+          />
+          {fieldErrors.email && (
+            <div className="auth-inline-error">{fieldErrors.email}</div>
+          )}
+          
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mật khẩu"
+            className="auth-input"
+            disabled={loading}
+          />
+          {fieldErrors.password && (
+            <div className="auth-inline-error">{fieldErrors.password}</div>
+          )}
+          
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Xác nhận mật khẩu"
+            className="auth-input"
+            disabled={loading}
+          />
+          {fieldErrors.confirmPassword && (
+            <div className="auth-inline-error">{fieldErrors.confirmPassword}</div>
+          )}
 
-        <button
-          onClick={onRegister}
-          disabled={!fullName || !email || !password || !confirmPassword}
-          className="btn btn-success"
-        >
-          Đăng ký
-        </button>
+          <button
+            type="submit"
+            disabled={loading || !fullName || !email || !password || !confirmPassword}
+            className="btn btn-success"
+          >
+            {loading ? "Đang đăng ký..." : "Đăng ký"}
+          </button>
+        </form>
 
         <div className="auth-footer">
           Đã có tài khoản?{" "}
