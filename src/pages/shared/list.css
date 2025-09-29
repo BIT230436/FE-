@@ -75,6 +75,17 @@
   padding: 4px 8px;
   font-size: 12px;
 }
+/* Dedicated style for the 'Xóa bộ lọc' button only */
+.clear-filters-btn {
+  background: #e9ecef;
+  color: #111;
+  padding: 6px 14px;
+  font-size: 14px;
+  border: 1px solid #d0d4d9;
+}
+.clear-filters-btn:hover {
+  background: #dee2e6;
+}
 .badge {
   padding: 4px 8px;
   border-radius: 4px;
@@ -88,6 +99,18 @@
 .badge-danger {
   background: #f8d7da;
   color: #721c24;
+}
+
+/* Dark mode, scoped only to the clear filters button */
+@media (prefers-color-scheme: dark) {
+  .clear-filters-btn {
+    background: #2d2f33;
+    color: #f5f5f5;
+    border-color: #3a3d42;
+  }
+  .clear-filters-btn:hover {
+    background: #3a3d42;
+  }
 }
 .center {
   text-align: center;

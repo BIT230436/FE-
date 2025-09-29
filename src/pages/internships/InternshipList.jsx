@@ -141,7 +141,7 @@ export default function InternshipList() {
           <div className="form-group">
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn clear-filters-btn"
               onClick={() => {
                 setSearchText("");
                 setSchoolFilter("");
