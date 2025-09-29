@@ -17,7 +17,11 @@ export default function DocQueue() {
   }, []);
 
   async function onAction(id, action) {
-    const note = action === "REJECT" ? prompt("Lý do từ chối?") : "";
+    const promptText =
+      action === "REJECT"
+        ? "Nhập ghi chú/lý do từ chối (không bắt buộc):"
+        : "Nhập ghi chú/lý do duyệt (không bắt buộc):";
+    const note = (prompt(promptText) || "").trim();
     await reviewDoc(id, action, note);
     await load();
   }
