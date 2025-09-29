@@ -105,7 +105,7 @@ export default function Register() {
       setLoading(false);
     }
   }
-
+//
   return (
     <div className="auth-container">
       <div className="auth-left">
