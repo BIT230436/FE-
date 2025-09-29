@@ -77,7 +77,8 @@ export default function Permissions() {
     );
   }
 
-  const roles = Object.keys(rolePermissions);
+  // Exclude ADMIN from the editable matrix – ADMIN is assumed to have full permissions
+  const roles = Object.keys(rolePermissions).filter((r) => r !== "ADMIN");
 
   return (
     <div className="admin-container">
