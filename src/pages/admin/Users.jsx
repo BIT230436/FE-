@@ -7,7 +7,7 @@ import {
 } from "../../services/adminService";
 import "./admin.css";
 
-const ROLES = ["ADMIN", "HR", "MENTOR", "INTERN"];
+const ROLES = ["ADMIN", "HR", "MENTOR", "INTERN", "USER"];
 const STATUSES = ["ACTIVE", "PENDING", "INACTIVE"];
 
 export default function Users() {
