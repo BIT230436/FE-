@@ -10,11 +10,7 @@ export async function uploadMyDoc({ type, file }) {
   const email = useAuthStore.getState().user?.email;
   if (email) formData.append("uploaderEmail", email);
   
-  const response = await api.post("/documents/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/documents/upload", formData);
   return response.data;
 }
 
@@ -65,7 +61,7 @@ export async function getDocsByIntern(internId) {
 }
 // Duyệt/từ chối tài liệu
 export async function reviewDoc(id, action, note = "") {
-  const response = await api.put(`/documents/${id}/review`, {
+  return api.put(`/documents/${id}/review`, {
     action, // "APPROVE" hoặc "REJECT"
     note,
   });
