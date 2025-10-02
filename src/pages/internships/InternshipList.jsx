@@ -17,16 +17,17 @@ export default function InternshipList() {
   const [schoolFilter, setSchoolFilter] = useState("");
   const [majorFilter, setMajorFilter] = useState("");
 
+  // Load initial data
   useEffect(() => {
     loadInternships();
-  }, [searchText, schoolFilter, majorFilter]);
+  }, []);
   
   async function loadInternships() {
     setLoading(true);
     try {
       const response = await getInternships({
-        q: searchText,
-        status: "", // hoặc thêm filter status
+        q: "", // Lấy tất cả, filter ở client
+        status: "",
         page: 0,
         size: 100
       });
