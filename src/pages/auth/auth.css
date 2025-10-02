@@ -118,6 +118,7 @@
 .btn-primary {
   background: #4a90e2;
   color: #fff;
+  font-size: 17px !important;
 }
 
 .btn-primary:hover {
