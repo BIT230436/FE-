@@ -146,7 +146,7 @@ export default function InternshipList() {
           <thead>
             <tr>
               <th className="table-th">Vị trí</th>
-              <th className="table-th">Sinh viên</th>
+              <th className="table-th">Tên sinh viên</th>
               <th className="table-th">Email</th>
               <th className="table-th">Trường</th>
               <th className="table-th">Ngành</th>
@@ -343,7 +343,7 @@ function CreateInternshipModal({ onClose, onCreate }) {
           <div className="form-row">
             <div className="form-group">
               <label className="form-label" htmlFor="student">
-                Sinh viên
+                Tên sinh viên
               </label>
               <input
                 id="student"
