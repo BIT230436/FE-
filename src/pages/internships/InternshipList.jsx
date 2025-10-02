@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
 import "../shared/list.css";
+import { 
+  getInternships, 
+  createInternship, 
+  updateInternship, 
+  deleteInternship 
+} from "../../services/internshipService";
 
 export default function InternshipList() {
   const [internships, setInternships] = useState([]);
@@ -12,47 +18,28 @@ export default function InternshipList() {
   const [majorFilter, setMajorFilter] = useState("");
 
   useEffect(() => {
-    // Mock data for now
-    setTimeout(() => {
-      setInternships([
-        {
-          id: 1,
-          title: "Frontend Developer Intern",
-          student: "Nguyễn Văn A",
-          studentEmail: "vana@gmail.com",
-          school: "Đại học Bách Khoa Hà Nội",
-          major: "Công nghệ thông tin",
-          status: "active",
-          startDate: "2024-01-15",
-          endDate: "2024-06-15",
-        },
-        {
-          id: 2,
-          title: "Backend Developer Intern",
-          student: "Trần Thị B",
-          studentEmail: "thib@gmail.com",
-          school: "Đại học Kinh tế Quốc dân",
-          major: "Khoa học máy tính",
-          status: "completed",
-          startDate: "2023-09-01",
-          endDate: "2024-02-01",
-        },
-        {
-          id: 3,
-          title: "QA Intern",
-          student: "Lê Văn C",
-          studentEmail: "levanc@gmail.com",
-          school: "Đại học Bách Khoa Hà Nội",
-          major: "Kỹ thuật điện tử",
-          status: "active",
-          startDate: "2024-03-01",
-          endDate: "2024-09-01",
-        },
-      ]);
+    loadInternships();
+  }, [searchText, schoolFilter, majorFilter]);
+  
+  async function loadInternships() {
+    setLoading(true);
+    try {
+      const response = await getInternships({
+        q: searchText,
+        status: "", // hoặc thêm filter status
+        page: 0,
+        size: 100
+      });
+      setInternships(response.data || []);
+    } catch (error) {
+      console.error("Error loading internships:", error);
+      alert("Không thể tải danh sách thực tập");
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  }
 
+  
   // Derived values for filters
   const schools = [
     ...new Set(internships.map((it) => it.school).filter(Boolean)),
@@ -177,7 +164,7 @@ export default function InternshipList() {
               </tr>
             ) : (
               filteredInternships.map((internship) => (
-                <tr key={internship.id}>
+                <tr key={internship.intern_id}>
                   <td className="table-td">{internship.title}</td>
                   <td className="table-td">{internship.student}</td>
                   <td className="table-td">{internship.studentEmail}</td>
@@ -221,15 +208,34 @@ export default function InternshipList() {
         </table>
       </div>
       {showCreate && (
-        <CreateInternshipModal
-          onClose={() => setShowCreate(false)}
-          onCreate={(data) => {
-            const newItem = { id: Date.now(), ...data };
-            setInternships((prev) => [newItem, ...prev]);
-            setShowCreate(false);
-          }}
-        />
-      )}
+  <CreateInternshipModal
+    onClose={() => setShowCreate(false)}
+    onCreate={async (data) => {
+      try {
+        const payload = {
+          title: data.title,
+          student: data.student,
+          studentEmail: data.studentEmail,
+          school: data.school,
+          major: data.major,
+          status: data.status,
+          startDate: data.startDate,
+          endDate: data.endDate
+        };
+        console.log("Sending data:", payload);
+        const response = await createInternship(payload);
+        console.log("Response:", response);
+        alert("Tạo thực tập sinh thành công!");
+        setShowCreate(false);
+        await loadInternships();
+      } catch (error) {
+        console.error("Error creating internship:", error);
+        console.error("Error response:", error?.response?.data);
+        alert(error?.response?.data?.message || error?.message || "Tạo thất bại");
+      }
+    }}
+  />
+)}
       {viewing && (
         <ViewInternshipModal data={viewing} onClose={() => setViewing(null)} />
       )}
@@ -237,11 +243,24 @@ export default function InternshipList() {
         <EditInternshipModal
           data={editing}
           onClose={() => setEditing(null)}
-          onSave={(updated) => {
-            setInternships((prev) =>
-              prev.map((it) => (it.id === updated.id ? updated : it))
-            );
-            setEditing(null);
+          onSave={async (updated) => {
+            try {
+              await updateInternship(editing.intern_id, {
+                title: updated.title,
+                student: updated.student,
+                studentEmail: updated.studentEmail,
+                school: updated.school,
+                major: updated.major,
+                status: updated.status,
+                startDate: updated.startDate,
+                endDate: updated.endDate
+              });
+              alert("Cập nhật thành công!");
+              setEditing(null);
+              await loadInternships();
+            } catch (error) {
+              alert(error?.response?.data?.message || "Cập nhật thất bại");
+            }
           }}
         />
       )}
