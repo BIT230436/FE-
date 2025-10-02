@@ -44,6 +44,11 @@
   /* hiệu ứng slide từ phải vào */
   animation: slideInRight 0.8s ease-out forwards;
 }
+/* Đảm bảo form giãn full chiều ngang vùng .auth-right để nút submit = Google */
+.auth-right form {
+  width: 100%;
+  align-self: stretch;
+}
 
 /* --- Keyframes --- */
 @keyframes slideInRight {
@@ -86,7 +91,7 @@
 
 /* Input */
 .auth-input {
-  width: 100%;
+  width: 93%;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   border: 1px solid #ddd;
