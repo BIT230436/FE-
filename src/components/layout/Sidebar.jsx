@@ -16,7 +16,9 @@ export default function Sidebar({ isOpen, onClose }) {
     onClose(); // Đóng sidebar sau khi logout
   };
 
+  
   const menuItems = [
+<<<<<<< HEAD
     {
       label: "Dashboard",
       path: "/",
@@ -68,9 +70,55 @@ export default function Sidebar({ isOpen, onClose }) {
       roles: ["USER"],
     },
   ];
+=======
+  {
+    label: "Dashboard",
+    path: "/",
+    icon: "📊",
+    permission: null, // Ai đăng nhập cũng thấy
+  },
+  {
+    label: "Thực tập",
+    path: "/internships",
+    icon: "💼",
+    permission: "VIEW_INTERNSHIPS",
+  },
+  {
+    label: "Quản lý người dùng",
+    path: "/admin/users",
+    icon: "👥",
+    permission: "MANAGE_USERS",
+  },
+  {
+    label: "Duyệt hồ sơ",
+    path: "/hr/documents",
+    icon: "🗂️",
+    permission: null,
+  },
+  {
+    label: "Phân quyền",
+    path: "/admin/permissions",
+    icon: "🔐",
+    permission: "MANAGE_PERMISSIONS",
+  },
+  {
+    label: "Nộp hồ sơ",
+    path: "/upload-documents",
+    icon: "📄",
+    permission: null,
+  },
+  {
+    label: "Hồ sơ của tôi",
+    path: "/my-documents",
+    icon: "📝",
+    permission: null,
+  },
+];
+  const userPermissions = user?.permissions || [];
+>>>>>>> ad6b8fb8e4e7f0f07b09a37204b813784c78def4
 
   const visibleItems = menuItems.filter((item) =>
-    item.roles.includes(user?.role)
+    !item.permission || userPermissions.includes(item.permission)
   );
 
   return (
