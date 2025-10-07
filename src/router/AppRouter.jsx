@@ -27,7 +27,7 @@ export default function AppRouter() {
       <Routes>
         {/* Public */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} /> 
+        <Route path="/register" element={<Register />} />
         <Route path="/oauth2/callback" element={<OAuthCallback />} />
         <Route path="/apply" element={<DocumentUpload />} />
 
@@ -38,7 +38,7 @@ export default function AppRouter() {
             <Route
               path="/internships"
               element={
-                <PermissionGuard requiredPermissions={["VIEW_INTERNSHIPS"]}> 
+                <PermissionGuard requiredPermissions={["VIEW_INTERNSHIPS"]}>
                   <InternshipList />
                 </PermissionGuard>
               }
@@ -76,21 +76,21 @@ export default function AppRouter() {
               }
             />
             <Route path="/profile" element={<Profile />} />
-            <Route 
-              path="/upload-documents" 
+            <Route
+              path="/upload-documents"
               element={
-                <PermissionGuard requiredPermissions={[]}>  
+                <PermissionGuard requiredPermissions={[]}>
                   <DocumentUpload />
-                </PermissionGuard>  
-              } 
+                </PermissionGuard>
+              }
             />
-            <Route 
-              path="/my-documents" 
+            <Route
+              path="/my-documents"
               element={
                 <PermissionGuard requiredPermissions={[]}>
                   <MyDocuments />
                 </PermissionGuard>
-              } 
+              }
             />
           </Route>
         </Route>
