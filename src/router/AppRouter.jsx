@@ -15,6 +15,7 @@ import ProtectedRoute from "../components/layout/ProtectedRoute";
 import RoleGuard from "../components/layout/RoleGuard";
 
 import DocQueue from "../pages/hr/DocQueue";
+import ContractUpload from "../pages/hr/ContractUpload";
 import Profile from "../pages/students/Profile";
 import DocumentUpload from "../pages/students/DocumentUpload";
 import MyDocuments from "../pages/students/MyDocuments";
@@ -62,6 +63,14 @@ export default function AppRouter() {
               element={
                 <RoleGuard roles={["HR", "ADMIN"]}>
                   <DocQueue />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/hr/contract-upload"
+              element={
+                <RoleGuard roles={["HR", "ADMIN"]}>
+                  <ContractUpload />
                 </RoleGuard>
               }
             />

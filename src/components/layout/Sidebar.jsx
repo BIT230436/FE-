@@ -42,6 +42,12 @@ export default function Sidebar({ isOpen, onClose }) {
       icon: "🗂️",
       roles: ["HR", "ADMIN"],
     },
+    {
+      label: "Tải hợp đồng",
+      path: "/hr/contract-upload",
+      icon: "📑",
+      roles: ["HR", "ADMIN"],
+    },
 
     {
       label: "Phân quyền",
@@ -53,7 +59,7 @@ export default function Sidebar({ isOpen, onClose }) {
       label: "Nộp hồ sơ",
       path: "/upload-documents",
       icon: "📄",
-      roles: ["USER"], // Chỉ USER mới thấy menu này
+      roles: ["USER"],
     },
     {
       label: "Hồ sơ của tôi",
@@ -173,11 +179,16 @@ export default function Sidebar({ isOpen, onClose }) {
           >
             {!user?.avatar && (user?.fullName?.charAt(0)?.toUpperCase() || "U")}
           </div>
-          
+
           {/* User Details */}
           <div style={{ textAlign: "left", flex: 1 }}>
             <div
-              style={{ fontSize: "14px", fontWeight: "600", marginBottom: "4px", color: "#333" }}
+              style={{
+                fontSize: "14px",
+                fontWeight: "600",
+                marginBottom: "4px",
+                color: "#333",
+              }}
             >
               {user?.fullName}
             </div>

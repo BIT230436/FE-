@@ -72,3 +72,20 @@ export async function getDocStats() {
   const response = await api.get("/documents/stats");
   return response.data.data;
 }
+
+// Upload tài liệu cho 1 thực tập sinh cụ thể (HR)
+// type thường là "CONTRACT"
+export async function uploadInternDoc({ internId, type, file }) {
+  const formData = new FormData();
+  formData.append("internId", internId);
+  formData.append("type", type);
+  formData.append("file", file);
+  const response = await api.post("/documents/upload-for-intern", formData);
+  return response.data;
+}
+
+// Xóa tài liệu theo id
+export async function deleteDoc(id) {
+  const response = await api.delete(`/documents/${id}`);
+  return response.data;
+}
