@@ -16,55 +16,55 @@ export default function Sidebar({ isOpen, onClose }) {
     onClose(); // Đóng sidebar sau khi logout
   };
 
+  
   const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/",
-      icon: "📊",
-      roles: ["ADMIN", "HR", "MENTOR", "INTERN"],
-    },
-    {
-      label: "Thực tập",
-      path: "/internships",
-      icon: "💼",
-      roles: ["ADMIN", "HR"],
-    },
-    {
-      label: "Quản lý người dùng",
-      path: "/admin/users",
-      icon: "👥",
-      roles: ["ADMIN"],
-    },
-    // src/components/layout/Sidebar.jsx
-    {
-      label: "Duyệt hồ sơ",
-      path: "/hr/documents",
-      icon: "🗂️",
-      roles: ["HR", "ADMIN"],
-    },
-
-    {
-      label: "Phân quyền",
-      path: "/admin/permissions",
-      icon: "🔐",
-      roles: ["ADMIN"],
-    },
-    {
-      label: "Nộp hồ sơ",
-      path: "/upload-documents",
-      icon: "📄",
-      roles: ["USER"], // Chỉ USER mới thấy menu này
-    },
-    {
-      label: "Hồ sơ của tôi",
-      path: "/my-documents",
-      icon: "📝",
-      roles: ["USER"],
-    },
-  ];
+  {
+    label: "Dashboard",
+    path: "/",
+    icon: "📊",
+    permission: null, // Ai đăng nhập cũng thấy
+  },
+  {
+    label: "Thực tập",
+    path: "/internships",
+    icon: "💼",
+    permission: "VIEW_INTERNSHIPS",
+  },
+  {
+    label: "Quản lý người dùng",
+    path: "/admin/users",
+    icon: "👥",
+    permission: "MANAGE_USERS",
+  },
+  {
+    label: "Duyệt hồ sơ",
+    path: "/hr/documents",
+    icon: "🗂️",
+    permission: null,
+  },
+  {
+    label: "Phân quyền",
+    path: "/admin/permissions",
+    icon: "🔐",
+    permission: "MANAGE_PERMISSIONS",
+  },
+  {
+    label: "Nộp hồ sơ",
+    path: "/upload-documents",
+    icon: "📄",
+    permission: null,
+  },
+  {
+    label: "Hồ sơ của tôi",
+    path: "/my-documents",
+    icon: "📝",
+    permission: null,
+  },
+];
+  const userPermissions = user?.permissions || [];
 
   const visibleItems = menuItems.filter((item) =>
-    item.roles.includes(user?.role)
+    !item.permission || userPermissions.includes(item.permission)
   );
 
   return (

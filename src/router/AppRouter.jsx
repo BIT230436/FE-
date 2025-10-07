@@ -13,6 +13,7 @@ import OAuthCallback from "../pages/auth/OAuthCallback";
 import AppLayout from "../components/layout/Layout";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 import RoleGuard from "../components/layout/RoleGuard";
+import PermissionGuard from "../components/layout/PermissionGuard";
 
 import DocQueue from "../pages/hr/DocQueue";
 import Profile from "../pages/students/Profile";
@@ -36,50 +37,50 @@ export default function AppRouter() {
             <Route
               path="/internships"
               element={
-                <RoleGuard roles={["HR", "ADMIN"]}>
+                <PermissionGuard requiredPermissions={["VIEW_INTERNSHIPS"]}> 
                   <InternshipList />
-                </RoleGuard>
+                </PermissionGuard>
               }
             />
             <Route
               path="/admin/users"
               element={
-                <RoleGuard roles={["ADMIN"]}>
+                <PermissionGuard requiredPermissions={["MANAGE_USERS"]}>
                   <Users />
-                </RoleGuard>
+                </PermissionGuard>
               }
             />
             <Route
               path="/admin/permissions"
               element={
-                <RoleGuard roles={["ADMIN"]}>
+                <PermissionGuard requiredPermissions={["MANAGE_PERMISSIONS"]}>
                   <Permissions />
-                </RoleGuard>
+                </PermissionGuard>
               }
             />
             <Route
               path="/hr/documents"
               element={
-                <RoleGuard roles={["HR", "ADMIN"]}>
+                <PermissionGuard requiredPermissions={["DOC_APPROVE"]}>
                   <DocQueue />
-                </RoleGuard>
+                </PermissionGuard>
               }
             />
             <Route path="/profile" element={<Profile />} />
             <Route 
               path="/upload-documents" 
               element={
-                <RoleGuard roles={["USER"]}>
+                <PermissionGuard requiredPermissions={[]}>  
                   <DocumentUpload />
-                </RoleGuard>
+                </PermissionGuard>  
               } 
             />
             <Route 
               path="/my-documents" 
               element={
-                <RoleGuard roles={["USER"]}>
+                <PermissionGuard requiredPermissions={[]}>
                   <MyDocuments />
-                </RoleGuard>
+                </PermissionGuard>
               } 
             />
           </Route>
