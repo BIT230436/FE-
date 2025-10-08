@@ -6,6 +6,8 @@ import {
   updateInternship, 
   deleteInternship 
 } from "../../services/internshipService";
+import { getMentors, assignMentor, unassignMentor, getInternMentorAssignment } from "../../services/mentorService";
+import MentorAssignmentModal from "./MentorAssignmentModal";
 
 export default function InternshipList() {
   const [internships, setInternships] = useState([]);
@@ -16,6 +18,9 @@ export default function InternshipList() {
   const [searchText, setSearchText] = useState("");
   const [schoolFilter, setSchoolFilter] = useState("");
   const [majorFilter, setMajorFilter] = useState("");
+  const [mentorAssignment, setMentorAssignment] = useState(null);
+  const [mentors, setMentors] = useState([]);
+  const [loadingMentors, setLoadingMentors] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -37,6 +42,24 @@ export default function InternshipList() {
       alert("Không thể tải danh sách thực tập");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadMentors() {
+    setLoadingMentors(true);
+    try {
+      const data = await getMentors({ size: 100, status: "ACTIVE" });
+      let rows = [];
+      if (Array.isArray(data?.items)) {
+        rows = data.items;
+      } else if (Array.isArray(data)) {
+        rows = data;
+      }
+      setMentors(rows);
+    } catch (e) {
+      console.error("loadMentors error", e);
+    } finally {
+      setLoadingMentors(false);
     }
   }
 
@@ -197,9 +220,16 @@ export default function InternshipList() {
                     </button>
                     <button
                       className="btn btn-warning"
+                      style={{ marginRight: 8 }}
                       onClick={() => setEditing(internship)}
                     >
                       Sửa
+                    </button>
+                    <button
+                      className="btn btn-info"
+                      onClick={() => setMentorAssignment(internship)}
+                    >
+                      Phân công mentor
                     </button>
                   </td>
                 </tr>
@@ -263,6 +293,18 @@ export default function InternshipList() {
               alert(error?.response?.data?.message || "Cập nhật thất bại");
             }
           }}
+        />
+      )}
+      {mentorAssignment && (
+        <MentorAssignmentModal
+          internship={mentorAssignment}
+          mentors={mentors}
+          loadingMentors={loadingMentors}
+          onClose={() => {
+            setMentorAssignment(null);
+            loadInternships(); // Reload để cập nhật trạng thái
+          }}
+          onLoadMentors={loadMentors}
         />
       )}
     </div>

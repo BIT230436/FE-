@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getInterns } from "../../services/internService";
+import { getDocsByIntern, uploadInternDoc, deleteDoc } from "../../services/documentService";
 import "../students/profile.css";
 
 export default function ContractUpload() {
@@ -15,52 +16,7 @@ export default function ContractUpload() {
     doc: null,
   });
 
-  // ===== MOCK DOCUMENT API (localStorage) =====
-  const STORAGE_KEY = "mock-documents"; // { [internId]: [{ id, type, fileName, uploadedAt }] }
-
-  const mockLoadAll = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
-  };
-
-  const mockSaveAll = (data) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  };
-
-  const mockGetDocsByIntern = async (internId) => {
-    const all = mockLoadAll();
-    return all[internId] || [];
-  };
-
-  const mockUploadInternDoc = async ({ internId, type, file }) => {
-    const all = mockLoadAll();
-    const list = all[internId] || [];
-    // Replace existing CONTRACT if any
-    const others = list.filter(
-      (d) => (d.type || "").toUpperCase() !== "CONTRACT"
-    );
-    const newDoc = {
-      id: `${internId}-CONTRACT`,
-      type,
-      fileName: file?.name || "contract",
-      uploadedAt: new Date().toISOString(),
-    };
-    all[internId] = [...others, newDoc];
-    mockSaveAll(all);
-    return newDoc;
-  };
-
-  const mockDeleteDoc = async (internId, docId) => {
-    const all = mockLoadAll();
-    const list = all[internId] || [];
-    all[internId] = list.filter((d) => d.id !== docId);
-    mockSaveAll(all);
-    return { success: true };
-  };
+  // Dùng API thật từ documentService
 
   async function loadInterns() {
     setLoadingInterns(true);
@@ -73,14 +29,6 @@ export default function ContractUpload() {
       } else if (Array.isArray(data)) {
         rows = data;
       }
-      // Fallback mock interns if I reAPturns empty
-      if (!rows || rows.length === 0) {
-        rows = [
-          { id: "1001", fullName: "Nguyễn Văn A", email: "a@example.com" },
-          { id: "1002", fullName: "Trần Thị B", email: "b@example.com" },
-          { id: "1003", fullName: "Lê Văn C", email: "c@example.com" },
-        ];
-      }
       setInterns(rows);
       if (!selectedInternId && rows.length > 0) {
         const firstId = (rows[0].id ?? rows[0].internId)?.toString();
@@ -92,14 +40,6 @@ export default function ContractUpload() {
       // log for debugging
       // eslint-disable-next-line no-console
       console.error("loadInterns error", e);
-      // Fallback mock interns on error
-      const fallback = [
-        { id: "1001", fullName: "Nguyễn Văn A", email: "a@example.com" },
-        { id: "1002", fullName: "Trần Thị B", email: "b@example.com" },
-        { id: "1003", fullName: "Lê Văn C", email: "c@example.com" },
-      ];
-      setInterns(fallback);
-      if (!selectedInternId) setSelectedInternId(fallback[0].id);
     } finally {
       setLoadingInterns(false);
     }
@@ -118,11 +58,16 @@ export default function ContractUpload() {
       }
       setContractInfo({ loading: true, doc: null });
       try {
-        const rows = await mockGetDocsByIntern(selectedInternId);
-        const contract =
-          (rows || []).find(
-            (d) => (d.type || "").toUpperCase() === "CONTRACT"
-          ) || null;
+        const rows = await getDocsByIntern(selectedInternId);
+        // Chuẩn hóa nếu BE trả khác cấu trúc
+        const normalized = (rows || []).map((r) => ({
+          id: r.document_id || r.id,
+          type: (r.document_type || r.type || "").toString().toUpperCase(),
+          fileName: r.file_name || r.fileName || r.file || "",
+          uploadedAt: r.uploaded_at || r.uploadedAt || r.createdAt || r.created_at,
+          status: r.status,
+        }));
+        const contract = normalized.find((d) => d.type === "CONTRACT") || null;
         setContractInfo({ loading: false, doc: contract });
       } catch (e) {
         setContractInfo({ loading: false, doc: null });
@@ -185,20 +130,21 @@ export default function ContractUpload() {
     }
     try {
       setUploading(true);
-      await mockUploadInternDoc({
-        internId: selectedInternId,
-        type: "CONTRACT",
-        file,
-      });
+      await uploadInternDoc({ internId: selectedInternId, type: "CONTRACT", file });
       setMessage("Tải lên hợp đồng thành công! Vui lòng chờ HR duyệt.");
       setFile(null);
       const input = document.getElementById("file-contract");
       if (input) input.value = "";
       // Refresh contract status
-      const rows = await mockGetDocsByIntern(selectedInternId);
-      const contract =
-        (rows || []).find((d) => (d.type || "").toUpperCase() === "CONTRACT") ||
-        null;
+      const rows = await getDocsByIntern(selectedInternId);
+      const normalized = (rows || []).map((r) => ({
+        id: r.document_id || r.id,
+        type: (r.document_type || r.type || "").toString().toUpperCase(),
+        fileName: r.file_name || r.fileName || r.file || "",
+        uploadedAt: r.uploaded_at || r.uploadedAt || r.createdAt || r.created_at,
+        status: r.status,
+      }));
+      const contract = normalized.find((d) => d.type === "CONTRACT") || null;
       setContractInfo({ loading: false, doc: contract });
     } catch (e) {
       const backendMsg = e?.response?.data?.message;
@@ -214,7 +160,7 @@ export default function ContractUpload() {
     try {
       setError("");
       setMessage("");
-      await mockDeleteDoc(selectedInternId, contractInfo.doc.id);
+      await deleteDoc(contractInfo.doc.id);
       setMessage("Đã xóa hợp đồng.");
       setContractInfo({ loading: false, doc: null });
     } catch (e) {

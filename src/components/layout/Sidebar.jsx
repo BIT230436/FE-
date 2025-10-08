@@ -38,7 +38,7 @@ export default function Sidebar({ isOpen, onClose }) {
       label: "Quản lý người dùng",
       path: "/admin/users",
       icon: "👥",
-      requiredPermissions:["MANAGE_USERS"] ,
+      requiredPermissions: ["MANAGE_USERS"],
     },
     {
       label: "Duyệt hồ sơ",
@@ -68,7 +68,7 @@ export default function Sidebar({ isOpen, onClose }) {
       label: "Hồ sơ của tôi",
       path: "/my-documents",
       icon: "📝",
-      requiredRoles: ["INTERN","USER"],
+      requiredRoles: ["INTERN", "USER"],
     },
     {
       label: "Hợp đồng của tôi",
@@ -77,24 +77,21 @@ export default function Sidebar({ isOpen, onClose }) {
       requiredRoles: ["INTERN"],
     },
   ];
-  
+
   const visibleItems = menuItems.filter((item) => {
-  // Nếu có permission thì ưu tiên
-  if (item.requiredPermissions?.length > 0) {
-    return item.requiredPermissions.some((p) =>
-      userPermissions.includes(p)
-    );
-  }
+    // Nếu có permission thì ưu tiên
+    if (item.requiredPermissions?.length > 0) {
+      return item.requiredPermissions.some((p) => userPermissions.includes(p));
+    }
 
-  // Nếu chưa có permission thì check role
-  if (item.requiredRoles?.length > 0) {
-    return item.requiredRoles.includes(userRole);
-  }
+    // Nếu chưa có permission thì check role
+    if (item.requiredRoles?.length > 0) {
+      return item.requiredRoles.includes(userRole);
+    }
 
-  // Nếu không yêu cầu gì, thì hiển thị
-  return true;
-});
-
+    // Nếu không yêu cầu gì, thì hiển thị
+    return true;
+  });
 
   return (
     <>
