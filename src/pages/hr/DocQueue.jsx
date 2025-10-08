@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { getPendingDocs, reviewDoc } from "../../services/documentService";
 import StatusBadge from "../../components/common/StatusBadge";
+import ReviewModal from "./ReviewModal";
 import "../shared/list.css";
 
 export default function DocQueue() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reviewing, setReviewing] = useState(null);
 
   async function load() {
     setLoading(true);
@@ -16,15 +18,14 @@ export default function DocQueue() {
     load();
   }, []);
 
-  async function onAction(id, action) {
-    const promptText =
-      action === "REJECT"
-        ? "Nhập ghi chú/lý do từ chối (không bắt buộc):"
-        : "Nhập ghi chú/lý do duyệt (không bắt buộc):";
-    const note = (prompt(promptText) || "").trim();
-    await reviewDoc(id, action, note);
-    await load();
-  }
+  const handleReview = (document) => {
+    setReviewing(document);
+  };
+
+  const handleReviewed = () => {
+    setReviewing(null);
+    load(); // Reload danh sách sau khi duyệt
+  };
 
   return (
     <div className="page-container">
@@ -62,10 +63,10 @@ export default function DocQueue() {
                 </td>
                 <td className="table-td">{d.note || "-"}</td>
                 <td className="table-td">
-                  <button onClick={() => onAction(d.id, "APPROVE")} className="btn btn-success" style={{ marginRight: 8 }}>
+                  <button onClick={() => handleReview(d)} className="btn btn-success" style={{ marginRight: 8 }}>
                     Duyệt
                   </button>
-                  <button onClick={() => onAction(d.id, "REJECT")} className="btn btn-outline-danger">
+                  <button onClick={() => handleReview(d)} className="btn btn-outline-danger">
                     Từ chối
                   </button>
                 </td>
@@ -74,6 +75,13 @@ export default function DocQueue() {
           </tbody>
         </table>
       </div>
+      {reviewing && (
+        <ReviewModal
+          document={reviewing}
+          onClose={() => setReviewing(null)}
+          onReviewed={handleReviewed}
+        />
+      )}
     </div>
   );
 }
