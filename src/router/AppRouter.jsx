@@ -63,7 +63,7 @@ export default function AppRouter() {
             <Route
               path="/hr/documents"
               element={
-                <PermissionGuard requiredPermissions={["DOC_APPROVE"]}>
+                <PermissionGuard requiredPermissions={[]}>
                   <DocQueue />
                 </PermissionGuard>
               }
