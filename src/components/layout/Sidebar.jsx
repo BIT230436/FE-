@@ -68,7 +68,7 @@ export default function Sidebar({ isOpen, onClose }) {
       label: "Hồ sơ của tôi",
       path: "/my-documents",
       icon: "📝",
-      requiredRoles: ["INTERN"],
+      requiredRoles: ["INTERN","USER"],
     },
     {
       label: "Hợp đồng của tôi",
