@@ -13,8 +13,7 @@ import MyContract from "../pages/students/MyContract";
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
-import RoleGuard from "../components/layout/RoleGuard";
-import PermissionGuard from "../components/layout/PermissionGuard";
+import AccessGuard from "../components/layout/AccessGuard";
 
 import DocQueue from "../pages/hr/DocQueue";
 import ContractUpload from "../pages/hr/ContractUpload";
@@ -36,69 +35,69 @@ export default function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route
               path="/internships"
               element={
-                <PermissionGuard requiredPermissions={["VIEW_INTERNSHIPS"]}>
+                <AccessGuard requiredPermissions={["VIEW_INTERNSHIPS"]}>
                   <InternshipList />
-                </PermissionGuard>
+                </AccessGuard>
               }
             />
             <Route
               path="/admin/users"
               element={
-                <PermissionGuard requiredPermissions={["MANAGE_USERS"]}>
+                <AccessGuard requiredPermissions={["MANAGE_USERS"]}>
                   <Users />
-                </PermissionGuard>
+                </AccessGuard>
               }
             />
             <Route
               path="/admin/permissions"
               element={
-                <PermissionGuard requiredPermissions={["MANAGE_PERMISSIONS"]}>
+                <AccessGuard requiredPermissions={["MANAGE_PERMISSIONS"]}>
                   <Permissions />
-                </PermissionGuard>
+                </AccessGuard>
               }
             />
             <Route
               path="/hr/documents"
               element={
-                <PermissionGuard requiredPermissions={[]}>
+                <AccessGuard requiredPermissions={[]}>
                   <DocQueue />
-                </PermissionGuard>
+                </AccessGuard>
               }
             />
             <Route
               path="/hr/contract-upload"
               element={
-                <RoleGuard roles={["HR", "ADMIN"]}>
+                <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <ContractUpload />
-                </RoleGuard>
+                </AccessGuard>
               }
             />
-            <Route path="/profile" element={<Profile />} />
             <Route
               path="/upload-documents"
               element={
-                <PermissionGuard requiredPermissions={[]}>
+                <AccessGuard requiredRoles={["USER"]}>
                   <DocumentUpload />
-                </PermissionGuard>
+                </AccessGuard>
               }
             />
             <Route
               path="/my-documents"
               element={
-                <PermissionGuard requiredPermissions={[]}>
+                <AccessGuard requiredPermissions={[]}>
                   <MyDocuments />
-                </PermissionGuard>
+                </AccessGuard>
               }
             />
             <Route
               path="/my-contract"
               element={
-                <RoleGuard roles={["INTERN"]}>
+                <AccessGuard requiredRoles={["INTERN"]}>
                   <MyContract />
-                </RoleGuard>
+                </AccessGuard>
               }
             />
           </Route>
