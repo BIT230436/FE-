@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import { useAuthStore } from "../../store/authStore";
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -65,12 +66,21 @@ export default function Sidebar({ isOpen, onClose }) {
       icon: "📝",
       permission: null,
     },
+    {
+      label: "Hợp đồng của tôi",
+      path: "/my-contract",
+      icon: "📃",
+      roles: ["INTERN"],
+    },
   ];
   const userPermissions = user?.permissions || [];
+  const userRole = user?.role;
 
-  const visibleItems = menuItems.filter(
-    (item) => !item.permission || userPermissions.includes(item.permission)
-  );
+  const visibleItems = menuItems.filter((item) => {
+    const permissionOk = !item.permission || userPermissions.includes(item.permission);
+    const roleOk = !item.roles || (userRole && item.roles.includes(userRole));
+    return permissionOk && roleOk;
+  });
 
   return (
     <>
@@ -87,6 +97,12 @@ export default function Sidebar({ isOpen, onClose }) {
             zIndex: 998,
           }}
           onClick={onClose}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") onClose();
+            if (e.key === "Escape") onClose();
+          }}
         />
       )}
 
@@ -275,3 +291,8 @@ export default function Sidebar({ isOpen, onClose }) {
     </>
   );
 }
+
+Sidebar.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};

@@ -8,6 +8,7 @@ import InternshipList from "../pages/internships/InternshipList";
 import Users from "../pages/admin/Users";
 import Permissions from "../pages/admin/Permissions";
 import OAuthCallback from "../pages/auth/OAuthCallback";
+import MyContract from "../pages/students/MyContract";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -90,6 +91,14 @@ export default function AppRouter() {
                 <PermissionGuard requiredPermissions={[]}>
                   <MyDocuments />
                 </PermissionGuard>
+              }
+            />
+            <Route
+              path="/my-contract"
+              element={
+                <RoleGuard roles={["INTERN"]}>
+                  <MyContract />
+                </RoleGuard>
               }
             />
           </Route>

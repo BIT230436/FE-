@@ -83,9 +83,14 @@ export async function uploadInternDoc({ internId, type, file }) {
   const response = await api.post("/documents/upload-for-intern", formData);
   return response.data;
 }
-
 // Xóa tài liệu theo id
 export async function deleteDoc(id) {
   const response = await api.delete(`/documents/${id}`);
+  return response.data;
+}
+
+// Xác nhận hợp đồng (intern xác nhận)
+export async function confirmContract(documentId) {
+  const response = await api.put(`/documents/${documentId}/confirm`);
   return response.data;
 }
