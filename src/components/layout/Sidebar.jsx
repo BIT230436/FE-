@@ -4,7 +4,8 @@ import { useAuthStore } from "../../store/authStore";
 
 export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
-  const { user, clearAuth } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -17,70 +18,83 @@ export default function Sidebar({ isOpen, onClose }) {
     onClose(); // Đóng sidebar sau khi logout
   };
 
+  const userRole = user?.role;
+  const userPermissions = user?.permissions || [];
+
   const menuItems = [
     {
       label: "Dashboard",
       path: "/",
       icon: "📊",
-      permission: null, // Ai đăng nhập cũng thấy
+      requiredPermissions: null, // Ai đăng nhập cũng thấy
     },
     {
       label: "Thực tập",
       path: "/internships",
       icon: "💼",
-      permission: "VIEW_INTERNSHIPS",
+      requiredPermissions: ["VIEW_INTERNSHIPS"],
     },
     {
       label: "Quản lý người dùng",
       path: "/admin/users",
       icon: "👥",
-      permission: "MANAGE_USERS",
+      requiredPermissions:["MANAGE_USERS"] ,
     },
     {
       label: "Duyệt hồ sơ",
       path: "/hr/documents",
       icon: "🗂️",
-      permission: null,
+      requiredRoles: ["HR", "ADMIN"],
     },
     {
       label: "Phân quyền",
       path: "/admin/permissions",
       icon: "🔐",
-      permission: "MANAGE_PERMISSIONS",
+      requiredPermissions: ["MANAGE_PERMISSIONS"],
     },
     {
       label: "Tải hợp đồng",
       path: "/hr/contract-upload",
       icon: "📑",
-      roles: ["HR", "ADMIN"],
+      requiredRoles: ["HR", "ADMIN"],
     },
     {
       label: "Nộp hồ sơ",
       path: "/upload-documents",
       icon: "📄",
-      permission: null,
+      requiredRoles: ["USER"],
     },
     {
       label: "Hồ sơ của tôi",
       path: "/my-documents",
       icon: "📝",
-      permission: null,
+      requiredRoles: ["INTERN","USER"],
     },
     {
       label: "Hợp đồng của tôi",
       path: "/my-contract",
       icon: "📃",
-      roles: ["INTERN"],
+      requiredRoles: ["INTERN"],
     },
   ];
-  const userPermissions = user?.permissions || [];
-  const userRole = user?.role;
-
+  
   const visibleItems = menuItems.filter((item) => {
-    const permissionOk = !item.permission || userPermissions.includes(item.permission);
-    const roleOk = !item.roles || (userRole && item.roles.includes(userRole));
-    return permissionOk && roleOk;
-  });
+  // Nếu có permission thì ưu tiên
+  if (item.requiredPermissions?.length > 0) {
+    return item.requiredPermissions.some((p) =>
+      userPermissions.includes(p)
+    );
+  }
+
+  // Nếu chưa có permission thì check role
+  if (item.requiredRoles?.length > 0) {
+    return item.requiredRoles.includes(userRole);
+  }
+
+  // Nếu không yêu cầu gì, thì hiển thị
+  return true;
+});
+
 
   return (
     <>
