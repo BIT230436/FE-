@@ -15,21 +15,24 @@ export async function getMentors(filters = {}) {
 
 // Assign a mentor to an intern
 export async function assignMentor({ internId, mentorId }) {
-  const { data } = await api.post(`/interns/${internId}/assign-mentor`, {
+  const { data } = await api.post(`/mentors/assign`, {
+    internId,
     mentorId
   });
   return data;
 }
 
 // Remove mentor assignment from an intern
-export async function unassignMentor(internId) {
-  const { data } = await api.delete(`/interns/${internId}/assign-mentor`);
+export async function unassignMentor(internId, mentorId) {
+  const { data } = await api.delete(`/mentors/unassign`, {
+    params: { internId, mentorId }
+  });
   return data;
 }
 
 // Get current mentor assignment for an intern
 export async function getInternMentorAssignment(internId) {
-  const { data } = await api.get(`/interns/${internId}/mentor-assignment`);
+  const { data } = await api.get(`/mentors/by-intern/${internId}`);
   return data;
 }
 

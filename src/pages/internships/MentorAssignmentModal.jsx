@@ -18,27 +18,38 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
   }, [internship]);
 
   async function loadCurrentAssignment() {
-    if (!internship?.studentEmail) {
+    const internId = internship?.id || internship?.intern_id;
+    console.log("🔍 Loading assignment for internId:", internId);
+    if (!internId) {
       setCurrentAssignment(null);
       return;
     }
 
     setLoadingAssignment(true);
     try {
-      // Try to get intern by email first, then get their mentor assignment
-      const internResponse = await getInterns({ q: internship.studentEmail });
-      const interns = Array.isArray(internResponse?.items) ? internResponse.items : [];
-      const foundIntern = interns.find(i => i.email === internship.studentEmail);
-
-      if (foundIntern) {
-        const assignment = await getInternMentorAssignment(foundIntern.id);
-        setCurrentAssignment(assignment);
-        if (assignment?.mentor) {
-          setSelectedMentorId(assignment.mentor.id?.toString() || "");
-        }
+      const response = await getInternMentorAssignment(internId);
+      console.log("📦 Assignment response:", response);
+      
+      // Backend trả về { success, data: { mentorId, mentorName, ... } }
+      if (response?.data) {
+        const mentorData = {
+          mentor: {
+            id: response.data.mentorId,
+            fullName: response.data.mentorName,
+            name: response.data.mentorName,
+            email: response.data.mentorEmail
+          },
+          assignedAt: response.data.startDate
+        };
+        console.log("✅ Found mentor:", mentorData.mentor);
+        setCurrentAssignment(mentorData);
+        setSelectedMentorId(response.data.mentorId?.toString() || "");
+      } else {
+        console.log("❌ No mentor found in assignment");
+        setCurrentAssignment(null);
       }
     } catch (e) {
-      console.error("loadCurrentAssignment error", e);
+      console.error("❌ loadCurrentAssignment error", e);
       setCurrentAssignment(null);
     } finally {
       setLoadingAssignment(false);
@@ -63,19 +74,17 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
     try {
       setAssigning(true);
 
-      // Find intern by email
-      const internResponse = await getInterns({ q: internship.studentEmail });
-      const interns = Array.isArray(internResponse?.items) ? internResponse.items : [];
-      const foundIntern = interns.find(i => i.email === internship.studentEmail);
-
-      if (!foundIntern) {
-        setError("Không tìm thấy thông tin thực tập sinh");
+      // Use internship.id directly (intern_id from the table)
+      const internId = internship.id || internship.intern_id;
+      
+      if (!internId) {
+        setError("Không tìm thấy ID thực tập sinh");
         return;
       }
 
       await assignMentor({
-        internId: foundIntern.id,
-        mentorId: selectedMentorId
+        internId: Number(internId),
+        mentorId: Number(selectedMentorId)
       });
 
       setMessage("Đã phân công mentor thành công!");
@@ -103,13 +112,10 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
       setMessage("");
       setError("");
 
-      // Find intern by email
-      const internResponse = await getInterns({ q: internship.studentEmail });
-      const interns = Array.isArray(internResponse?.items) ? internResponse.items : [];
-      const foundIntern = interns.find(i => i.email === internship.studentEmail);
-
-      if (foundIntern) {
-        await unassignMentor(foundIntern.id);
+      const internId = internship.id || internship.intern_id;
+      const mentorId = currentAssignment.mentor.id;
+      if (internId && mentorId) {
+        await unassignMentor(internId, mentorId);
         setMessage("Đã hủy phân công mentor thành công!");
         setCurrentAssignment(null);
         setSelectedMentorId("");

@@ -7,6 +7,7 @@ import {
   deleteInternship 
 } from "../../services/internshipService";
 import { getMentors, assignMentor, unassignMentor, getInternMentorAssignment } from "../../services/mentorService";
+import { getUsers } from "../../services/adminService";
 import MentorAssignmentModal from "./MentorAssignmentModal";
 
 export default function InternshipList() {
@@ -48,14 +49,9 @@ export default function InternshipList() {
   async function loadMentors() {
     setLoadingMentors(true);
     try {
-      const data = await getMentors({ size: 100, status: "ACTIVE" });
-      let rows = [];
-      if (Array.isArray(data?.items)) {
-        rows = data.items;
-      } else if (Array.isArray(data)) {
-        rows = data;
-      }
-      setMentors(rows);
+      const response = await getUsers({ role: "MENTOR", status: "" });
+      const userList = response.content || [];
+      setMentors(userList);
     } catch (e) {
       console.error("loadMentors error", e);
     } finally {
@@ -321,6 +317,7 @@ function CreateInternshipModal({ onClose, onCreate }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [err, setErr] = useState("");
+  const [showSelectIntern, setShowSelectIntern] = useState(false);
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -330,9 +327,9 @@ function CreateInternshipModal({ onClose, onCreate }) {
       return;
     }
     const email = studentEmail.trim();
-    const emailRegex = /^[A-Za-z0-9._%+~-]+@gmail\.com$/i;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setErr("Email phải là Gmail hợp lệ (ví dụ: ten@gmail.com)");
+      setErr("Email không hợp lệ");
       return;
     }
     if (!startDate || !endDate) {
@@ -354,7 +351,23 @@ function CreateInternshipModal({ onClose, onCreate }) {
   return (
     <div className="modal-overlay">
       <div className="modal-box">
-        <h2 className="modal-title">Thêm thực tập</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h2 className="modal-title" style={{ margin: 0 }}>Thêm thực tập</h2>
+          <button
+            type="button"
+            className="form-select"
+            onClick={() => setShowSelectIntern(true)}
+            style={{ 
+              width: 'auto', 
+              padding: '8px 16px',
+              cursor: 'pointer',
+              backgroundColor: 'white',
+              border: '1px solid #ddd'
+            }}
+          >
+            Chọn từ danh sách INTERN
+          </button>
+        </div>
         {err && <div style={{ color: "#dc3545", marginBottom: 8 }}>{err}</div>}
         <form onSubmit={onSubmit}>
           <div className="form-row cols-2-1">
@@ -379,7 +392,7 @@ function CreateInternshipModal({ onClose, onCreate }) {
                 className="form-input"
                 value={studentEmail}
                 onChange={(e) => setStudentEmail(e.target.value)}
-                placeholder="name@gmail.com"
+                placeholder="name@example.com"
               />
             </div>
           </div>
@@ -471,6 +484,16 @@ function CreateInternshipModal({ onClose, onCreate }) {
             </button>
           </div>
         </form>
+        {showSelectIntern && (
+          <SelectInternModal
+            onClose={() => setShowSelectIntern(false)}
+            onSelect={(user) => {
+              setStudent(user.fullName);
+              setStudentEmail(user.email);
+              setShowSelectIntern(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -550,9 +573,9 @@ function EditInternshipModal({ data, onClose, onSave }) {
       return;
     }
     const email = studentEmail.trim();
-    const emailRegex = /^[A-Za-z0-9._%+~-]+@gmail\.com$/i;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setErr("Email phải là Gmail hợp lệ (ví dụ: ten@gmail.com)");
+      setErr("Email không hợp lệ");
       return;
     }
     if (!startDate || !endDate) {
@@ -594,7 +617,7 @@ function EditInternshipModal({ data, onClose, onSave }) {
                 className="form-input"
                 value={studentEmail}
                 onChange={(e) => setStudentEmail(e.target.value)}
-                placeholder="name@gmail.com"
+                placeholder="name@example.com"
               />
             </div>
           </div>
@@ -666,6 +689,98 @@ function EditInternshipModal({ data, onClose, onSave }) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function SelectInternModal({ onClose, onSelect }) {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
+
+  useEffect(() => {
+    loadInternUsers();
+  }, []);
+
+  async function loadInternUsers() {
+    setLoading(true);
+    try {
+      const response = await getUsers({ role: "INTERN", status: "" });
+      const userList = response.content || [];
+      setUsers(userList);
+    } catch (error) {
+      console.error("Error loading INTERN users:", error);
+      alert("Không thể tải danh sách INTERN");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredUsers = users.filter((user) => {
+    if (!searchText) return true;
+    const search = searchText.toLowerCase();
+    return (
+      user.fullName?.toLowerCase().includes(search) ||
+      user.email?.toLowerCase().includes(search)
+    );
+  });
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-box" style={{ maxWidth: '600px' }}>
+        <h2 className="modal-title">Chọn INTERN từ danh sách người dùng</h2>
+        
+        <div className="form-group" style={{ marginBottom: 16 }}>
+          <input
+            className="form-input"
+            placeholder="Tìm kiếm theo tên hoặc email..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 20 }}>Đang tải...</div>
+        ) : filteredUsers.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 20, color: '#666' }}>
+            Không tìm thấy user có role INTERN
+          </div>
+        ) : (
+          <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: 16 }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th className="table-th">Họ tên</th>
+                  <th className="table-th">Email</th>
+                  <th className="table-th">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td className="table-td">{user.fullName}</td>
+                    <td className="table-td">{user.email}</td>
+                    <td className="table-td">
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => onSelect(user)}
+                      >
+                        Chọn
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="form-actions">
+          <button className="btn-outline" onClick={onClose}>
+            Đóng
+          </button>
+        </div>
       </div>
     </div>
   );

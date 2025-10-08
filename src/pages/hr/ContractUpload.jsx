@@ -21,14 +21,17 @@ export default function ContractUpload() {
   async function loadInterns() {
     setLoadingInterns(true);
     try {
-      const data = await getInterns({ size: 50 });
-      // Normalize: supports {items: []} or []
+      const response = await getInterns({ size: 50 });
+      // Normalize: supports {data: []} or {items: []} or []
       let rows = [];
-      if (Array.isArray(data?.items)) {
-        rows = data.items;
-      } else if (Array.isArray(data)) {
-        rows = data;
+      if (Array.isArray(response?.data)) {
+        rows = response.data;
+      } else if (Array.isArray(response?.items)) {
+        rows = response.items;
+      } else if (Array.isArray(response)) {
+        rows = response;
       }
+      console.log("📋 Loaded interns:", rows);
       setInterns(rows);
       if (!selectedInternId && rows.length > 0) {
         const firstId = (rows[0].id ?? rows[0].internId)?.toString();
