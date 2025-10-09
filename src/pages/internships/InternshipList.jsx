@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import "../shared/list.css";
-import { 
-  getInternships, 
-  createInternship, 
-  updateInternship, 
-  deleteInternship 
+import {
+  getInternships,
+  createInternship,
+  updateInternship,
+  deleteInternship,
 } from "../../services/internshipService";
-import { getMentors, assignMentor, unassignMentor, getInternMentorAssignment } from "../../services/mentorService";
+import {
+  getMentors,
+  assignMentor,
+  unassignMentor,
+  getInternMentorAssignment,
+} from "../../services/mentorService";
 import { getUsers } from "../../services/adminService";
 import MentorAssignmentModal from "./MentorAssignmentModal";
 
@@ -27,7 +32,7 @@ export default function InternshipList() {
   useEffect(() => {
     loadInternships();
   }, []);
-  
+
   async function loadInternships() {
     setLoading(true);
     try {
@@ -35,7 +40,7 @@ export default function InternshipList() {
         q: "", // Lấy tất cả, filter ở client
         status: "",
         page: 0,
-        size: 100
+        size: 100,
       });
       setInternships(response.data || []);
     } catch (error) {
@@ -59,7 +64,6 @@ export default function InternshipList() {
     }
   }
 
-  
   // Derived values for filters
   const schools = [
     ...new Set(internships.map((it) => it.school).filter(Boolean)),
@@ -235,34 +239,38 @@ export default function InternshipList() {
         </table>
       </div>
       {showCreate && (
-  <CreateInternshipModal
-    onClose={() => setShowCreate(false)}
-    onCreate={async (data) => {
-      try {
-        const payload = {
-          title: data.title,
-          student: data.student,
-          studentEmail: data.studentEmail,
-          school: data.school,
-          major: data.major,
-          status: data.status,
-          startDate: data.startDate,
-          endDate: data.endDate
-        };
-        console.log("Sending data:", payload);
-        const response = await createInternship(payload);
-        console.log("Response:", response);
-        alert("Tạo thực tập sinh thành công!");
-        setShowCreate(false);
-        await loadInternships();
-      } catch (error) {
-        console.error("Error creating internship:", error);
-        console.error("Error response:", error?.response?.data);
-        alert(error?.response?.data?.message || error?.message || "Tạo thất bại");
-      }
-    }}
-  />
-)}
+        <CreateInternshipModal
+          onClose={() => setShowCreate(false)}
+          onCreate={async (data) => {
+            try {
+              const payload = {
+                title: data.title,
+                student: data.student,
+                studentEmail: data.studentEmail,
+                school: data.school,
+                major: data.major,
+                status: data.status,
+                startDate: data.startDate,
+                endDate: data.endDate,
+              };
+              console.log("Sending data:", payload);
+              const response = await createInternship(payload);
+              console.log("Response:", response);
+              alert("Tạo thực tập sinh thành công!");
+              setShowCreate(false);
+              await loadInternships();
+            } catch (error) {
+              console.error("Error creating internship:", error);
+              console.error("Error response:", error?.response?.data);
+              alert(
+                error?.response?.data?.message ||
+                  error?.message ||
+                  "Tạo thất bại"
+              );
+            }
+          }}
+        />
+      )}
       {viewing && (
         <ViewInternshipModal data={viewing} onClose={() => setViewing(null)} />
       )}
@@ -280,7 +288,7 @@ export default function InternshipList() {
                 major: updated.major,
                 status: updated.status,
                 startDate: updated.startDate,
-                endDate: updated.endDate
+                endDate: updated.endDate,
               });
               alert("Cập nhật thành công!");
               setEditing(null);
@@ -351,18 +359,27 @@ function CreateInternshipModal({ onClose, onCreate }) {
   return (
     <div className="modal-overlay">
       <div className="modal-box">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 className="modal-title" style={{ margin: 0 }}>Thêm thực tập</h2>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <h2 className="modal-title" style={{ margin: 0 }}>
+            Thêm thực tập
+          </h2>
           <button
             type="button"
             className="form-select"
             onClick={() => setShowSelectIntern(true)}
-            style={{ 
-              width: 'auto', 
-              padding: '8px 16px',
-              cursor: 'pointer',
-              backgroundColor: 'white',
-              border: '1px solid #ddd'
+            style={{
+              width: "auto",
+              padding: "8px 16px",
+              cursor: "pointer",
+              backgroundColor: "white",
+              border: "1px solid #ddd",
             }}
           >
             Chọn từ danh sách INTERN
@@ -728,9 +745,9 @@ function SelectInternModal({ onClose, onSelect }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-box" style={{ maxWidth: '600px' }}>
+      <div className="modal-box" style={{ maxWidth: "600px" }}>
         <h2 className="modal-title">Chọn INTERN từ danh sách người dùng</h2>
-        
+
         <div className="form-group" style={{ marginBottom: 16 }}>
           <input
             className="form-input"
@@ -741,13 +758,15 @@ function SelectInternModal({ onClose, onSelect }) {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 20 }}>Đang tải...</div>
+          <div style={{ textAlign: "center", padding: 20 }}>Đang tải...</div>
         ) : filteredUsers.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 20, color: '#666' }}>
+          <div style={{ textAlign: "center", padding: 20, color: "#666" }}>
             Không tìm thấy user có role INTERN
           </div>
         ) : (
-          <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: 16 }}>
+          <div
+            style={{ maxHeight: "400px", overflowY: "auto", marginBottom: 16 }}
+          >
             <table className="table">
               <thead>
                 <tr>
