@@ -745,7 +745,7 @@ function SelectInternModal({ onClose, onSelect }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-box" style={{ maxWidth: "600px" }}>
+      <div className="modal-box" style={{ maxWidth: "600px", width: "70%" }}>
         <h2 className="modal-title">Chọn INTERN từ danh sách người dùng</h2>
 
         <div className="form-group" style={{ marginBottom: 16 }}>
@@ -765,7 +765,7 @@ function SelectInternModal({ onClose, onSelect }) {
           </div>
         ) : (
           <div
-            style={{ maxHeight: "400px", overflowY: "auto", marginBottom: 16 }}
+            style={{ maxHeight: "500px", overflowY: "auto", marginBottom: 16 }}
           >
             <table className="table">
               <thead>
