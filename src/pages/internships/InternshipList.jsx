@@ -13,7 +13,7 @@ import {
   getInternMentorAssignment,
 } from "../../services/mentorService";
 import { getUsers } from "../../services/adminService";
-import MentorAssignmentModal from "./MentorAssignmentModal";
+import MentorAssignmentModal from "../mentor/MentorAssignmentModal";
 
 export default function InternshipList() {
   const [internships, setInternships] = useState([]);

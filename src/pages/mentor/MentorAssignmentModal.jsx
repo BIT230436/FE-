@@ -1,8 +1,20 @@
 import { useState, useEffect } from "react";
+import "../mentor/mentorAssignmentModal.css";
 import { getInterns } from "../../services/internService";
-import { getMentors, assignMentor, unassignMentor, getInternMentorAssignment } from "../../services/mentorService";
+import {
+  getMentors,
+  assignMentor,
+  unassignMentor,
+  getInternMentorAssignment,
+} from "../../services/mentorService";
 
-export default function MentorAssignmentModal({ internship, mentors, loadingMentors, onClose, onLoadMentors }) {
+export default function MentorAssignmentModal({
+  internship,
+  mentors,
+  loadingMentors,
+  onClose,
+  onLoadMentors,
+}) {
   const [selectedMentorId, setSelectedMentorId] = useState("");
   const [currentAssignment, setCurrentAssignment] = useState(null);
   const [loadingAssignment, setLoadingAssignment] = useState(false);
@@ -29,7 +41,7 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
     try {
       const response = await getInternMentorAssignment(internId);
       console.log("📦 Assignment response:", response);
-      
+
       // Backend trả về { success, data: { mentorId, mentorName, ... } }
       if (response?.data) {
         const mentorData = {
@@ -37,9 +49,9 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
             id: response.data.mentorId,
             fullName: response.data.mentorName,
             name: response.data.mentorName,
-            email: response.data.mentorEmail
+            email: response.data.mentorEmail,
           },
-          assignedAt: response.data.startDate
+          assignedAt: response.data.startDate,
         };
         console.log("✅ Found mentor:", mentorData.mentor);
         setCurrentAssignment(mentorData);
@@ -76,7 +88,7 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
 
       // Use internship.id directly (intern_id from the table)
       const internId = internship.id || internship.intern_id;
-      
+
       if (!internId) {
         setError("Không tìm thấy ID thực tập sinh");
         return;
@@ -84,7 +96,7 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
 
       await assignMentor({
         internId: Number(internId),
-        mentorId: Number(selectedMentorId)
+        mentorId: Number(selectedMentorId),
       });
 
       setMessage("Đã phân công mentor thành công!");
@@ -131,7 +143,9 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
   return (
     <div className="modal-overlay">
       <div className="modal-box">
-        <h2 className="modal-title">Phân công Mentor cho {internship.student}</h2>
+        <h2 className="modal-title">
+          Phân công Mentor cho {internship.student}
+        </h2>
 
         {/* Current assignment status */}
         <div className="form-group" style={{ marginBottom: 20 }}>
@@ -139,7 +153,10 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
             <div>Đang tải thông tin phân công mentor…</div>
           ) : currentAssignment?.mentor ? (
             <div>
-              <strong>Mentor hiện tại:</strong> {currentAssignment.mentor.fullName || currentAssignment.mentor.name} ({currentAssignment.mentor.email})
+              <strong>Mentor hiện tại:</strong>{" "}
+              {currentAssignment.mentor.fullName ||
+                currentAssignment.mentor.name}{" "}
+              ({currentAssignment.mentor.email})
               <br />
               <strong>Ngày phân công:</strong>{" "}
               {currentAssignment.assignedAt
@@ -202,7 +219,9 @@ export default function MentorAssignmentModal({ internship, mentors, loadingMent
         {message && (
           <div style={{ color: "#28a745", marginTop: 8 }}>✅ {message}</div>
         )}
-        {error && <div style={{ color: "#dc3545", marginTop: 8 }}>❌ {error}</div>}
+        {error && (
+          <div style={{ color: "#dc3545", marginTop: 8 }}>❌ {error}</div>
+        )}
       </div>
     </div>
   );
