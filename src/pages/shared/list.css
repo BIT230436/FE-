@@ -42,12 +42,8 @@
 }
 .btn-primary {
   background: #007bff;
+  border: none;
   color: #fff;
-  padding: 6px 14px;
-  font-size: 14px;
-  display: inline-block;
-  min-width: unset;
-  line-height: 1.2;
 }
 .btn-sm {
   padding: 6px 14px;
@@ -174,8 +170,7 @@
 }
 .btn-outline {
   background: #fff;
-  color: #111;
   border: 1px solid #ddd;
-  padding: 8px 16px;
-  border-radius: 8px;
+  color: #111;
+  margin-top: 11px;
 }
