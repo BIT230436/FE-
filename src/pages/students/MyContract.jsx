@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  confirmContract,
   getDocUrlsByIntern,
+  acceptDocument, // ✅ Thay đổi: import acceptDocument thay vì confirmContract
 } from "../../services/documentService";
 import { useAuthStore } from "../../store/authStore";
 import { toast, ToastContainer } from "react-toastify";
@@ -42,7 +42,10 @@ export default function MyContract() {
   }, [internId]);
 
   const handleConfirmContract = async () => {
-    if (!contract?.document_id && !contract?.id) {
+    // ✅ Thay đổi: Kiểm tra document_id hoặc id
+    const documentId = contract?.document_id || contract?.id;
+
+    if (!documentId) {
       toast.error("Không tìm thấy mã hợp đồng để xác nhận.");
       return;
     }
@@ -50,10 +53,8 @@ export default function MyContract() {
     try {
       setConfirming(true);
 
-      const result = await confirmContract(
-        contract.document_id || contract.id,
-        internId
-      );
+      // ✅ Thay đổi: Gọi acceptDocument với đúng tham số
+      const result = await acceptDocument(documentId, internId);
       console.log("✅ API response:", result);
 
       toast.success("✅ Hợp đồng đã được xác nhận thành công.");
@@ -66,6 +67,7 @@ export default function MyContract() {
     } catch (e) {
       console.error(e);
       const msg =
+        e?.response?.data?.message ||
         e?.response?.data ||
         e.message ||
         "❌ Xác nhận thất bại. Vui lòng thử lại.";
@@ -120,7 +122,16 @@ export default function MyContract() {
             </div>
 
             {contract.status === "ACCEPTED" ? (
-              <button className="btn btn-success" disabled>
+              <button
+                className="btn btn-success"
+                disabled
+                style={{
+                  width: "100%",
+                  padding: "12px 24px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                }}
+              >
                 ✅ Đã xác nhận
               </button>
             ) : (
@@ -128,6 +139,12 @@ export default function MyContract() {
                 className="btn btn-primary"
                 disabled={confirming}
                 onClick={handleConfirmContract}
+                style={{
+                  width: "100%",
+                  padding: "12px 24px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                }}
               >
                 {confirming ? "Đang xác nhận…" : "Xác nhận hợp đồng"}
               </button>

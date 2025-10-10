@@ -95,10 +95,6 @@ export async function confirmContract(documentId) {
   return response.data;
 }
 
-// =========================================================
-// 🔧 3 API MỚI (đã chỉnh chuẩn theo backend hiện tại)
-// =========================================================
-
 // 📤 Upload hợp đồng lên Cloudinary (gắn với InternProfile + HR)
 export async function uploadToCloud({ internId, type, file }) {
   const formData = new FormData();
@@ -116,12 +112,14 @@ export async function uploadToCloud({ internId, type, file }) {
 // 📥 Lấy danh sách URL hợp đồng theo internId
 export async function getDocUrlsByIntern(internId) {
   const response = await api.get(`/documents/get-url/${internId}`);
-  // backend trả mảng URL → trả thẳng về luôn
   return response.data;
 }
 
-// ✅ HR hoặc Intern xác nhận hợp đồng (đổi PENDING → ACCEPTED)
-export async function acceptDocument(documentId) {
-  const response = await api.put(`/documents/${documentId}/accept`);
+
+export async function acceptDocument(documentId, internId) {
+  const response = await api.put(
+    `/documents/${documentId}/accept?internId=${internId}`
+  );
   return response.data;
 }
+
