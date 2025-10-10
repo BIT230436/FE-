@@ -95,37 +95,56 @@ export default function Sidebar() {
         {collapsed ? "☰" : "←"}
       </button>
 
-      {/* Navigation */}
-      <nav style={{ flex: 1, padding: "60px 0 10px 0" }}>
-        {/* Avatar user như 1 menu item */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: collapsed ? "0" : "10px",
-            padding: collapsed ? "12px 0" : "12px 20px",
-            cursor: "pointer",
-            justifyContent: collapsed ? "center" : "flex-start",
-          }}
-        >
-          <img
-            src={user?.avatar || "/default-avatar.png"}
-            alt="avatar"
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              objectFit: "cover",
-            }}
-          />
-          {!collapsed && (
-            <span style={{ fontWeight: "500", color: "#333" }}>
-              {user?.name || "Người dùng"}
-            </span>
-          )}
-        </div>
+      {/* Header chữ Menu */}
+      <div
+        style={{
+          padding: "20px",
+          borderBottom: "1px solid rgba(229,229,229,0.5)",
+          textAlign: "center",
+          fontWeight: "600",
+          fontSize: "18px",
+        }}
+      >
+        {!collapsed && "Menu"}
+      </div>
 
-        {/* Menu item khác */}
+      {/* Thông tin User */}
+      <div
+        style={{
+          padding: "16px",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          backgroundColor: "rgba(255,255,255,0.4)",
+          borderRadius: "12px",
+          margin: "8px",
+          justifyContent: collapsed ? "center" : "flex-start",
+        }}
+      >
+        <img
+          src={user?.avatar || "/default-avatar.png"}
+          alt="avatar"
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            objectFit: "cover",
+          }}
+        />
+        {!collapsed && (
+          <div>
+            <div style={{ fontWeight: "600", fontSize: "14px" }}>
+              {user?.fullName || "Người dùng"}
+            </div>
+            <div style={{ fontSize: "12px", color: "#444" }}>
+              {user?.role || "Admin"}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <nav style={{ flex: 1, padding: "10px 0" }}>
         {visibleItems.map((item) => (
           <div key={item.label}>
             <button
