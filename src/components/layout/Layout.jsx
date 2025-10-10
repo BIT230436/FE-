@@ -1,68 +1,62 @@
-import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import Navbar from "../common/Navbar";
 import Sidebar from "./Sidebar";
 
 // 👉 Import ảnh nền
-import teamworkImage from "../../assets/Hinh-anh-ky-nang-lam-viec-nhom.jpg";
+import teamworkImage from "../../assets/man-hinh-chinh.jpg";
 
 export default function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const handleMenuClick = () => {
-    setSidebarOpen(true);
-  };
-
-  const handleSidebarClose = () => {
-    setSidebarOpen(false);
-  };
-
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "10vh",
         backgroundImage: `url(${teamworkImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
         position: "relative",
+        display: "flex", // để sidebar và main nằm cạnh nhau
       }}
     >
-      {/* Lớp phủ mờ để chữ dễ đọc */}
+      {/* Lớp phủ mờ */}
       <div
         style={{
           position: "absolute",
           top: 0,
           left: 0,
-          width: "100%",
+          width: "10%",
           height: "100%",
           backgroundColor: "rgba(255, 255, 255, 0.8)", // nền trắng mờ
           zIndex: 0,
         }}
       ></div>
 
-      {/* Navbar */}
+      {/* Sidebar tĩnh bên trái */}
       <div style={{ position: "relative", zIndex: 1 }}>
-        <Navbar onMenuClick={handleMenuClick} />
-        <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose} />
-
-        {/* Nội dung */}
-        <main style={{ padding: 24 }}>
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 24,
-              boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-              minHeight: "calc(100vh - 100px)",
-              zIndex: 1,
-              position: "relative",
-            }}
-          >
-            <Outlet />
-          </div>
-        </main>
+        <Sidebar />
       </div>
+
+      {/* Nội dung chính */}
+      <main
+        style={{
+          flex: 1,
+          marginLeft: "250px", // chừa khoảng cho sidebar
+          padding: 24,
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 12,
+            padding: 24,
+            boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+            minHeight: "calc(100vh - 48px)", // để khung chính cân đối
+          }}
+        >
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }
