@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPendingDocs, reviewDoc } from "../../services/documentService";
+import { getPendingDocs } from "../../services/documentService";
 import StatusBadge from "../../components/common/StatusBadge";
 import ReviewModal from "./ReviewModal";
 import "../shared/list.css";

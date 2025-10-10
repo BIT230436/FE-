@@ -115,11 +115,33 @@ export async function getDocUrlsByIntern(internId) {
   return response.data;
 }
 
-
 export async function acceptDocument(documentId, internId) {
   const response = await api.put(
     `/documents/${documentId}/accept?internId=${internId}`
   );
   return response.data;
 }
+// 📚 Lấy tất cả hợp đồng (HR/Admin xem toàn bộ)
+export async function getAllContracts() {
+  const response = await api.get("/contracts");
+  const rows = response.data || []; // backend trả list DTO
 
+  return rows.map((r) => {
+    const doc = r.document || null;
+    const fileDetail = doc?.fileDetail || "";
+    const fileName =
+      typeof fileDetail === "string" ? fileDetail.split(" (", 1)[0] : "";
+
+    return {
+      internId: r.internId,
+      internName: r.internName || "",
+      documentId: doc?.id || null,
+      type: doc?.documentType || "",
+      fileName,
+      uploadedAt: doc?.uploadedAt || null,
+      status: doc?.status || "",
+      note: doc?.rejectionReason || "",
+      hrName: doc?.hr?.name || "", // nếu backend trả kèm hr
+    };
+  });
+}

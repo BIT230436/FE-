@@ -2,7 +2,7 @@ import api from "./apiClient";
 
 export async function getInterns(filters = {}) {
   const params = new URLSearchParams();
-  
+
   if (filters.q) params.append("q", filters.q);
   if (filters.university) params.append("university", filters.university);
   if (filters.major) params.append("major", filters.major);
