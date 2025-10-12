@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import "./Sidebar.css"; // Thêm import CSS
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
@@ -46,7 +47,6 @@ export default function Sidebar() {
     return true;
   });
 
-  const [collapsed, setCollapsed] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState(null);
 
   const toggleSubmenu = (label) => {
@@ -54,89 +54,37 @@ export default function Sidebar() {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: collapsed ? "70px" : "250px",
-        height: "100vh",
-        backgroundColor: "rgba(226, 224, 235, 0.95)",
-        backdropFilter: "blur(12px)",
-        boxShadow: "2px 0 8px rgba(22,22,23,0.15)",
-        display: "flex",
-        flexDirection: "column",
-        zIndex: 999,
-        borderTopRightRadius: "16px",
-        borderBottomRightRadius: "16px",
-        transition: "width 0.3s",
-        overflow: "hidden",
-      }}
-    >
+    <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       {/* Nút bật/tắt menu */}
       <button
+        className="sidebar-toggle"
         onClick={() => setCollapsed(!collapsed)}
-        style={{
-          position: "absolute",
-          top: "10px",
-          left: "10px",
-          width: "35px",
-          height: "35px",
-          borderRadius: "6px",
-          border: "none",
-          backgroundColor: "#2f3640",
-          color: "#fff",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
       >
         {collapsed ? "☰" : "←"}
       </button>
 
       {/* Header chữ Menu */}
-      <div
-        style={{
-          padding: "20px",
-          borderBottom: "1px solid rgba(229,229,229,0.5)",
-          textAlign: "center",
-          fontWeight: "600",
-          fontSize: "18px",
-        }}
-      >
+      <div className="sidebar-header">
         {!collapsed && "Menu"}
       </div>
 
       {/* Thông tin User */}
       <div
-        style={{
-          padding: "16px",
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          backgroundColor: "rgba(255,255,255,0.4)",
-          borderRadius: "12px",
-          margin: "8px",
-          justifyContent: collapsed ? "center" : "flex-start",
-        }}
+        className={`sidebar-user ${collapsed ? "collapsed" : ""}`}
+        onClick={() => handleNavigate("/profile")}
+        style={{ cursor: "pointer" }}
       >
         <img
           src={user?.avatar || "/default-avatar.png"}
           alt="avatar"
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            objectFit: "cover",
-          }}
+          className="sidebar-avatar"
         />
         {!collapsed && (
           <div>
-            <div style={{ fontWeight: "600", fontSize: "14px" }}>
+            <div className="sidebar-user-name">
               {user?.fullName || "Người dùng"}
             </div>
-            <div style={{ fontSize: "12px", color: "#444" }}>
+            <div className="sidebar-user-role">
               {user?.role || "Admin"}
             </div>
           </div>
@@ -144,38 +92,26 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: "10px 0" }}>
+      <nav className="sidebar-nav">
         {visibleItems.map((item) => (
-          <div key={item.label}>
+          <div key={item.label} className="sidebar-nav-item">
             <button
+              className="sidebar-nav-btn"
               onClick={() =>
                 item.submenuItems
                   ? toggleSubmenu(item.label)
                   : handleNavigate(item.path)
               }
-              style={{
-                width: "100%",
-                padding: collapsed ? "12px 0" : "12px 20px",
-                border: "none",
-                background: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: collapsed ? "0" : "10px",
-                fontSize: "14px",
-                cursor: "pointer",
-                color: "#333",
-                justifyContent: collapsed ? "center" : "flex-start",
-              }}
               title={collapsed ? item.label : ""}
             >
-              <span style={{ fontSize: collapsed ? "28px" : "16px" }}>
+              <span className="sidebar-nav-icon" style={{ fontSize: collapsed ? "28px" : "16px" }}>
                 {item.icon}
               </span>
               {!collapsed && (
                 <>
                   <span>{item.label}</span>
                   {item.submenuItems && (
-                    <span style={{ marginLeft: "auto" }}>
+                    <span className="sidebar-nav-arrow">
                       {openSubmenu === item.label ? "▲" : "▼"}
                     </span>
                   )}
@@ -187,33 +123,12 @@ export default function Sidebar() {
             {!collapsed &&
               item.submenuItems &&
               openSubmenu === item.label && (
-                <div
-                  style={{
-                    marginLeft: "40px",
-                    borderLeft: "2px solid #ddd",
-                    paddingLeft: "10px",
-                  }}
-                >
+                <div className="sidebar-submenu">
                   {item.submenuItems.map((sub) => (
                     <button
                       key={sub.path}
+                      className="sidebar-submenu-btn"
                       onClick={() => handleNavigate(sub.path)}
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        border: "none",
-                        background: "none",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        fontSize: "13px",
-                        color: "#555",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.target.style.backgroundColor = "#f0f0f0")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.target.style.backgroundColor = "transparent")
-                      }
                     >
                       {sub.label}
                     </button>
@@ -225,19 +140,10 @@ export default function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(229,229,229,0.5)" }}>
+      <div className="sidebar-logout">
         <button
+          className="sidebar-logout-btn"
           onClick={handleLogout}
-          style={{
-            width: "100%",
-            padding: "10px",
-            borderRadius: "6px",
-            backgroundColor: "rgba(220,53,69,0.9)",
-            border: "none",
-            color: "white",
-            cursor: "pointer",
-            fontWeight: "500",
-          }}
         >
           {collapsed ? "⎋" : "Đăng xuất"}
         </button>
