@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { uploadMyDoc } from "../../services/documentService";
+import { uploadCV } from "../../services/cvService";
 import { useAuthStore } from "../../store/authStore";
 import "./profile.css";
 
@@ -75,15 +75,15 @@ export default function DocumentUpload() {
     }));
 
     try {
-      // TODO(stagewise): Replace with actual API call
-      await uploadMyDoc({ type: docInfo.type, file: state.file });
+      // Upload CV to /api/cv/upload endpoint
+      await uploadCV({ file: state.file });
 
       setUploadState((prev) => ({
         ...prev,
         [docKey]: {
           ...prev[docKey],
           uploading: false,
-          message: "Tải lên thành công! Vui lòng chờ HR duyệt.",
+          message: "Tải lên CV thành công! Vui lòng chờ HR duyệt.",
           file: null,
         },
       }));

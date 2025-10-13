@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { reviewDoc } from "../../services/documentService";
+import { approveCV, rejectCV } from "../../services/cvService";
 import { sendApprovalEmail, sendRejectionEmail } from "../../services/emailService";
 
 export default function ReviewModal({ document, onClose, onReviewed }) {
@@ -18,7 +19,16 @@ export default function ReviewModal({ document, onClose, onReviewed }) {
     setError("");
 
     try {
-      await reviewDoc(document.id, action, note.trim());
+      // Kiểm tra nếu là CV thì dùng API CV, còn lại dùng API Document
+      if (document.isCV) {
+        if (action === "APPROVE") {
+          await approveCV(document.id);
+        } else {
+          await rejectCV(document.id);
+        }
+      } else {
+        await reviewDoc(document.id, action, note.trim());
+      }
 
       // Gửi email tự động nếu được bật
       if (sendEmail) {
