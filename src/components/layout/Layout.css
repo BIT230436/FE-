@@ -48,6 +48,8 @@
   min-height: calc(100vh - 64px);
   transition: box-shadow 0.2s;
   animation: fadeInLayout 0.8s;
+  overflow-y: auto;
+  max-height: calc(100vh - 64px);
 }
 
 @keyframes fadeInLayout {

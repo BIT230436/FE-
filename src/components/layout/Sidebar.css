@@ -13,7 +13,8 @@
   border-top-right-radius: 24px;
   border-bottom-right-radius: 24px;
   transition: width 0.3s;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .sidebar.collapsed {
   width: 70px;
@@ -87,7 +88,7 @@
   flex: 1;
   padding: 14px 0;
 }
-.sidebar-nav-item {}
+/* .sidebar-nav-item styles handled by child elements */
 .sidebar-nav-btn {
   width: 100%;
   padding: 14px 24px;
@@ -112,7 +113,7 @@
   gap: 0;
   justify-content: center;
 }
-.sidebar-nav-icon {}
+/* .sidebar-nav-icon styles handled inline */
 .sidebar-nav-arrow {
   margin-left: auto;
 }

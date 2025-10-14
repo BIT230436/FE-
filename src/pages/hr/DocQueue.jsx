@@ -64,7 +64,7 @@ export default function DocQueue() {
 
 
   return (
-    <div className="page-container">
+    <div>
       <h1 className="page-title" style={{ marginBottom: 12 }}>Hồ sơ chờ duyệt</h1>
       <div className="card">
         <table className="table" style={{ fontSize: 14 }}>

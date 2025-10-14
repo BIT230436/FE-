@@ -21,8 +21,18 @@ export async function getMyDocs() {
   const rows = response.data?.data || [];
   return rows.map((r) => {
     const fileDetail = r.file_detail || "";
-    const fileName =
-      typeof fileDetail === "string" ? fileDetail.split(" (", 1)[0] : "";
+    let fileName = "";
+    
+    if (typeof fileDetail === "string") {
+      // Kiểm tra xem có phải URL không
+      if (fileDetail.startsWith('http')) {
+        fileName = extractFileNameFromUrl(fileDetail);
+      } else {
+        // Nếu không phải URL, dùng logic cũ
+        fileName = fileDetail.split(" (", 1)[0];
+      }
+    }
+    
     return {
       id: r.document_id,
       type: r.document_type,
@@ -30,8 +40,31 @@ export async function getMyDocs() {
       uploadedAt: r.uploaded_at,
       status: r.status,
       note: r.rejection_reason || "",
+      fileDetail: fileDetail, // Giữ lại URL gốc để có thể download
     };
   });
+}
+
+// Helper function để extract tên file từ URL
+function extractFileNameFromUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  
+  // Nếu là URL Cloudinary
+  if (url.includes('cloudinary.com')) {
+    // Lấy phần cuối của URL sau dấu /
+    const urlParts = url.split('/');
+    const fileName = urlParts[urlParts.length - 1];
+    
+    // Decode URL để lấy tên file gốc
+    try {
+      return decodeURIComponent(fileName);
+    } catch (e) {
+      return fileName;
+    }
+  }
+  
+  // Nếu không phải URL, trả về nguyên văn
+  return url;
 }
 
 // Lấy tài liệu chờ duyệt (cho HR)
@@ -40,8 +73,18 @@ export async function getPendingDocs() {
   const rows = response.data?.data || [];
   return rows.map((r) => {
     const fileDetail = r.file_detail || "";
-    const fileName =
-      typeof fileDetail === "string" ? fileDetail.split(" (", 1)[0] : "";
+    let fileName = "";
+    
+    if (typeof fileDetail === "string") {
+      // Kiểm tra xem có phải URL không
+      if (fileDetail.startsWith('http')) {
+        fileName = extractFileNameFromUrl(fileDetail);
+      } else {
+        // Nếu không phải URL, dùng logic cũ
+        fileName = fileDetail.split(" (", 1)[0];
+      }
+    }
+    
     return {
       id: r.document_id,
       type: r.document_type,
@@ -49,6 +92,7 @@ export async function getPendingDocs() {
       uploadedAt: r.uploaded_at,
       status: r.status,
       note: r.rejection_reason || "",
+      fileDetail: fileDetail, // Giữ lại URL gốc để có thể download
     };
   });
 }

@@ -19,9 +19,9 @@ body {
 }
 
 .page-container {
-  padding: 32px 24px;
-  background: var(--bg-light);
-  min-height: 100vh;
+  padding: 0;
+  background: transparent;
+  min-height: auto;
 }
 
 .page-header {
