@@ -101,18 +101,20 @@ export async function confirmContract(documentId) {
 
 
 
-// 📤 Upload hợp đồng lên Cloudinary (gắn với InternProfile + HR)
-export async function uploadToCloud({ internId, file }) {
+// services/documentService.js
+
+// Upload hợp đồng lên Cloudinary
+export async function uploadToCloud({ internProfileId, file, hrId }) {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("internProfileId", internId); 
+  formData.append("internProfileId", internProfileId); // phải match với BE
+  formData.append("hrId", hrId);
 
-  const { data } = await api.post("/documents/upload_cloud  ", formData, {
+  const { data } = await api.post("/documents/upload_cloud", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data;
 }
-
 
 // 📥 Lấy danh sách URL hợp đồng theo internId
 export async function getDocUrlsByIntern(internId) {

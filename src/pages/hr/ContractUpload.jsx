@@ -1,466 +1,610 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { getInternships } from "../../services/internshipService";
 import { uploadToCloud } from "../../services/documentService";
-import { getUsers } from "../../services/adminService";
+import { useAuthStore } from "../../store/authStore";
 import "./ContractUpload.css";
 
-const FileUpload = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState("idle");
-  const [uploadResult, setUploadResult] = useState(null);
+export default function UploadContractForm() {
+  const user = useAuthStore((s) => s.user);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [internId, setInternId] = useState("");
-  const [internEmail, setInternEmail] = useState("");
-  const [filteredInterns, setFilteredInterns] = useState([]);
-  const [allInterns, setAllInterns] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSelectIntern, setShowSelectIntern] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [file, setFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [interns, setInterns] = useState([]);
+  const [selectedIntern, setSelectedIntern] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
-  const fileInputRef = useRef(null);
-
-  // Load danh sách interns khi component mount
+  // Fetch danh sách intern khi mở modal
   useEffect(() => {
-    loadInterns();
-  }, []);
+    if (showModal) {
+      fetchInterns();
+    }
+  }, [showModal, searchQuery]);
 
-  async function loadInterns() {
-    setIsSearching(true);
+  const fetchInterns = async () => {
+    setLoading(true);
     try {
-      const response = await getUsers({ role: "INTERN", status: "" });
-      const userList = response.content || [];
-      setAllInterns(userList);
+      const response = await getInternships({ q: searchQuery, size: 50 });
+
+      const internList = response.data || response;
+      setInterns(internList);
     } catch (error) {
-      console.error("Error loading interns:", error);
-      setErrorMessage("Không thể tải danh sách thực tập sinh.");
+      console.error("Error fetching interns:", error);
+      setInterns([]);
     } finally {
-      setIsSearching(false);
+      setLoading(false);
     }
-  }
-
-  // Filter interns khi searchTerm thay đổi
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredInterns([]);
-      return;
-    }
-
-    const search = searchTerm.toLowerCase();
-    const filtered = allInterns.filter((intern) => {
-      return (
-        intern.fullName?.toLowerCase().includes(search) ||
-        intern.email?.toLowerCase().includes(search)
-      );
-    });
-
-    setFilteredInterns(filtered);
-  }, [searchTerm, allInterns]);
+  };
 
   const handleSelectIntern = (intern) => {
-    setInternId(intern.id);
-    setInternEmail(intern.email || "");
-    setSearchTerm(intern.fullName || intern.name);
-    setFilteredInterns([]);
+    setSelectedIntern(intern);
+    setShowModal(false);
   };
 
   const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setUploadStatus("idle");
-      setErrorMessage("");
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+      setUploadSuccess(false);
+      setUploadError("");
     }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setUploadStatus("idle");
-      setErrorMessage("");
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      setFile(droppedFile);
+      setFileName(droppedFile.name);
+      setUploadSuccess(false);
+      setUploadError("");
     }
   };
 
-  const handleDragOver = (e) => e.preventDefault();
-
-  const removeFile = () => {
-    setSelectedFile(null);
-    setUploadStatus("idle");
-    setUploadResult(null);
-    setErrorMessage("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const clearFile = () => {
+    setFileName("");
+    setFile(null);
+    setUploadSuccess(false);
+    setUploadError("");
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setErrorMessage("Vui lòng chọn file.");
-      return;
-    }
-    if (!internId) {
-      setErrorMessage("Vui lòng chọn thực tập sinh.");
-      return;
-    }
+    if (!selectedIntern || !file) return;
 
-    setUploadStatus("uploading");
-    setErrorMessage("");
+    setUploading(true);
+    setUploadError("");
+    setUploadSuccess(false);
 
     try {
-      const result = await uploadToCloud({
-        internId,
-        file: selectedFile,
-      });
-      setUploadStatus("success");
-      setUploadResult(result);
+      // Lấy hrId từ user object (user.id từ auth store)
+      const hrId = user?.id;
 
+      // Lấy internId - cố gắng từ nhiều key khác nhau
+      const internId =
+        selectedIntern?.intern_id ||
+        selectedIntern?.internProfileId ||
+        selectedIntern?.id;
+
+      console.log("=== DEBUG INFO ===");
+      console.log("Selected Intern:", selectedIntern);
+      console.log("Intern ID:", internId);
+      console.log("Intern object keys:", Object.keys(selectedIntern));
+      console.log("HR ID:", hrId);
+      console.log("File:", file);
+      console.log("==================");
+
+      if (!hrId || hrId === "undefined" || hrId === undefined) {
+        setUploadError("Không tìm thấy thông tin HR. Vui lòng đăng nhập lại!");
+        setUploading(false);
+        return;
+      }
+
+      if (!internId || internId === "undefined" || internId === undefined) {
+        setUploadError("Không tìm thấy ID thực tập sinh!");
+        setUploading(false);
+        return;
+      }
+
+      const response = await uploadToCloud({
+        internProfileId: internId, // ← Sử dụng internId từ object
+        file: file,
+        hrId: Number(hrId),
+      });
+
+      console.log("Upload success:", response);
+      setUploadSuccess(true);
+
+      // Reset form sau 2 giây
       setTimeout(() => {
-        setSelectedFile(null);
-        setSearchTerm("");
-        setInternId("");
-        setInternEmail("");
-        setUploadStatus("idle");
-        setUploadResult(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        setFile(null);
+        setFileName("");
+        setSelectedIntern(null);
+        setUploadSuccess(false);
       }, 2000);
     } catch (error) {
-      setUploadStatus("error");
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            setErrorMessage("Dữ liệu không hợp lệ, vui lòng kiểm tra lại.");
-            break;
-          case 401:
-            setErrorMessage("Bạn chưa đăng nhập hoặc hết phiên.");
-            break;
-          case 413:
-            setErrorMessage("File quá lớn (vượt quá giới hạn 10MB).");
-            break;
-          case 500:
-            setErrorMessage("Lỗi hệ thống, vui lòng thử lại sau.");
-            break;
-          default:
-            setErrorMessage(
-              error.response.data?.message || "Có lỗi xảy ra khi upload file."
-            );
-        }
-      } else if (error.request) {
-        setErrorMessage("Không thể kết nối đến server, vui lòng thử lại.");
-      } else {
-        setErrorMessage(error.message || "Có lỗi xảy ra.");
-      }
+      console.error("Upload error:", error);
+      setUploadError(
+        error.response?.data?.message || "Upload thất bại. Vui lòng thử lại!"
+      );
+    } finally {
+      setUploading(false);
     }
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   return (
-    <div className="file-upload-container">
-      <div className="file-upload-card">
-        <h2 className="upload-title">Upload Hợp Đồng</h2>
-
-        <div className="form-group">
-          <div
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(to bottom right, #eff6ff, #ffffff, #eff6ff)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+          width: "100%",
+          maxWidth: "672px",
+          padding: "32px",
+        }}
+      >
+        {/* Header */}
+        <div style={{ marginBottom: "32px" }}>
+          <h1
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 8,
+              fontSize: "30px",
+              fontWeight: "bold",
+              color: "#1f2937",
+              marginBottom: "8px",
             }}
           >
-            <label className="form-label">Tên Thực Tập Sinh</label>
-            <button
-              type="button"
-              className="btn btn-info btn-sm"
-              onClick={() => setShowSelectIntern(true)}
-              disabled={uploadStatus === "uploading"}
-              style={{
-                fontSize: "13px",
-                padding: "4px 12px",
-              }}
-            >
-              Chọn từ danh sách
-            </button>
-          </div>
-          <div style={{ position: "relative" }}>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setInternId("");
-                setInternEmail("");
-              }}
-              className="form-input"
-              placeholder="Nhập tên hoặc email thực tập sinh..."
-              disabled={uploadStatus === "uploading"}
-            />
-            {isSearching && (
-              <span
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#666",
-                }}
-              >
-                Đang tìm...
-              </span>
-            )}
-          </div>
+            Upload Hợp Đồng
+          </h1>
+        </div>
 
-          {internId && (
+        {/* Form */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {/* Input Name */}
+          <div>
             <div
               style={{
-                marginTop: "8px",
-                fontSize: "14px",
-                color: "#007bff",
                 display: "flex",
                 alignItems: "center",
-                gap: "4px",
-                fontWeight: "bold",
+                justifyContent: "space-between",
+                marginBottom: "8px",
               }}
             >
-              <span className="selected-email">{internEmail}</span>
-            </div>
-          )}
-
-          {filteredInterns.length > 0 && (
-            <ul className="dropdown-list">
-              {filteredInterns.map((intern) => (
-                <li
-                  key={intern.id}
-                  className="dropdown-item"
-                  onClick={() => handleSelectIntern(intern)}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                    }}
-                  >
-                    <span className="intern-name" style={{ fontWeight: "500" }}>
-                      {intern.fullName || intern.name}
-                    </span>
-                    {intern.email && (
-                      <span
-                        className="intern-email"
-                        style={{ fontSize: "13px", color: "#666" }}
-                      >
-                        {intern.email}
-                      </span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {!isSearching &&
-            searchTerm.trim() &&
-            filteredInterns.length === 0 && (
-              <div
+              <label
                 style={{
-                  marginTop: "8px",
-                  padding: "8px",
-                  backgroundColor: "#fff3cd",
-                  borderRadius: "4px",
                   fontSize: "14px",
-                  color: "#856404",
+                  fontWeight: "500",
+                  color: "#374151",
                 }}
               >
-                Không tìm thấy thực tập sinh với tên "{searchTerm}"
-              </div>
-            )}
-        </div>
+                Tên Thực Tập Sinh
+              </label>
+              <button
+                style={{
+                  padding: "6px 16px",
+                  backgroundColor: "#22d3ee",
+                  color: "white",
+                  fontSize: "14px",
+                  borderRadius: "6px",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "background-color 0.2s",
+                }}
+                onMouseOver={(e) =>
+                  (e.target.style.backgroundColor = "#06b6d4")
+                }
+                onMouseOut={(e) => (e.target.style.backgroundColor = "#22d3ee")}
+                onClick={() => setShowModal(true)}
+              >
+                Chọn từ danh sách
+              </button>
+            </div>
+            <input
+              type="text"
+              placeholder="Nhập tên hoặc email thực tập sinh..."
+              value={
+                selectedIntern
+                  ? `${selectedIntern.student} (${selectedIntern.studentEmail})`
+                  : ""
+              }
+              readOnly
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                fontSize: "14px",
+                outline: "none",
+                boxSizing: "border-box",
+                backgroundColor: selectedIntern ? "#f3f4f6" : "white",
+                cursor: "default",
+              }}
+            />
+          </div>
 
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          className={`upload-area ${selectedFile ? "has-file" : ""}`}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileSelect}
-            className="file-input-hidden"
-            id="fileInput"
-            disabled={uploadStatus === "uploading"}
-          />
-          {!selectedFile ? (
-            <label htmlFor="fileInput" className="upload-label">
-              <div className="upload-icon">[File]</div>
-              <p className="upload-text">
-                Kéo thả file vào đây hoặc{" "}
-                <span className="upload-link">chọn file</span>
-              </p>
-              <p className="upload-hint">
-                PDF, DOC, DOCX, JPG, PNG (tối đa 10MB)
-              </p>
-            </label>
-          ) : (
-            <div className="file-preview">
-              <div className="file-info">
-                <div className="file-icon">[File]</div>
-                <div className="file-details">
-                  <p className="file-name">{selectedFile.name}</p>
-                  <p className="file-size">
-                    {formatFileSize(selectedFile.size)}
+          {/* File Upload Area */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            style={{
+              border: `2px dashed ${isDragging ? "#3b82f6" : "#d1d5db"}`,
+              borderRadius: "12px",
+              padding: "48px",
+              textAlign: "center",
+              backgroundColor: isDragging ? "#eff6ff" : "#f9fafb",
+              transition: "all 0.2s",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "16px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "96px",
+                  fontWeight: "300",
+                  color: "#9ca3af",
+                }}
+              >
+                [File]
+              </div>
+
+              {fileName ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "8px 16px",
+                    backgroundColor: "#dbeafe",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      color: "#1e40af",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {fileName}
+                  </span>
+                  <button
+                    onClick={clearFile}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#1e40af",
+                      cursor: "pointer",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <p style={{ color: "#4b5563", marginBottom: "8px" }}>
+                    Kéo thả file vào đây hoặc{" "}
+                    <label
+                      style={{
+                        color: "#3b82f6",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                      }}
+                    >
+                      chọn file
+                      <input
+                        type="file"
+                        style={{ display: "none" }}
+                        accept=".pdf,.doc,.docx,.jpg,.png"
+                        onChange={handleFileSelect}
+                      />
+                    </label>
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      color: "#9ca3af",
+                    }}
+                  >
+                    PDF, DOC, DOCX, JPG, PNG (tối đa 10MB)
                   </p>
                 </div>
-              </div>
-              {uploadStatus !== "uploading" && (
-                <button onClick={removeFile} className="remove-button">
-                  X
-                </button>
               )}
+            </div>
+          </div>
+
+          {/* Upload Button */}
+          <button
+            disabled={!fileName || !selectedIntern || uploading}
+            onClick={handleUpload}
+            style={{
+              width: "100%",
+              padding: "16px",
+              borderRadius: "8px",
+              fontWeight: "500",
+              color: "white",
+              fontSize: "16px",
+              border: "none",
+              backgroundColor:
+                fileName && selectedIntern && !uploading
+                  ? "#6b7280"
+                  : "#9ca3af",
+              cursor:
+                fileName && selectedIntern && !uploading
+                  ? "pointer"
+                  : "not-allowed",
+              transition: "background-color 0.2s",
+            }}
+            onMouseOver={(e) => {
+              if (fileName && selectedIntern && !uploading)
+                e.target.style.backgroundColor = "#4b5563";
+            }}
+            onMouseOut={(e) => {
+              if (fileName && selectedIntern && !uploading)
+                e.target.style.backgroundColor = "#6b7280";
+            }}
+          >
+            {uploading ? "Đang tải lên..." : "[Upload] Upload File"}
+          </button>
+
+          {/* Success Message */}
+          {uploadSuccess && (
+            <div
+              style={{
+                padding: "12px 16px",
+                backgroundColor: "#d1fae5",
+                border: "1px solid #10b981",
+                borderRadius: "8px",
+                color: "#065f46",
+                fontSize: "14px",
+                textAlign: "center",
+              }}
+            >
+              ✓ Upload thành công!
+            </div>
+          )}
+
+          {/* Error Message */}
+          {uploadError && (
+            <div
+              style={{
+                padding: "12px 16px",
+                backgroundColor: "#fee2e2",
+                border: "1px solid #ef4444",
+                borderRadius: "8px",
+                color: "#991b1b",
+                fontSize: "14px",
+                textAlign: "center",
+              }}
+            >
+              ✗ {uploadError}
             </div>
           )}
         </div>
-
-        {errorMessage && (
-          <div className="alert alert-error">
-            <span className="alert-icon">[!]</span>
-            <p>{errorMessage}</p>
-          </div>
-        )}
-
-        {uploadStatus === "success" && uploadResult && (
-          <div className="alert alert-success">
-            <div className="alert-header">
-              <span className="alert-icon">[OK]</span>
-              <p className="alert-title">Upload thành công!</p>
-            </div>
-            {uploadResult.url && (
-              <a
-                href={uploadResult.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="result-link"
-              >
-                Xem file đã upload
-              </a>
-            )}
-          </div>
-        )}
-
-        <button
-          onClick={handleUpload}
-          disabled={!selectedFile || uploadStatus === "uploading" || !internId}
-          className={`upload-button ${
-            uploadStatus === "uploading" ? "uploading" : ""
-          }`}
-        >
-          {uploadStatus === "uploading" ? (
-            <>
-              <span className="spinner">...</span>
-              <span>Đang upload...</span>
-            </>
-          ) : (
-            <>
-              <span>[Upload]</span>
-              <span>Upload File</span>
-            </>
-          )}
-        </button>
       </div>
 
-      {showSelectIntern && (
-        <SelectInternModal
-          interns={allInterns}
-          loading={isSearching}
-          onClose={() => setShowSelectIntern(false)}
-          onSelect={(intern) => {
-            handleSelectIntern(intern);
-            setShowSelectIntern(false);
+      {/* Modal chọn intern */}
+      {showModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "16px",
           }}
-        />
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              width: "100%",
+              maxWidth: "600px",
+              maxHeight: "80vh",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "24px",
+                borderBottom: "1px solid #e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    color: "#1f2937",
+                    margin: 0,
+                  }}
+                >
+                  Chọn Thực Tập Sinh
+                </h2>
+                <button
+                  onClick={() => setShowModal(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "24px",
+                    color: "#6b7280",
+                    cursor: "pointer",
+                    padding: 0,
+                    lineHeight: 1,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên hoặc email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#3b82f6";
+                  e.target.style.boxShadow =
+                    "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#d1d5db";
+                  e.target.style.boxShadow = "none";
+                }}
+              />
+            </div>
+
+            {/* Modal Body */}
+            <div
+              style={{
+                padding: "16px 24px",
+                overflowY: "auto",
+                flex: 1,
+              }}
+            >
+              {loading ? (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "24px",
+                    color: "#6b7280",
+                  }}
+                >
+                  Đang tải...
+                </div>
+              ) : interns.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "24px",
+                    color: "#6b7280",
+                  }}
+                >
+                  Không tìm thấy thực tập sinh
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  {interns.map((intern) => (
+                    <div
+                      key={intern.intern_id}
+                      onClick={() => handleSelectIntern(intern)}
+                      style={{
+                        padding: "16px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        backgroundColor:
+                          selectedIntern?.intern_id === intern.intern_id
+                            ? "#eff6ff"
+                            : "white",
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f9fafb";
+                        e.currentTarget.style.borderColor = "#3b82f6";
+                      }}
+                      onMouseOut={(e) => {
+                        if (selectedIntern?.intern_id !== intern.intern_id) {
+                          e.currentTarget.style.backgroundColor = "white";
+                        } else {
+                          e.currentTarget.style.backgroundColor = "#eff6ff";
+                        }
+                        e.currentTarget.style.borderColor = "#e5e7eb";
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: "500",
+                          color: "#1f2937",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {intern.student}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "14px",
+                          color: "#6b7280",
+                        }}
+                      >
+                        {intern.studentEmail}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
-};
-
-function SelectInternModal({ interns, loading, onClose, onSelect }) {
-  const [searchText, setSearchText] = useState("");
-
-  const filteredInterns = interns.filter((intern) => {
-    if (!searchText) return true;
-    const search = searchText.toLowerCase();
-    return (
-      intern.fullName?.toLowerCase().includes(search) ||
-      intern.email?.toLowerCase().includes(search)
-    );
-  });
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-box" style={{ maxWidth: "600px", width: "70%" }}>
-        <h2 className="modal-title">Chọn Thực tập sinh</h2>
-
-        <div className="form-group" style={{ marginBottom: 16 }}>
-          <input
-            className="form-input"
-            placeholder="Tìm kiếm theo tên hoặc email..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-        </div>
-
-        {loading ? (
-          <div style={{ textAlign: "center", padding: 20 }}>Đang tải...</div>
-        ) : filteredInterns.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 20, color: "#666" }}>
-            {searchText
-              ? "Không tìm thấy thực tập sinh phù hợp"
-              : "Không có thực tập sinh nào trong hệ thống"}
-          </div>
-        ) : (
-          <div
-            style={{ maxHeight: "500px", overflowY: "auto", marginBottom: 16 }}
-          >
-            <table className="table">
-              <thead>
-                <tr>
-                  <th className="table-th">Họ tên</th>
-                  <th className="table-th">Email</th>
-                  <th className="table-th">Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInterns.map((intern) => (
-                  <tr key={intern.id}>
-                    <td className="table-td">{intern.fullName}</td>
-                    <td className="table-td">{intern.email}</td>
-                    <td className="table-td">
-                      <button
-                        className="btn btn-success btn-sm"
-                        onClick={() => onSelect(intern)}
-                      >
-                        Chọn
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div className="form-actions">
-          <button className="btn-outline" onClick={onClose}>
-            Đóng
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }
-
-export default FileUpload;
