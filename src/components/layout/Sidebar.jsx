@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
-import "./Sidebar.css"; // Thêm import CSS
+import "./Sidebar.css"; // CSS
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
@@ -48,10 +48,14 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   });
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
-
   const toggleSubmenu = (label) => {
     setOpenSubmenu(openSubmenu === label ? null : label);
   };
+
+  // Lấy chữ cái đầu tiên của tên (nếu có)
+  const initial = user?.fullName
+    ? user.fullName.trim().charAt(0).toUpperCase()
+    : "?";
 
   return (
     <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
@@ -74,11 +78,16 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         onClick={() => handleNavigate("/profile")}
         style={{ cursor: "pointer" }}
       >
-        <img
-          src={user?.avatar || "/default-avatar.png"}
-          alt="avatar"
-          className="sidebar-avatar"
-        />
+        {user?.avatar ? (
+          <img
+            src={user.avatar}
+            alt="avatar"
+            className="sidebar-avatar"
+          />
+        ) : (
+          <div className="sidebar-avatar-initial">{initial}</div>
+        )}
+
         {!collapsed && (
           <div>
             <div className="sidebar-user-name">
