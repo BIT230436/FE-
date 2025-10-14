@@ -264,3 +264,105 @@
     transform: rotate(360deg);
   }
 }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .file-upload-container {
+    max-width: 100%;
+    padding: 16px;
+  }
+  .file-upload-card {
+    padding: 24px;
+  }
+  .upload-title {
+    font-size: 22px;
+  }
+}
+
+/* Mobile landscape */
+@media (max-width: 768px) {
+  .file-upload-container {
+    padding: 12px;
+  }
+  .file-upload-card {
+    padding: 20px;
+    border-radius: 8px;
+  }
+  .upload-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+  .upload-area {
+    padding: 24px 12px;
+    margin-bottom: 16px;
+  }
+  .upload-icon {
+    font-size: 40px;
+  }
+  .upload-text {
+    font-size: 15px;
+  }
+  .upload-button {
+    font-size: 15px;
+    padding: 12px 16px;
+  }
+  .form-input,
+  .form-select {
+    font-size: 15px;
+    padding: 12px;
+  }
+  .file-preview {
+    padding: 12px;
+  }
+  .file-icon {
+    font-size: 28px;
+  }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+  .file-upload-container {
+    padding: 8px;
+  }
+  .file-upload-card {
+    padding: 16px;
+  }
+  .upload-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .upload-area {
+    padding: 20px 8px;
+  }
+  .upload-icon {
+    font-size: 36px;
+  }
+  .upload-text {
+    font-size: 14px;
+  }
+  .upload-hint {
+    font-size: 12px;
+  }
+  .upload-button {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+  .form-input,
+  .form-select {
+    font-size: 14px;
+    padding: 10px;
+  }
+  .file-preview {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .file-info {
+    width: 100%;
+  }
+  .remove-button {
+    align-self: flex-end;
+  }
+}

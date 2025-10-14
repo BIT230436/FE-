@@ -290,3 +290,89 @@ body {
   background: #eaf3ff;
   color: #1761c7;
 }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .modal-box {
+    width: 480px;
+  }
+}
+
+/* Mobile landscape */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 24px;
+  }
+  .card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .table {
+    font-size: 13px;
+  }
+  .table-th, .table-td {
+    padding: 10px 8px;
+  }
+  .btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .btn-sm {
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+  .modal-box {
+    width: 95vw;
+    padding: 20px 16px;
+  }
+  .modal-title {
+    font-size: 18px;
+  }
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 20px;
+  }
+  .card {
+    padding: 12px;
+    border-radius: 8px;
+  }
+  .table {
+    font-size: 12px;
+  }
+  .table-th, .table-td {
+    padding: 8px 6px;
+  }
+  .btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  .modal-box {
+    width: 100vw;
+    padding: 16px 12px;
+    margin: 8px;
+  }
+  .modal-title {
+    font-size: 16px;
+  }
+  .form-input,
+  .form-select {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}

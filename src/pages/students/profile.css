@@ -379,3 +379,122 @@
   color: #9ca3af;
   cursor: not-allowed;
 }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .profile-container {
+    padding: 12px;
+  }
+  .profile-header {
+    gap: 12px;
+  }
+  .avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
+  }
+}
+
+/* Mobile landscape */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 8px;
+  }
+  .profile-title {
+    font-size: 20px;
+  }
+  .field-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+  .section-title {
+    font-size: 16px;
+  }
+  .upload-card {
+    padding: 12px;
+  }
+  .upload-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .upload-form .p-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .du-dropzone {
+    padding: 16px;
+  }
+  .du-icon-xl {
+    font-size: 40px;
+  }
+  .du-file-name {
+    font-size: 14px;
+  }
+  .du-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .du-actions .p-btn {
+    width: 100%;
+  }
+  .button-group {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .button-group .p-btn {
+    width: 100%;
+  }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 6px;
+  }
+  .profile-title {
+    font-size: 18px;
+  }
+  .avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+  .avatar--sm {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  .section-title {
+    font-size: 15px;
+  }
+  .upload-card {
+    padding: 10px;
+  }
+  .du-dropzone {
+    padding: 12px;
+  }
+  .du-icon-xl {
+    font-size: 36px;
+  }
+  .du-file-name {
+    font-size: 13px;
+  }
+  .du-file-size {
+    font-size: 12px;
+  }
+  .p-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .input, .p-select {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
