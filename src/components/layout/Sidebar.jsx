@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import "./Sidebar.css"; // Thêm import CSS
 
-import { TbLogout2} from "react-icons/tb";
+import { TbLogout2 } from "react-icons/tb";
 import logoTeam from "../../assets/logoTeam.jpg";
 
 import "./Sidebar.css"; // CSS
@@ -24,10 +24,30 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
   const menuItems = [
     { label: "Dashboard", path: "/", icon: "📊" },
-    { label: "Thực tập", path: "/internships", icon: "💼", requiredPermissions: ["VIEW_INTERNSHIPS"] },
-    { label: "Quản lý người dùng", path: "/admin/users", icon: "👥", requiredPermissions: ["MANAGE_USERS"] },
-    { label: "Duyệt hồ sơ", path: "/hr/documents", icon: "🗂️", requiredRoles: ["HR", "ADMIN"] },
-    { label: "Phân quyền", path: "/admin/permissions", icon: "🔐", requiredPermissions: ["MANAGE_PERMISSIONS"] },
+    {
+      label: "Thực tập",
+      path: "/internships",
+      icon: "💼",
+      requiredPermissions: ["VIEW_INTERNSHIPS"],
+    },
+    {
+      label: "Quản lý người dùng",
+      path: "/admin/users",
+      icon: "👥",
+      requiredPermissions: ["MANAGE_USERS"],
+    },
+    {
+      label: "Duyệt hồ sơ",
+      path: "/hr/documents",
+      icon: "🗂️",
+      requiredRoles: ["HR", "ADMIN"],
+    },
+    {
+      label: "Phân quyền",
+      path: "/admin/permissions",
+      icon: "🔐",
+      requiredPermissions: ["MANAGE_PERMISSIONS"],
+    },
     {
       label: "Hợp đồng",
       icon: "📑",
@@ -37,9 +57,24 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         { label: "Danh sách hợp đồng", path: "/hr/contract-list" },
       ],
     },
-    { label: "Nộp hồ sơ", path: "/upload-documents", icon: "📄", requiredRoles: ["USER"] },
-    { label: "Hồ sơ của tôi", path: "/my-documents", icon: "📝", requiredRoles: ["USER"] },
-    { label: "Hợp đồng của tôi", path: "/my-contract", icon: "📃", requiredRoles: ["INTERN"] },
+    {
+      label: "Nộp hồ sơ",
+      path: "/upload-documents",
+      icon: "📄",
+      requiredRoles: ["USER"],
+    },
+    {
+      label: "Hồ sơ của tôi",
+      path: "/my-documents",
+      icon: "📝",
+      requiredRoles: ["USER"],
+    },
+    {
+      label: "Hợp đồng của tôi",
+      path: "/my-contract",
+      icon: "📃",
+      requiredRoles: ["INTERN"],
+    },
   ];
 
   const visibleItems = menuItems.filter((item) => {
@@ -69,13 +104,11 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         className="sidebar-toggle"
         onClick={() => setCollapsed(!collapsed)}
       >
-        {collapsed ? "☰" : "⟪" }
+        {collapsed ? "☰" : "⟪"}
       </button>
 
       {/* Header chữ Menu */}
-      <div className="sidebar-header">
-        {!collapsed && "Menu"}
-      </div>
+      <div className="sidebar-header">{!collapsed && "Menu"}</div>
 
       {/* Thông tin User */}
       <div
@@ -83,29 +116,18 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         onClick={() => handleNavigate("/profile")}
         style={{ cursor: "pointer" }}
       >
-        <img
-          src={user?.avatar || logoTeam}
-          alt="avatar"
-          className="sidebar-avatar"
-        />
         {user?.avatar ? (
-          <img
-            src={user.avatar}
-            alt="avatar"
-            className="sidebar-avatar"
-          />
+          <img src={user.avatar} alt="avatar" className="sidebar-avatar" />
         ) : (
           <div className="sidebar-avatar-initial">{initial}</div>
         )}
 
         {!collapsed && (
-          <div>
+          <div className="sidebar-user-info">
             <div className="sidebar-user-name">
               {user?.fullName || "Người dùng"}
             </div>
-            <div className="sidebar-user-role">
-              {user?.role || "Admin"}
-            </div>
+            <div className="sidebar-user-role">{user?.role || "Admin"}</div>
           </div>
         )}
       </div>
@@ -123,7 +145,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               }
               title={collapsed ? item.label : ""}
             >
-              <span className="sidebar-nav-icon" style={{ fontSize: collapsed ? "28px" : "16px" }}>
+              <span
+                className="sidebar-nav-icon"
+                style={{ fontSize: collapsed ? "28px" : "16px" }}
+              >
                 {item.icon}
               </span>
               {!collapsed && (
@@ -139,31 +164,26 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             </button>
 
             {/* Submenu */}
-            {!collapsed &&
-              item.submenuItems &&
-              openSubmenu === item.label && (
-                <div className="sidebar-submenu">
-                  {item.submenuItems.map((sub) => (
-                    <button
-                      key={sub.path}
-                      className="sidebar-submenu-btn"
-                      onClick={() => handleNavigate(sub.path)}
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+            {!collapsed && item.submenuItems && openSubmenu === item.label && (
+              <div className="sidebar-submenu">
+                {item.submenuItems.map((sub) => (
+                  <button
+                    key={sub.path}
+                    className="sidebar-submenu-btn"
+                    onClick={() => handleNavigate(sub.path)}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </nav>
 
       {/* Logout */}
       <div className="sidebar-logout">
-        <button
-          className="sidebar-logout-btn"
-          onClick={handleLogout}
-        >
+        <button className="sidebar-logout-btn" onClick={handleLogout}>
           {collapsed ? <TbLogout2 /> : "Đăng xuất"}
         </button>
       </div>
