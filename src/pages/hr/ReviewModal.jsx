@@ -3,8 +3,7 @@ import { reviewDoc } from "../../services/documentService";
 import { approveCV, rejectCV } from "../../services/cvService";
 import { sendApprovalEmail, sendRejectionEmail } from "../../services/emailService";
 
-export default function ReviewModal({ document, onClose, onReviewed }) {
-  const [action] = useState("APPROVE"); // APPROVE or REJECT
+export default function ReviewModal({ document, action, onClose, onReviewed }) {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");

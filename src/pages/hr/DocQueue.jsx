@@ -52,8 +52,8 @@ export default function DocQueue() {
     load();
   }, []);
 
-  const handleReview = (document) => {
-    setReviewing(document);
+  const handleReview = (document, action) => {
+    setReviewing({ ...document, action });
   };
 
   const handleReviewed = () => {
@@ -99,10 +99,10 @@ export default function DocQueue() {
                 </td>
                 <td className="table-td">{d.note || "-"}</td>
                 <td className="table-td">
-                  <button onClick={() => handleReview(d)} className="btn btn-success" style={{ marginRight: 8 }}>
+                  <button onClick={() => handleReview(d, "APPROVE")} className="btn btn-success" style={{ marginRight: 8 }}>
                     Duyệt
                   </button>
-                  <button onClick={() => handleReview(d)} className="btn btn-outline-danger">
+                  <button onClick={() => handleReview(d, "REJECT")} className="btn btn-outline-danger">
                     Từ chối
                   </button>
                 </td>
@@ -114,6 +114,7 @@ export default function DocQueue() {
       {reviewing && (
         <ReviewModal
           document={reviewing}
+          action={reviewing.action}
           onClose={() => setReviewing(null)}
           onReviewed={handleReviewed}
         />
