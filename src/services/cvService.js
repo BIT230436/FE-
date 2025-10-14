@@ -8,7 +8,7 @@ export async function uploadCV({ file }) {
   const email = useAuthStore.getState().user?.email;
   if (email) formData.append("uploaderEmail", email);
 
-  const response = await api.post("/cv/upload", formData);
+  const response = await api.post("/cvs/upload", formData);
   return response.data;
 }
 
@@ -16,7 +16,7 @@ export async function uploadCV({ file }) {
 export async function getMyCVs() {
   const email = useAuthStore.getState().user?.email;
   if (!email) return [];
-  const response = await api.get("/cv/my", { params: { email } });
+  const response = await api.get("/cvs/my", { params: { email } });
   const rows = response.data?.data || [];
   return rows.map((r) => ({
     id: r.cv_id,
@@ -30,45 +30,64 @@ export async function getMyCVs() {
 
 // Lấy CV chờ duyệt (cho HR)
 export async function getPendingCVs() {
-  const response = await api.get("/cv/pending");
+  const response = await api.get("/cvs/pending");
   const rows = response.data?.data || [];
   return rows.map((r) => ({
     id: r.cv_id,
     fileName: r.filename,
+    type: "CV", // ⚙️ thêm để hiển thị rõ loại tài liệu
     fileType: r.file_type,
     uploadedAt: r.uploaded_by,
     status: r.status,
     internId: r.intern_id,
     internName: r.intern_name,
+    userEmail: r.intern_email, // ✅ đây chính là email cần gửi
     phone: r.phone,
     university: r.university_name,
+    isCV: true, // ✅ thêm flag này để ReviewModal biết đây là CV
   }));
 }
 
+
 // Lấy CV theo intern
 export async function getCVsByIntern(internId) {
-  const response = await api.get(`/cv/intern/${internId}`);
+  const response = await api.get(`/cvs/intern/${internId}`);
   return response.data.data || [];
 }
 
-// Duyệt CV
-export async function approveCV(id) {
-  return api.put(`/cv/${id}/approve`);
+// HR initiates CV approval (sets status to ACCEPTING)
+export async function acceptCV(id) {
+  return api.put(`/cvs/${id}/accept`);
 }
 
-// Từ chối CV
-export async function rejectCV(id) {
-  return api.put(`/cv/${id}/reject`);
+// HR confirms CV approval (sets status to APPROVED and sends email)
+export async function confirmApproveCV(id) {
+  return api.put(`/cvs/${id}/confirm-approve`);
+}
+
+// HR initiates CV rejection (sets status to REJECTING)
+export async function rejectCV(id, reason = "") {
+  return api.put(`/cvs/${id}/reject`, { reason });
+}
+
+// HR confirms CV rejection (sets status to REJECTED and sends email)
+export async function confirmRejectCV(id, reason) {
+  return api.put(`/cvs/${id}/confirm-reject`, { reason });
+}
+
+// Legacy endpoints for backward compatibility
+export async function approveCV(id) {
+  return api.put(`/cvs/${id}/approve`);
 }
 
 // Thống kê CV
 export async function getCVStats() {
-  const response = await api.get("/cv/stats");
+  const response = await api.get("/cvs/stats");
   return response.data.data;
 }
 
 // Xóa CV theo id
 export async function deleteCV(id) {
-  const response = await api.delete(`/cv/${id}`);
+  const response = await api.delete(`/cvs/${id}`);
   return response.data;
 }

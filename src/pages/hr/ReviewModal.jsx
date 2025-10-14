@@ -34,7 +34,8 @@ export default function ReviewModal({ document, onClose, onReviewed }) {
       if (sendEmail) {
         try {
           // Lấy thông tin người dùng - cần cải thiện để lấy từ API thực tế
-          const userEmail = document.userEmail || document.uploaderEmail || "intern@company.com";
+          console.log("🧾 document data:", document);
+          const userEmail = document.userEmail || document.intern_email || document.uploaderEmail || "intern@company.com";
 
           if (action === "APPROVE") {
             await sendApprovalEmail(userEmail, document.type, note.trim());
