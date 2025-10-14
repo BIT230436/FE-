@@ -9,14 +9,14 @@ html, body {
 
 .auth-container {
   display: flex;
-  min-height: 100vh;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100vw;      /* full chiều rộng */
+  height: 100vh;     /* full chiều cao màn hình */
+  margin: 0;         /* bỏ căn giữa */
+  max-width: none; 
   background: #f5f6fa;
   overflow: hidden;
   box-shadow: 0 0 24px rgba(43,124,255,0.10);
-  border-radius: 16px;
+  border-radius: 8px;
 }
 
 .auth-left {
@@ -39,7 +39,8 @@ html, body {
 
 .auth-right {
   flex: none;
-  width: 370px;
+  width: 400px;
+  height: 100vh;
   max-width: 95%;
   background: #fff;
   padding: 2.5rem 2rem;
@@ -109,8 +110,15 @@ html, body {
   color:#2b7cff;
 }
 .btn-outline:hover { background:#eaf3ff; color:#1761c7; }
+.btn-success {
+  background:#28a745;
+  color:#fff;
+  font-size:17px !important;
+}
+.btn-success:hover { background:#1e7e34; }
+
 .google-btn { display:flex; align-items:center; justify-content:center; gap:8px; margin:0 auto; }
-.google-icon { display:inline-block; }
+
 
 .auth-link-row { width:100%; display:flex; justify-content:flex-end; margin-bottom:1rem; }
 .auth-link { font-size:0.95rem; color:#2b7cff; text-decoration:none; }

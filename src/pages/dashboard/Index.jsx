@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import "../../pages/shared/list.css";
@@ -7,6 +8,26 @@ import "./dashboard.css";
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [total, setTotal] = useState(0);
+
+  async function load() {
+    setLoading(true);
+    setErr("");
+    try {
+      const res = await getUsers({
+        q,
+        role: filterRole,
+        status: filterStatus,
+      });
+      
+      setTotal(res?.total || 0);
+      // Không setItems nữa
+    } catch (e) {
+      setErr(e?.response?.data?.message || "Không tải được số lượng.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     console.log('Dashboard - Current user:', user);

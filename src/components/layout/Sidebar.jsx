@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import "./Sidebar.css"; // Thêm import CSS
 
+import { TbLogout2} from "react-icons/tb";
+import logoTeam from "../../assets/logoTeam.jpg";
+
+
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
@@ -60,7 +64,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         className="sidebar-toggle"
         onClick={() => setCollapsed(!collapsed)}
       >
-        {collapsed ? "☰" : "←"}
+        {collapsed ? "☰" : "⟪" }
       </button>
 
       {/* Header chữ Menu */}
@@ -75,7 +79,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         style={{ cursor: "pointer" }}
       >
         <img
-          src={user?.avatar || "/default-avatar.png"}
+          src={user?.avatar || logoTeam}
           alt="avatar"
           className="sidebar-avatar"
         />
@@ -145,7 +149,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           className="sidebar-logout-btn"
           onClick={handleLogout}
         >
-          {collapsed ? "⎋" : "Đăng xuất"}
+          {collapsed ? <TbLogout2 /> : "Đăng xuất"}
         </button>
       </div>
     </div>
