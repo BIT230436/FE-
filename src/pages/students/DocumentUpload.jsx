@@ -50,7 +50,6 @@ export default function DocumentUpload() {
   };
 
   const handleUpload = async (docKey) => {
-    const docInfo = documentTypes.find((d) => d.key === docKey);
     const state = uploadState[docKey];
 
     if (!state.file) {

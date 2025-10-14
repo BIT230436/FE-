@@ -95,18 +95,25 @@ export async function confirmContract(documentId) {
   return response.data;
 }
 
-// 📤 Upload hợp đồng lên Cloudinary (gắn với InternProfile + HR)
-export async function uploadToCloud({ internId, type, file }) {
-  const formData = new FormData();
-  formData.append("internId", internId);
-  formData.append("type", type);
-  formData.append("file", file);
 
-  const response = await api.post("/documents/upload_cloud", formData, {
+
+
+
+
+
+// services/documentService.js
+
+// Upload hợp đồng lên Cloudinary
+export async function uploadToCloud({ internProfileId, file, hrId }) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("internProfileId", internProfileId); // phải match với BE
+  formData.append("hrId", hrId);
+
+  const { data } = await api.post("/documents/upload_cloud", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-
-  return response.data; // backend trả object (có URL / message)
+  return data;
 }
 
 // 📥 Lấy danh sách URL hợp đồng theo internId
@@ -115,11 +122,25 @@ export async function getDocUrlsByIntern(internId) {
   return response.data;
 }
 
-
 export async function acceptDocument(documentId, internId) {
   const response = await api.put(
     `/documents/${documentId}/accept?internId=${internId}`
   );
   return response.data;
 }
+// 📚 Lấy tất cả hợp đồng (HR/Admin xem toàn bộ)
+export async function getAllContracts() {
+  const response = await api.get("/documents/contracts");
+  const rows = response.data || [];
 
+  return rows.map((r) => ({
+    internId: r.intern_id,
+    internName: r.intern_name,
+    documentId: r.document_id,
+    fileName: r.file_name,
+    fileDetail: r.file_detail,
+    status: r.status,
+    uploadedAt: r.uploaded_at,
+    hrName: r.hr_name,
+  }));
+}

@@ -91,3 +91,4 @@ export async function deleteCV(id) {
   const response = await api.delete(`/cvs/${id}`);
   return response.data;
 }
+
