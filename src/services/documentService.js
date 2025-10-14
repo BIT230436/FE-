@@ -95,19 +95,24 @@ export async function confirmContract(documentId) {
   return response.data;
 }
 
-// 📤 Upload hợp đồng lên Cloudinary (gắn với InternProfile + HR)
-export async function uploadToCloud({ internId, type, file }) {
-  const formData = new FormData();
-  formData.append("internId", internId);
-  formData.append("type", type);
-  formData.append("file", file);
 
-  const response = await api.post("/documents/upload_cloud", formData, {
+
+
+
+
+
+// 📤 Upload hợp đồng lên Cloudinary (gắn với InternProfile + HR)
+export async function uploadToCloud({ internId, file }) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("internProfileId", internId); 
+
+  const { data } = await api.post("/documents/upload_cloud  ", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-
-  return response.data; // backend trả object (có URL / message)
+  return data;
 }
+
 
 // 📥 Lấy danh sách URL hợp đồng theo internId
 export async function getDocUrlsByIntern(internId) {
@@ -123,25 +128,17 @@ export async function acceptDocument(documentId, internId) {
 }
 // 📚 Lấy tất cả hợp đồng (HR/Admin xem toàn bộ)
 export async function getAllContracts() {
-  const response = await api.get("/contracts");
-  const rows = response.data || []; // backend trả list DTO
+  const response = await api.get("/documents/contracts");
+  const rows = response.data || [];
 
-  return rows.map((r) => {
-    const doc = r.document || null;
-    const fileDetail = doc?.fileDetail || "";
-    const fileName =
-      typeof fileDetail === "string" ? fileDetail.split(" (", 1)[0] : "";
-
-    return {
-      internId: r.internId,
-      internName: r.internName || "",
-      documentId: doc?.id || null,
-      type: doc?.documentType || "",
-      fileName,
-      uploadedAt: doc?.uploadedAt || null,
-      status: doc?.status || "",
-      note: doc?.rejectionReason || "",
-      hrName: doc?.hr?.name || "", // nếu backend trả kèm hr
-    };
-  });
+  return rows.map((r) => ({
+    internId: r.intern_id,
+    internName: r.intern_name,
+    documentId: r.document_id,
+    fileName: r.file_name,
+    fileDetail: r.file_detail,
+    status: r.status,
+    uploadedAt: r.uploaded_at,
+    hrName: r.hr_name,
+  }));
 }

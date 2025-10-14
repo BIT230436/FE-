@@ -62,6 +62,7 @@ export default function DocQueue() {
   };
 
 
+
   return (
     <div className="page-container">
       <h1 className="page-title" style={{ marginBottom: 12 }}>Hồ sơ chờ duyệt</h1>

@@ -4,7 +4,7 @@ import { approveCV, rejectCV } from "../../services/cvService";
 import { sendApprovalEmail, sendRejectionEmail } from "../../services/emailService";
 
 export default function ReviewModal({ document, onClose, onReviewed }) {
-  const [action, setAction] = useState("APPROVE"); // APPROVE or REJECT
+  const [action] = useState("APPROVE"); // APPROVE or REJECT
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -29,27 +29,51 @@ export default function ReviewModal({ document, onClose, onReviewed }) {
       } else {
         await reviewDoc(document.id, action, note.trim());
       }
+      // Kiểm tra nếu là CV thì dùng API CV, còn lại dùng API Document
+      if (document.isCV) {
+        if (action === "APPROVE") {
+          await approveCV(document.id);
+        } else {
+          await rejectCV(document.id);
+        }
+      } else {
+        await reviewDoc(document.id, action, note.trim());
+      }
 
       // Gửi email tự động nếu được bật
       if (sendEmail) {
         try {
           // Lấy thông tin người dùng - cần cải thiện để lấy từ API thực tế
           console.log("🧾 document data:", document);
-          const userEmail = document.userEmail || document.intern_email || document.uploaderEmail || "intern@company.com";
+          const userEmail =
+            document.userEmail ||
+            document.intern_email ||
+            document.uploaderEmail ||
+            "intern@company.com";
 
           if (action === "APPROVE") {
             await sendApprovalEmail(userEmail, document.type, note.trim());
-            setMessage(`Đã duyệt hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`);
+            setMessage(
+              `Đã duyệt hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
+            );
           } else {
             await sendRejectionEmail(userEmail, document.type, note.trim());
-            setMessage(`Đã từ chối hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`);
+            setMessage(
+              `Đã từ chối hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
+            );
           }
         } catch (emailError) {
           console.error("Email sending failed:", emailError);
-          setMessage(`Đã ${action === "APPROVE" ? "duyệt" : "từ chối"} hồ sơ thành công! (Không thể gửi email tự động)`);
+          setMessage(
+            `Đã ${
+              action === "APPROVE" ? "duyệt" : "từ chối"
+            } hồ sơ thành công! (Không thể gửi email tự động)`
+          );
         }
       } else {
-        setMessage(`Đã ${action === "APPROVE" ? "duyệt" : "từ chối"} hồ sơ thành công!`);
+        setMessage(
+          `Đã ${action === "APPROVE" ? "duyệt" : "từ chối"} hồ sơ thành công!`
+        );
       }
 
       setTimeout(() => {
@@ -77,11 +101,29 @@ export default function ReviewModal({ document, onClose, onReviewed }) {
 
         <div className="form-group" style={{ marginBottom: 16 }}>
           <strong>Thông tin hồ sơ:</strong>
-          <div style={{ marginTop: 8, padding: 12, backgroundColor: "#f8f9fa", borderRadius: 4 }}>
-            <div><strong>Tài liệu:</strong> {document.type}</div>
-            <div><strong>Tên file:</strong> {document.fileName}</div>
-            <div><strong>Ngày nộp:</strong> {new Date(document.uploadedAt).toLocaleDateString()}</div>
-            {document.note && <div><strong>Ghi chú cũ:</strong> {document.note}</div>}
+          <div
+            style={{
+              marginTop: 8,
+              padding: 12,
+              backgroundColor: "#f8f9fa",
+              borderRadius: 4,
+            }}
+          >
+            <div>
+              <strong>Tài liệu:</strong> {document.type}
+            </div>
+            <div>
+              <strong>Tên file:</strong> {document.fileName}
+            </div>
+            <div>
+              <strong>Ngày nộp:</strong>{" "}
+              {new Date(document.uploadedAt).toLocaleDateString()}
+            </div>
+            {document.note && (
+              <div>
+                <strong>Ghi chú cũ:</strong> {document.note}
+              </div>
+            )}
           </div>
         </div>
 
@@ -142,11 +184,17 @@ export default function ReviewModal({ document, onClose, onReviewed }) {
           </button>
           <button
             type="button"
-            className={`btn ${action === "APPROVE" ? "btn-primary" : "btn-outline-danger"}`}
+            className={`btn ${
+              action === "APPROVE" ? "btn-primary" : "btn-outline-danger"
+            }`}
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? "Đang xử lý..." : (action === "APPROVE" ? "Duyệt hồ sơ" : "Từ chối hồ sơ")}
+            {loading
+              ? "Đang xử lý..."
+              : action === "APPROVE"
+              ? "Duyệt hồ sơ"
+              : "Từ chối hồ sơ"}
           </button>
         </div>
 

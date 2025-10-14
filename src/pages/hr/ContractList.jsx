@@ -46,25 +46,47 @@ export default function AllContracts() {
               <tr>
                 <th>Tên Intern</th>
                 <th>Tên HR</th>
-                <th>Tên File</th>
+                <th>Tên file</th>
+                <th>Chi tiết file</th>
                 <th>Trạng thái</th>
                 <th>Ngày Upload</th>
               </tr>
             </thead>
             <tbody>
-              {contracts.map((c, idx) => (
-                <tr key={idx}>
-                  <td>{c.internName || "N/A"}</td>
-                  <td>{c.hrName || "N/A"}</td>
-                  <td>{c.fileName || ""}</td>
-                  <td>{c.status || "-"}</td>
-                  <td>
-                    {c.uploadedAt
-                      ? new Date(c.uploadedAt).toLocaleString()
-                      : ""}
-                  </td>
-                </tr>
-              ))}
+              {contracts.map((c, idx) => {
+                return (
+                  <tr key={idx}>
+                    <td>{c.internName || "N/A"}</td>
+                    <td>{c.hrName || "N/A"}</td>
+
+                    {/* Tên file: chỉ hiện chữ, không click */}
+                    <td>{c.fileName || "-"}</td>
+
+                    {/* Chi tiết file: có thể click mở link */}
+                    <td>
+                      {c.fileDetail ? (
+                        <a
+                          href={c.fileDetail}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {c.fileDetail.split("/").pop()}{" "}
+                          {/* chỉ hiển thị tên file, VD: abc123.pdf */}
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+
+                    <td>{c.status || "-"}</td>
+                    <td>
+                      {c.uploadedAt
+                        ? new Date(c.uploadedAt).toLocaleString()
+                        : ""}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

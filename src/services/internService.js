@@ -35,3 +35,14 @@ export async function getInternStats() {
   const { data } = await api.get("/interns/stats");
   return data;
 }
+
+
+export async function getInternIdByName(name) {
+  const { data } = await api.get(`/interns?q=${encodeURIComponent(name)}`);
+  return data.map((intern) => ({
+    id: intern.id,
+    fullname: intern.fullname,
+    phone: intern.phone,
+    email: intern.email,
+  }));
+}

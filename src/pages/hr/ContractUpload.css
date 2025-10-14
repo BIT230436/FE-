@@ -1,0 +1,266 @@
+.file-upload-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.file-upload-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+.upload-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input:disabled,
+.form-select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: #f9fafb;
+  transition: all 0.3s;
+  margin-bottom: 20px;
+}
+
+.upload-area:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.upload-area.has-file {
+  border-color: #10b981;
+  background-color: #ecfdf5;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.upload-label {
+  cursor: pointer;
+  display: block;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.upload-text {
+  color: #4b5563;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.upload-link {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.upload-hint {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.file-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-icon {
+  font-size: 32px;
+}
+
+.file-details {
+  text-align: left;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.file-size {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 0;
+}
+
+.remove-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.remove-button:hover {
+  background-color: #f3f4f6;
+  color: #ef4444;
+}
+
+.alert {
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.alert-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.alert-success {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.alert-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.alert-title {
+  font-weight: 600;
+  color: #065f46;
+  margin: 0;
+}
+
+.alert p {
+  color: #991b1b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.alert-success p {
+  color: #065f46;
+}
+
+.result-link {
+  color: #3b82f6;
+  font-size: 14px;
+  text-decoration: none;
+  margin-left: 28px;
+}
+
+.result-link:hover {
+  text-decoration: underline;
+}
+
+.upload-button {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background-color: #3b82f6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.upload-button:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.upload-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.upload-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.upload-button.uploading {
+  background-color: #60a5fa;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

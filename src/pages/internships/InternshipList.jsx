@@ -4,14 +4,7 @@ import {
   getInternships,
   createInternship,
   updateInternship,
-  deleteInternship,
 } from "../../services/internshipService";
-import {
-  getMentors,
-  assignMentor,
-  unassignMentor,
-  getInternMentorAssignment,
-} from "../../services/mentorService";
 import { getUsers } from "../../services/adminService";
 import MentorAssignmentModal from "../mentor/MentorAssignmentModal";
 
