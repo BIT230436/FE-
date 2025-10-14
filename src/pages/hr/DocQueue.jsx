@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPendingDocs } from "../../services/documentService";
+import { getPendingCVs } from "../../services/cvService";
 import StatusBadge from "../../components/common/StatusBadge";
 import ReviewModal from "./ReviewModal";
 import "../shared/list.css";
@@ -11,7 +12,40 @@ export default function DocQueue() {
 
   async function load() {
     setLoading(true);
-    setItems(await getPendingDocs());
+    const [docs, cvList] = await Promise.all([
+      getPendingDocs(),
+      getPendingCVs()
+    ]);
+    
+    // Lọc bỏ CONTRACT (do HR tải lên, không phải user nộp)
+    // Chỉ lấy documents có status PENDING
+    const filteredDocs = docs.filter(doc => 
+      doc.type !== 'CONTRACT' && doc.status === 'PENDING'
+    );
+    
+    // Lọc chỉ lấy CV có status PENDING
+    const filteredCVs = cvList.filter(cv => cv.status === 'PENDING');
+    
+    // Gộp Documents và CVs vào chung 1 mảng
+    const combinedItems = [
+      ...filteredDocs,
+      ...filteredCVs.map(cv => ({
+        id: cv.id,
+        type: 'CV',
+        fileName: cv.fileName,
+        uploadedAt: cv.uploadedAt,
+        status: cv.status,
+        note: '',
+        userEmail: cv.userEmail,
+        isCV: true,
+        storagePath: cv.storagePath,
+        internName: cv.internName,
+        university: cv.university,
+        phone: cv.phone
+      }))
+    ];
+    
+    setItems(combinedItems);
     setLoading(false);
   }
   useEffect(() => {
@@ -26,6 +60,7 @@ export default function DocQueue() {
     setReviewing(null);
     load(); // Reload danh sách sau khi duyệt
   };
+
 
   return (
     <div className="page-container">
