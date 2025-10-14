@@ -36,7 +36,7 @@ export default function DocQueue() {
         uploadedAt: cv.uploadedAt,
         status: cv.status,
         note: '',
-        // Thêm thông tin CV để phân biệt
+        userEmail: cv.userEmail,
         isCV: true,
         storagePath: cv.storagePath,
         internName: cv.internName,

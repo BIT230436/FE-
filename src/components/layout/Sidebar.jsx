@@ -6,6 +6,7 @@ import "./Sidebar.css"; // Thêm import CSS
 import { TbLogout2} from "react-icons/tb";
 import logoTeam from "../../assets/logoTeam.jpg";
 
+import "./Sidebar.css"; // CSS
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
@@ -52,10 +53,14 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   });
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
-
   const toggleSubmenu = (label) => {
     setOpenSubmenu(openSubmenu === label ? null : label);
   };
+
+  // Lấy chữ cái đầu tiên của tên (nếu có)
+  const initial = user?.fullName
+    ? user.fullName.trim().charAt(0).toUpperCase()
+    : "?";
 
   return (
     <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
@@ -83,6 +88,16 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           alt="avatar"
           className="sidebar-avatar"
         />
+        {user?.avatar ? (
+          <img
+            src={user.avatar}
+            alt="avatar"
+            className="sidebar-avatar"
+          />
+        ) : (
+          <div className="sidebar-avatar-initial">{initial}</div>
+        )}
+
         {!collapsed && (
           <div>
             <div className="sidebar-user-name">
