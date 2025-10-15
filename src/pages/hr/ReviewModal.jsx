@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { reviewDoc } from "../../services/documentService";
-import { 
-  acceptCV, 
-  confirmApproveCV, 
-  rejectCV, 
-  confirmRejectCV 
-} from "../../services/cvService";
 import {
-  sendApprovalEmail,
-  sendRejectionEmail,
-} from "../../services/emailService";
+  acceptCV,
+  confirmApproveCV,
+  rejectCV,
+  confirmRejectCV,
+} from "../../services/cvService";
 
 export default function ReviewModal({ document, action, onClose, onReviewed }) {
   const [note, setNote] = useState("");
@@ -29,11 +25,11 @@ export default function ReviewModal({ document, action, onClose, onReviewed }) {
       // Kiểm tra nếu là CV thì dùng API CV, còn lại dùng API Document
 
       if (document.isCV) {
-          const userEmail =
-                      document.userEmail ||
-                      document.intern_email ||
-                      document.uploaderEmail ||
-                      "intern@company.com";
+        const userEmail =
+          document.userEmail ||
+          document.intern_email ||
+          document.uploaderEmail ||
+          "intern@company.com";
         if (action === "APPROVE") {
           await acceptCV(document.id); // bước 1: ACCEPTING
           await confirmApproveCV(document.id); // bước 2: APPROVED (+ email BE)
@@ -43,53 +39,17 @@ export default function ReviewModal({ document, action, onClose, onReviewed }) {
           await confirmRejectCV(document.id, reason); // bước 2: REJECTED (+ email BE)
         }
         if (action === "APPROVE") {
-                    setMessage(
-                      `Đã duyệt hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
-                    );
-                  } else {
-                    setMessage(
-                      `Đã từ chối hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
-                    );
-                  }
+          setMessage(
+            `Đã duyệt hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
+          );
+        } else {
+          setMessage(
+            `Đã từ chối hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
+          );
+        }
       } else {
         await reviewDoc(document.id, action, note.trim()); // tài liệu thường: 1 bước
       }
-
-//       // Gửi email tự động nếu được bật
-//       if (sendEmail) {
-//         try {
-//           // Lấy thông tin người dùng - cần cải thiện để lấy từ API thực tế
-//           console.log("🧾 document data:", document);
-//           const userEmail =
-//             document.userEmail ||
-//             document.intern_email ||
-//             document.uploaderEmail ||
-//             "intern@company.com";
-//
-//           if (action === "APPROVE") {
-//             await sendApprovalEmail(userEmail, document.type, note.trim());
-//             setMessage(
-//               `Đã duyệt hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
-//             );
-//           } else {
-//             await sendRejectionEmail(userEmail, document.type, note.trim());
-//             setMessage(
-//               `Đã từ chối hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
-//             );
-//           }
-//         } catch (emailError) {
-//           console.error("Email sending failed:", emailError);
-//           setMessage(
-//             `Đã ${
-//               action === "APPROVE" ? "duyệt" : "từ chối"
-//             } hồ sơ thành công! (Không thể gửi email tự động)`
-//           );
-//         }
-//       } else {
-//         setMessage(
-//           `Đã ${action === "APPROVE" ? "duyệt" : "từ chối"} hồ sơ thành công!`
-//         );
-//       }
 
       setTimeout(() => {
         onReviewed();
@@ -130,7 +90,12 @@ export default function ReviewModal({ document, action, onClose, onReviewed }) {
             <div>
               <strong>Tên file:</strong>{" "}
               {document.storagePath ? (
-                <a href={document.storagePath} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>
+                <a
+                  href={document.storagePath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#1976d2", textDecoration: "underline" }}
+                >
                   {document.fileName}
                 </a>
               ) : (
