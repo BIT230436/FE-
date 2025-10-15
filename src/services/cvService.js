@@ -48,7 +48,6 @@ export async function getPendingCVs() {
   }));
 }
 
-
 // Lấy CV theo intern
 export async function getCVsByIntern(internId) {
   const response = await api.get(`/cvs/intern/${internId}`);
@@ -61,8 +60,8 @@ export async function acceptCV(id) {
 }
 
 // HR confirms CV approval (sets status to APPROVED and sends email)
-export async function confirmApproveCV(id) {
-  return api.put(`/cvs/${id}/confirm-approve`);
+export async function confirmApproveCV(id, reason) {
+  return api.put(`/cvs/${id}/confirm-approve`, { reason });
 }
 
 // HR initiates CV rejection (sets status to REJECTING)
@@ -91,4 +90,3 @@ export async function deleteCV(id) {
   const response = await api.delete(`/cvs/${id}`);
   return response.data;
 }
-
