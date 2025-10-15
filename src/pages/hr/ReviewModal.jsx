@@ -41,41 +41,41 @@ export default function ReviewModal({ document, action, onClose, onReviewed }) {
         await reviewDoc(document.id, action, note.trim()); // tài liệu thường: 1 bước
       }
 
-      // Gửi email tự động nếu được bật
-      if (sendEmail) {
-        try {
-          // Lấy thông tin người dùng - cần cải thiện để lấy từ API thực tế
-          console.log("🧾 document data:", document);
-          const userEmail =
-            document.userEmail ||
-            document.intern_email ||
-            document.uploaderEmail ||
-            "intern@company.com";
-
-          if (action === "APPROVE") {
-            await sendApprovalEmail(userEmail, document.type, note.trim());
-            setMessage(
-              `Đã duyệt hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
-            );
-          } else {
-            await sendRejectionEmail(userEmail, document.type, note.trim());
-            setMessage(
-              `Đã từ chối hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
-            );
-          }
-        } catch (emailError) {
-          console.error("Email sending failed:", emailError);
-          setMessage(
-            `Đã ${
-              action === "APPROVE" ? "duyệt" : "từ chối"
-            } hồ sơ thành công! (Không thể gửi email tự động)`
-          );
-        }
-      } else {
-        setMessage(
-          `Đã ${action === "APPROVE" ? "duyệt" : "từ chối"} hồ sơ thành công!`
-        );
-      }
+//       // Gửi email tự động nếu được bật
+//       if (sendEmail) {
+//         try {
+//           // Lấy thông tin người dùng - cần cải thiện để lấy từ API thực tế
+//           console.log("🧾 document data:", document);
+//           const userEmail =
+//             document.userEmail ||
+//             document.intern_email ||
+//             document.uploaderEmail ||
+//             "intern@company.com";
+//
+//           if (action === "APPROVE") {
+//             await sendApprovalEmail(userEmail, document.type, note.trim());
+//             setMessage(
+//               `Đã duyệt hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
+//             );
+//           } else {
+//             await sendRejectionEmail(userEmail, document.type, note.trim());
+//             setMessage(
+//               `Đã từ chối hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
+//             );
+//           }
+//         } catch (emailError) {
+//           console.error("Email sending failed:", emailError);
+//           setMessage(
+//             `Đã ${
+//               action === "APPROVE" ? "duyệt" : "từ chối"
+//             } hồ sơ thành công! (Không thể gửi email tự động)`
+//           );
+//         }
+//       } else {
+//         setMessage(
+//           `Đã ${action === "APPROVE" ? "duyệt" : "từ chối"} hồ sơ thành công!`
+//         );
+//       }
 
       setTimeout(() => {
         onReviewed();
