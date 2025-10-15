@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { reviewDoc } from "../../services/documentService";
-import { approveCV, rejectCV } from "../../services/cvService";
+import { 
+  acceptCV, 
+  confirmApproveCV, 
+  rejectCV, 
+  confirmRejectCV 
+} from "../../services/cvService";
 import {
   sendApprovalEmail,
   sendRejectionEmail,
@@ -109,7 +114,14 @@ export default function ReviewModal({ document, action, onClose, onReviewed }) {
               <strong>Tài liệu:</strong> {document.type}
             </div>
             <div>
-              <strong>Tên file:</strong> {document.fileName}
+              <strong>Tên file:</strong>{" "}
+              {document.storagePath ? (
+                <a href={document.storagePath} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>
+                  {document.fileName}
+                </a>
+              ) : (
+                document.fileName
+              )}
             </div>
             <div>
               <strong>Ngày nộp:</strong>{" "}

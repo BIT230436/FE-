@@ -92,7 +92,15 @@ export default function DocQueue() {
             {items.map((d) => (
               <tr key={d.id}>
                 <td className="table-td">{d.type}</td>
-                <td className="table-td">{d.fileName}</td>
+                <td className="table-td">
+                  {d.storagePath ? (
+                    <a href={d.storagePath} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>
+                      {d.fileName}
+                    </a>
+                  ) : (
+                    d.fileName
+                  )}
+                </td>
                 <td className="table-td">{new Date(d.uploadedAt).toLocaleDateString()}</td>
                 <td className="table-td">
                   <StatusBadge status={d.status} />

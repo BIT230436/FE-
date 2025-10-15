@@ -93,6 +93,7 @@ export async function getPendingDocs() {
       status: r.status,
       note: r.rejection_reason || "",
       fileDetail: fileDetail, // Giữ lại URL gốc để có thể download
+      storagePath: fileDetail, // ✅ Thêm storagePath để HR có thể xem file (tương tự CV)
     };
   });
 }
