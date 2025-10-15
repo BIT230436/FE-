@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMyProfile } from "../../services/profileService";
 import { useAuthStore } from "../../store/authStore";
-import "./profile.css";
+import "./Profile.css";
 
 export default function Profile() {
   const { user, setAuth } = useAuthStore();

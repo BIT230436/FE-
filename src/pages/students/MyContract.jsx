@@ -6,7 +6,7 @@ import {
 import { useAuthStore } from "../../store/authStore";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "../shared/list.css";
+import "./MyContract.css";
 
 export default function MyContract() {
   const [loading, setLoading] = useState(true);

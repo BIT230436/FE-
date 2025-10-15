@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { getAllContracts } from "../../services/documentService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "../shared/list.css";
+
+import "./ContractList.css";
 
 export default function AllContracts() {
   const [loading, setLoading] = useState(true);
@@ -28,22 +29,25 @@ export default function AllContracts() {
   }, []);
 
   return (
-    <div className="page-container">
-      <h1 className="page-title" style={{ marginBottom: 12 }}>
-        Tất cả hợp đồng
-      </h1>
+    <div style={{ padding: 20 }}>
+      <h1 style={{ marginBottom: 12 }}>Tất cả hợp đồng</h1>
 
-      <div className="card" style={{ padding: 16 }}>
-        {loading && <div className="loading">Đang tải dữ liệu…</div>}
+      <div style={{ border: "1px solid #ccc", borderRadius: 8, padding: 16 }}>
+        {loading && <div>Đang tải dữ liệu…</div>}
 
         {!loading && contracts.length === 0 && (
-          <div className="empty">⚠️ Không có hợp đồng nào.</div>
+          <div>⚠️ Không có hợp đồng nào.</div>
         )}
 
         {!loading && contracts.length > 0 && (
-          <table className="table">
-            <thead className="table-th">
-              <tr>
+          <table
+            border="1"
+            cellPadding="8"
+            cellSpacing="0"
+            style={{ width: "100%", borderCollapse: "collapse" }}
+          >
+            <thead>
+              <tr style={{ background: "#f0f0f0" }}>
                 <th>Tên Intern</th>
                 <th>Tên HR</th>
                 <th>Tên file</th>
@@ -54,34 +58,35 @@ export default function AllContracts() {
             </thead>
             <tbody> 
               {contracts.map((c, idx) => {
+                const fileUrl =
+                  c.file_url && c.file_url !== "-" ? c.file_url : null;
+                const fileName =
+                  c.file_name && c.file_name !== "-"
+                    ? decodeURIComponent(c.file_name)
+                    : "-";
+
                 return (
                   <tr key={idx}>
-                    <td>{c.internName || "N/A"}</td>
-                    <td>{c.hrName || "N/A"}</td>
-
-                    {/* Tên file: chỉ hiện chữ, không click */}
-                    <td>{c.fileName || "-"}</td>
-
-                    {/* Chi tiết file: có thể click mở link */}
+                    <td>{c.intern_name || "N/A"}</td>
+                    <td>{c.hr_name || "N/A"}</td>
+                    <td>{fileName}</td>
                     <td>
-                      {c.fileDetail ? (
+                      {fileUrl ? (
                         <a
-                          href={c.fileDetail}
+                          href={fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          {c.fileDetail.split("/").pop()}{" "}
-                          {/* chỉ hiển thị tên file, VD: abc123.pdf */}
+                          {fileName}
                         </a>
                       ) : (
                         "-"
                       )}
                     </td>
-
                     <td>{c.status || "-"}</td>
                     <td>
-                      {c.uploadedAt
-                        ? new Date(c.uploadedAt).toLocaleString()
+                      {c.uploaded_at
+                        ? new Date(c.uploaded_at).toLocaleString()
                         : ""}
                     </td>
                   </tr>
@@ -92,9 +97,7 @@ export default function AllContracts() {
         )}
 
         <div style={{ marginTop: 16 }}>
-          <button className="btn btn-outline" onClick={load}>
-            🔄 Làm mới
-          </button>
+          <button onClick={load}>🔄 Làm mới</button>
         </div>
       </div>
 

@@ -3,7 +3,7 @@ import { getMyDocs } from "../../services/documentService";
 import { getMyCVs } from "../../services/cvService";
 import { useAuthStore } from "../../store/authStore";
 import StatusBadge from "../../components/common/StatusBadge";
-import "../shared/list.css";
+import "./MyDocuments.css";
 
 export default function MyDocuments() {
   const { user } = useAuthStore();
