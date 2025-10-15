@@ -4,8 +4,8 @@ import { persist, createJSONStorage } from "zustand/middleware";
 export const useAuthStore = create(
   persist(
     (set) => ({
-      user: null, // { id, email, fullName, role }
-      token: null, // JWT
+      user: null,
+      token: null,
       setAuth: (user, token) => set({ user, token }),
       clearAuth: () => set({ user: null, token: null }),
     }),

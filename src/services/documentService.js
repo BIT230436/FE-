@@ -172,8 +172,8 @@ export async function acceptDocument(documentId, internId) {
     `/documents/${documentId}/accept?internId=${internId}`
   );
   return response.data;
-}
-// 📚 Lấy tất cả hợp đồng (HR/Admin xem toàn bộ)
+} // 📚 Lấy tất cả hợp đồng (HR/Admin xem toàn bộ)
+
 export async function getAllContracts() {
   const response = await api.get("/documents/contracts");
   const rows = response.data || [];
@@ -182,8 +182,8 @@ export async function getAllContracts() {
     internId: r.intern_id,
     internName: r.intern_name,
     documentId: r.document_id,
-    fileName: r.file_name,
-    fileDetail: r.file_detail,
+    fileName: r.file_name, // Thêm trường fileName nếu cần hiển thị tên file
+    fileUrl: r.file_url,
     status: r.status,
     uploadedAt: r.uploaded_at,
     hrName: r.hr_name,

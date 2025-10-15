@@ -54,24 +54,30 @@ export default function AllContracts() {
             </thead>
             <tbody>
               {contracts.map((c, idx) => {
+                const fileUrl =
+                  c.fileUrl && c.fileUrl !== "-" ? c.fileUrl : null;
+                const fileName =
+                  c.fileName && c.fileName !== "-"
+                    ? decodeURIComponent(c.fileName)
+                    : "-";
+
                 return (
                   <tr key={idx}>
                     <td>{c.internName || "N/A"}</td>
                     <td>{c.hrName || "N/A"}</td>
 
-                    {/* Tên file: chỉ hiện chữ, không click */}
-                    <td>{c.fileName || "-"}</td>
+                    {/* Cột tên file */}
+                    <td>{fileName}</td>
 
-                    {/* Chi tiết file: có thể click mở link */}
+                    {/* Cột chi tiết file */}
                     <td>
-                      {c.fileDetail ? (
+                      {fileUrl ? (
                         <a
-                          href={c.fileDetail}
+                          href={fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          {c.fileDetail.split("/").pop()}{" "}
-                          {/* chỉ hiển thị tên file, VD: abc123.pdf */}
+                          {fileName}
                         </a>
                       ) : (
                         "-"
