@@ -42,7 +42,7 @@ export default function AllContracts() {
 
         {!loading && contracts.length > 0 && (
           <table className="table">
-            <thead>
+            <thead className="table-th">
               <tr>
                 <th>Tên Intern</th>
                 <th>Tên HR</th>
@@ -52,7 +52,7 @@ export default function AllContracts() {
                 <th>Ngày Upload</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody> 
               {contracts.map((c, idx) => {
                 return (
                   <tr key={idx}>

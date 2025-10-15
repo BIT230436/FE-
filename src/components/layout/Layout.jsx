@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { useState } from "react";
 import teamworkImage from "../../assets/man-hinh-chinh.jpg";
-import "./Layout.css"; // Thêm dòng này
+import "./Layout.css"; 
 
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -11,6 +11,9 @@ export default function Layout() {
       className="layout-root"
       style={{
         backgroundImage: `url(${teamworkImage})`,
+        backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
       }}
     >
       <div className="layout-overlay"></div>

@@ -51,19 +51,19 @@ export default function Dashboard() {
   const stats = [
     {
       label: "Thực tập sinh",
-      value: 128,
+      value: 10,
       icon: "🎓",
       bg: "#eaf3ff",
     },
     {
-      label: "Nhân sự",
+      label: "Hợp đồng",
       value: 12,
-      icon: "👔",
+      icon: "📑",
       bg: "#eafbe7",
     },
     {
       label: "Hồ sơ",
-      value: 245,
+      value: 10,
       icon: "📄",
       bg: "#ffeaea",
     },
