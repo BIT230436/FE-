@@ -6,10 +6,6 @@ import {
   rejectCV, 
   confirmRejectCV 
 } from "../../services/cvService";
-import {
-  sendApprovalEmail,
-  sendRejectionEmail,
-} from "../../services/emailService";
 
 export default function ReviewModal({ document, action, onClose, onReviewed }) {
   const [note, setNote] = useState("");
