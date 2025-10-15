@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "../shared/list.css";
+import "./InternshipList.css";
 import {
   getInternships,
   createInternship,

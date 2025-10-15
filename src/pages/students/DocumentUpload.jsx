@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { uploadCV } from "../../services/cvService";
 import { useAuthStore } from "../../store/authStore";
-import "./profile.css";
+import "./DocumentUpload.css";
 
 export default function DocumentUpload() {
   const { user } = useAuthStore();

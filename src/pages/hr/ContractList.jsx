@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getAllContracts } from "../../services/documentService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "../shared/list.css";
+import "./ContractList.css";
 
 export default function AllContracts() {
   const [loading, setLoading] = useState(true);

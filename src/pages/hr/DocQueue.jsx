@@ -3,7 +3,7 @@ import { getPendingDocs } from "../../services/documentService";
 import { getPendingCVs } from "../../services/cvService";
 import StatusBadge from "../../components/common/StatusBadge";
 import ReviewModal from "./ReviewModal";
-import "../shared/list.css";
+import "./DocQueue.css";
 
 export default function DocQueue() {
   const [items, setItems] = useState([]);
