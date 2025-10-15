@@ -29,6 +29,11 @@ export default function ReviewModal({ document, action, onClose, onReviewed }) {
       // Kiểm tra nếu là CV thì dùng API CV, còn lại dùng API Document
 
       if (document.isCV) {
+          const userEmail =
+                      document.userEmail ||
+                      document.intern_email ||
+                      document.uploaderEmail ||
+                      "intern@company.com";
         if (action === "APPROVE") {
           await acceptCV(document.id); // bước 1: ACCEPTING
           await confirmApproveCV(document.id); // bước 2: APPROVED (+ email BE)
@@ -37,6 +42,15 @@ export default function ReviewModal({ document, action, onClose, onReviewed }) {
           await rejectCV(document.id, reason); // bước 1: REJECTING
           await confirmRejectCV(document.id, reason); // bước 2: REJECTED (+ email BE)
         }
+        if (action === "APPROVE") {
+                    setMessage(
+                      `Đã duyệt hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
+                    );
+                  } else {
+                    setMessage(
+                      `Đã từ chối hồ sơ thành công! Email thông báo đã được gửi đến ${userEmail}`
+                    );
+                  }
       } else {
         await reviewDoc(document.id, action, note.trim()); // tài liệu thường: 1 bước
       }
