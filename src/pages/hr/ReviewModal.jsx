@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { reviewDoc } from "../../services/documentService";
 import { approveCV, rejectCV } from "../../services/cvService";
-import { sendApprovalEmail, sendRejectionEmail } from "../../services/emailService";
+import {
+  sendApprovalEmail,
+  sendRejectionEmail,
+} from "../../services/emailService";
 
 export default function ReviewModal({ document, action, onClose, onReviewed }) {
   const [note, setNote] = useState("");
@@ -19,24 +22,18 @@ export default function ReviewModal({ document, action, onClose, onReviewed }) {
 
     try {
       // Kiểm tra nếu là CV thì dùng API CV, còn lại dùng API Document
+
       if (document.isCV) {
         if (action === "APPROVE") {
-          await approveCV(document.id);
+          await acceptCV(document.id); // bước 1: ACCEPTING
+          await confirmApproveCV(document.id); // bước 2: APPROVED (+ email BE)
         } else {
-          await rejectCV(document.id);
+          const reason = note.trim();
+          await rejectCV(document.id, reason); // bước 1: REJECTING
+          await confirmRejectCV(document.id, reason); // bước 2: REJECTED (+ email BE)
         }
       } else {
-        await reviewDoc(document.id, action, note.trim());
-      }
-      // Kiểm tra nếu là CV thì dùng API CV, còn lại dùng API Document
-      if (document.isCV) {
-        if (action === "APPROVE") {
-          await approveCV(document.id);
-        } else {
-          await rejectCV(document.id);
-        }
-      } else {
-        await reviewDoc(document.id, action, note.trim());
+        await reviewDoc(document.id, action, note.trim()); // tài liệu thường: 1 bước
       }
 
       // Gửi email tự động nếu được bật
