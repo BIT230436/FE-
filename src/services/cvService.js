@@ -22,7 +22,7 @@ export async function getMyCVs() {
     id: r.cv_id,
     fileName: r.filename,
     fileType: r.file_type,
-    uploadedAt: r.uploaded_by,
+    uploadedAt: r.uploaded_at, // ✅ Dùng uploaded_at từ backend
     status: r.status,
     storagePath: r.storage_path,
   }));
@@ -37,8 +37,9 @@ export async function getPendingCVs() {
     fileName: r.filename,
     type: "CV", // ⚙️ thêm để hiển thị rõ loại tài liệu
     fileType: r.file_type,
-    uploadedAt: r.uploaded_by,
+    uploadedAt: r.uploaded_at, // ✅ Dùng uploaded_at từ backend
     status: r.status,
+    storagePath: r.storage_path, // ✅ Thêm storage_path để HR có thể xem file
     internId: r.intern_id,
     internName: r.intern_name,
     userEmail: r.intern_email, // ✅ đây chính là email cần gửi
