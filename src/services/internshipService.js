@@ -32,3 +32,8 @@ export async function deleteInternship(id) {
   const { data } = await api.delete(`/intern-profiles/${id}`);
   return data;
 }
+
+export async function getInternshipStats() {
+  const { data } = await api.get("/internships/stats");
+  return data;
+}

@@ -4,8 +4,6 @@ import { useAuthStore } from "../../store/authStore";
 import "./Sidebar.css"; // Thêm import CSS
 
 import { TbLogout2 } from "react-icons/tb";
-import logoTeam from "../../assets/logoTeam.jpg";
-
 import "./Sidebar.css"; // CSS
 
 export default function Sidebar({ collapsed, setCollapsed }) {

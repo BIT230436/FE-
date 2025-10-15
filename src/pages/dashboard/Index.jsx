@@ -1,33 +1,16 @@
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import "../../pages/shared/list.css";
 import "./dashboard.css";
+import { getUsers } from "../../services/adminService";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const [total, setTotal] = useState(0);
+  const [userCount, setUserCount] = useState(null);
+  
 
-  async function load() {
-    setLoading(true);
-    setErr("");
-    try {
-      const res = await getUsers({
-        q,
-        role: filterRole,
-        status: filterStatus,
-      });
-      
-      setTotal(res?.total || 0);
-      // Không setItems nữa
-    } catch (e) {
-      setErr(e?.response?.data?.message || "Không tải được số lượng.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useEffect(() => {
     console.log('Dashboard - Current user:', user);
@@ -38,6 +21,23 @@ export default function Dashboard() {
     }
   }, [user, navigate]);
 
+  // Load total user count for dashboard
+  useEffect(() => {
+    let mounted = true;
+    async function fetchUserCount() {
+      try {
+        const data = await getUsers({ q: "", role: "", status: "" });
+        // backend returns totalUsers (actual count) and total (filtered page size)
+        if (mounted) setUserCount(data.totalUsers ?? data.total ?? 0);
+      } catch (err) {
+        console.error('Failed to load user count', err);
+        if (mounted) setUserCount(0);
+      }
+    }
+    fetchUserCount();
+    return () => { mounted = false };
+  }, []);
+
   // Chỉ USER mới không được xem Dashboard
   if (user?.role === "USER") {
     return (
@@ -47,7 +47,7 @@ export default function Dashboard() {
     );
   }
 
-  // Demo số liệu, dùng ký tự unicode
+  // số liệu, dùng ký tự unicode
   const stats = [
     {
       label: "Thực tập sinh",
@@ -69,7 +69,7 @@ export default function Dashboard() {
     },
     {
       label: "Người dùng",
-      value: 37,
+      value: userCount ?? "loading...",
       icon: "👥",
       bg: "#eaf3ff",
     },
