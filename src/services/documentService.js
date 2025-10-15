@@ -21,18 +21,8 @@ export async function getMyDocs() {
   const rows = response.data?.data || [];
   return rows.map((r) => {
     const fileDetail = r.file_detail || "";
-    let fileName = "";
-    
-    if (typeof fileDetail === "string") {
-      // Kiểm tra xem có phải URL không
-      if (fileDetail.startsWith('http')) {
-        fileName = extractFileNameFromUrl(fileDetail);
-      } else {
-        // Nếu không phải URL, dùng logic cũ
-        fileName = fileDetail.split(" (", 1)[0];
-      }
-    }
-    
+    const fileName =
+      typeof fileDetail === "string" ? fileDetail.split(" (", 1)[0] : "";
     return {
       id: r.document_id,
       type: r.document_type,
@@ -40,31 +30,8 @@ export async function getMyDocs() {
       uploadedAt: r.uploaded_at,
       status: r.status,
       note: r.rejection_reason || "",
-      fileDetail: fileDetail, // Giữ lại URL gốc để có thể download
     };
   });
-}
-
-// Helper function để extract tên file từ URL
-function extractFileNameFromUrl(url) {
-  if (!url || typeof url !== 'string') return '';
-  
-  // Nếu là URL Cloudinary
-  if (url.includes('cloudinary.com')) {
-    // Lấy phần cuối của URL sau dấu /
-    const urlParts = url.split('/');
-    const fileName = urlParts[urlParts.length - 1];
-    
-    // Decode URL để lấy tên file gốc
-    try {
-      return decodeURIComponent(fileName);
-    } catch (e) {
-      return fileName;
-    }
-  }
-  
-  // Nếu không phải URL, trả về nguyên văn
-  return url;
 }
 
 // Lấy tài liệu chờ duyệt (cho HR)
@@ -73,18 +40,8 @@ export async function getPendingDocs() {
   const rows = response.data?.data || [];
   return rows.map((r) => {
     const fileDetail = r.file_detail || "";
-    let fileName = "";
-    
-    if (typeof fileDetail === "string") {
-      // Kiểm tra xem có phải URL không
-      if (fileDetail.startsWith('http')) {
-        fileName = extractFileNameFromUrl(fileDetail);
-      } else {
-        // Nếu không phải URL, dùng logic cũ
-        fileName = fileDetail.split(" (", 1)[0];
-      }
-    }
-    
+    const fileName =
+      typeof fileDetail === "string" ? fileDetail.split(" (", 1)[0] : "";
     return {
       id: r.document_id,
       type: r.document_type,
@@ -92,8 +49,6 @@ export async function getPendingDocs() {
       uploadedAt: r.uploaded_at,
       status: r.status,
       note: r.rejection_reason || "",
-      fileDetail: fileDetail, // Giữ lại URL gốc để có thể download
-      storagePath: fileDetail, // ✅ Thêm storagePath để HR có thể xem file (tương tự CV)
     };
   });
 }
@@ -140,14 +95,7 @@ export async function confirmContract(documentId) {
   return response.data;
 }
 
-
-
-
-
-
-
 // services/documentService.js
-
 // Upload hợp đồng lên Cloudinary
 export async function uploadToCloud({ internProfileId, file, hrId }) {
   const formData = new FormData();
@@ -172,20 +120,21 @@ export async function acceptDocument(documentId, internId) {
     `/documents/${documentId}/accept?internId=${internId}`
   );
   return response.data;
-}
-// 📚 Lấy tất cả hợp đồng (HR/Admin xem toàn bộ)
+} // 📚 Lấy tất cả hợp đồng (HR/Admin xem toàn bộ)
+
 export async function getAllContracts() {
   const response = await api.get("/documents/contracts");
   const rows = response.data || [];
 
+  // Trả về đúng key như API để component dùng trực tiếp
   return rows.map((r) => ({
-    internId: r.intern_id,
-    internName: r.intern_name,
-    documentId: r.document_id,
-    fileName: r.file_name,
-    fileDetail: r.file_detail,
+    intern_id: r.intern_id,
+    intern_name: r.intern_name,
+    document_id: r.document_id,
+    file_name: r.file_name,
+    file_url: r.file_url,
     status: r.status,
-    uploadedAt: r.uploaded_at,
-    hrName: r.hr_name,
+    uploaded_at: r.uploaded_at,
+    hr_name: r.hr_name,
   }));
 }
