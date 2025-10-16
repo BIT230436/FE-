@@ -115,12 +115,11 @@ export async function getDocUrlsByIntern(internId) {
   return response.data;
 }
 
-export async function acceptDocument(documentId, internId) {
-  const response = await api.put(
-    `/documents/${documentId}/accept?internId=${internId}`
-  );
+export async function acceptDocument(documentId, userId) {
+  const response = await api.put(`/documents/${documentId}/accept`, { userId });
   return response.data;
-} // 📚 Lấy tất cả hợp đồng (HR/Admin xem toàn bộ)
+}
+
 
 export async function getAllContracts() {
   const response = await api.get("/documents/contracts");

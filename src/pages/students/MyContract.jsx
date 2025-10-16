@@ -54,7 +54,8 @@ export default function MyContract() {
       setConfirming(true);
 
       // ✅ Thay đổi: Gọi acceptDocument với đúng tham số
-      const result = await acceptDocument(documentId, internId);
+      const result = await acceptDocument(documentId, user.id);
+
       console.log("✅ API response:", result);
 
       toast.success("✅ Hợp đồng đã được xác nhận thành công.");
