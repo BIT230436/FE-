@@ -14,22 +14,39 @@ export default function UploadContractForm() {
   const [interns, setInterns] = useState([]);
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
-  // Fetch danh sách intern khi mở modal
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 600); // 300ms delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
+  // Fetch danh sách intern khi mở modal hoặc khi query thay đổi
   useEffect(() => {
     if (showModal) {
       fetchInterns();
     }
-  }, [showModal, searchQuery]);
+  }, [showModal, debouncedSearchQuery]);
 
   const fetchInterns = async () => {
     setLoading(true);
+    const startTime = Date.now();
+
     try {
-      const response = await getInternships({ q: searchQuery, size: 50 });
+      const response = await getInternships({
+        q: debouncedSearchQuery,
+        size: 50,
+      });
 
       const internList = response.data || response;
       setInterns(internList);
@@ -37,7 +54,16 @@ export default function UploadContractForm() {
       console.error("Error fetching interns:", error);
       setInterns([]);
     } finally {
-      setLoading(false);
+      const duration = Date.now() - startTime;
+      const minDisplayTime = 600; // ms
+
+      if (duration < minDisplayTime) {
+        setTimeout(() => {
+          setLoading(false);
+        }, minDisplayTime - duration);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -530,6 +556,8 @@ export default function UploadContractForm() {
                     textAlign: "center",
                     padding: "24px",
                     color: "#6b7280",
+                    transition: "opacity 0.3s ease-in-out",
+                    opacity: loading ? 1 : 0,
                   }}
                 >
                   Đang tải...
