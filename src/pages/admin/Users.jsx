@@ -22,6 +22,10 @@ export default function Users() {
   const [showCreate, setShowCreate] = useState(false);
   const [err, setErr] = useState("");
 
+  // ✅ Thêm state phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+
   async function load() {
     setLoading(true);
     setErr("");
@@ -32,7 +36,8 @@ export default function Users() {
         status: filterStatus,
       });
       setItems(content || []);
-      setTotal(total || 0);
+      setTotal(total || content?.length || 0);
+      setCurrentPage(1); // Reset về trang đầu
     } catch (e) {
       setErr(e?.response?.data?.message || "Không tải được danh sách.");
     } finally {
@@ -79,6 +84,13 @@ export default function Users() {
       toast.error(e?.response?.data?.message || "Xóa thất bại");
     }
   }
+
+  // ✅ Tính toán phân trang
+  const totalPages = Math.ceil(items.length / rowsPerPage);
+  const paginatedItems = items.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
   return (
     <div className="admin-container">
@@ -130,6 +142,7 @@ export default function Users() {
         <table className="admin-table">
           <thead>
             <tr className="admin-thead-row">
+              <Th style={{ width: 60 }}>STT</Th>
               <Th>Họ tên</Th>
               <Th>Email</Th>
               <Th>Vai trò</Th>
@@ -140,64 +153,89 @@ export default function Users() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={5} className="admin-loading">
+                <td colSpan={6} className="admin-loading">
                   Đang tải…
                 </td>
               </tr>
             )}
-            {!loading && items.length === 0 && (
+            {!loading && paginatedItems.length === 0 && (
               <tr>
-                <td colSpan={5} className="admin-empty">
+                <td colSpan={6} className="admin-empty">
                   Không có dữ liệu.
                 </td>
               </tr>
             )}
-            {items.map((u) => (
-              <tr key={u.id} className="admin-tr">
-                <Td>{u.fullName}</Td>
-                <Td>{u.email}</Td>
-                <Td>
-                  <select
-                    value={u.role}
-                    disabled={savingId === u.id}
-                    onChange={(e) => onUpdateUser(u.id, "role", e.target.value)}
-                    className="admin-select admin-select--sm"
-                  >
-                    {ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
-                </Td>
-                <Td>
-                  <select
-                    value={u.status}
-                    disabled={savingId === u.id}
-                    onChange={(e) =>
-                      onUpdateUser(u.id, "status", e.target.value)
-                    }
-                    className="admin-select admin-select--sm"
-                  >
-                    {STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </Td>
-                <Td>
-                  <button
-                    onClick={() => onDelete(u.id)}
-                    className="btn-inline btn-inline--danger"
-                  >
-                    Xoá
-                  </button>
-                </Td>
-              </tr>
-            ))}
+            {!loading &&
+              paginatedItems.map((u, index) => (
+                <tr key={u.id} className="admin-tr">
+                  <Td>{(currentPage - 1) * rowsPerPage + index + 1}</Td>
+                  <Td>{u.fullName}</Td>
+                  <Td>{u.email}</Td>
+                  <Td>
+                    <select
+                      value={u.role}
+                      disabled={savingId === u.id}
+                      onChange={(e) =>
+                        onUpdateUser(u.id, "role", e.target.value)
+                      }
+                      className="admin-select admin-select--sm"
+                    >
+                      {ROLES.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                  </Td>
+                  <Td>
+                    <select
+                      value={u.status}
+                      disabled={savingId === u.id}
+                      onChange={(e) =>
+                        onUpdateUser(u.id, "status", e.target.value)
+                      }
+                      className="admin-select admin-select--sm"
+                    >
+                      {STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </Td>
+                  <Td>
+                    <button
+                      onClick={() => onDelete(u.id)}
+                      className="btn-inline btn-inline--danger"
+                    >
+                      Xoá
+                    </button>
+                  </Td>
+                </tr>
+              ))}
           </tbody>
         </table>
+
+        {/* ✅ Phân trang */}
+        {!loading && totalPages > 1 && (
+          <div className="pagination">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Trang trước
+            </button>
+            <span>
+              Trang {currentPage}/{totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Trang sau
+            </button>
+          </div>
+        )}
       </div>
 
       {showCreate && (
@@ -210,94 +248,41 @@ export default function Users() {
   );
 }
 
+// ========= Modal tạo user =========
 function CreateUserModal({ onClose, onCreate }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("INTERN");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
-
-  // State lưu lỗi cho từng field
   const [errors, setErrors] = useState({
     fullName: "",
     email: "",
     password: "",
   });
 
-  // Validate fullName
-  const validateFullName = (value) => {
-    if (!value.trim()) {
-      return "Họ tên không được để trống";
-    }
-    return "";
-  };
-
-  // Validate email
+  const validateFullName = (value) =>
+    !value.trim() ? "Họ tên không được để trống" : "";
   const validateEmail = (value) => {
-    if (!value.trim()) {
-      return "Email không được để trống";
-    }
+    if (!value.trim()) return "Email không được để trống";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-      return "Email không đúng định dạng";
-    }
-    return "";
+    return emailRegex.test(value) ? "" : "Email không đúng định dạng";
   };
-
-  // Validate password
   const validatePassword = (value) => {
-    if (!value) {
-      return "Mật khẩu không được để trống";
-    }
-    if (value.length < 6) {
-      return "Mật khẩu phải có tối thiểu 6 ký tự";
-    }
-    return "";
-  };
-
-  // Handle thay đổi fullName
-  const handleFullNameChange = (e) => {
-    const value = e.target.value;
-    setFullName(value);
-    setErrors((prev) => ({ ...prev, fullName: validateFullName(value) }));
-  };
-
-  // Handle thay đổi email
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-    setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
-  };
-
-  // Handle thay đổi password
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setPassword(value);
-    setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+    if (!value) return "Mật khẩu không được để trống";
+    return value.length < 6 ? "Mật khẩu phải có tối thiểu 6 ký tự" : "";
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validate tất cả fields
     const fullNameError = validateFullName(fullName);
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-
-    // Cập nhật errors
-    setErrors({
-      fullName: fullNameError,
-      email: emailError,
-      password: passwordError,
-    });
-
-    // Nếu có lỗi, hiển thị toast và không submit
+    setErrors({ fullName: fullNameError, email: emailError, password: passwordError });
     if (fullNameError || emailError || passwordError) {
       toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
-
-    // Nếu không có lỗi, gọi onCreate
     onCreate({ fullName, email, role, password });
   };
 
@@ -307,61 +292,67 @@ function CreateUserModal({ onClose, onCreate }) {
         <h2 className="modal-title">Thêm người dùng mới</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="fullName" className="form-label">
-              Họ tên
-            </label>
+            <label className="form-label">Họ tên</label>
             <input
-              id="fullName"
               value={fullName}
-              onChange={handleFullNameChange}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                setErrors((p) => ({
+                  ...p,
+                  fullName: validateFullName(e.target.value),
+                }));
+              }}
               className="form-input"
             />
             {errors.fullName && (
-              <div style={{ color: "red", fontSize: "14px", marginTop: "4px" }}>
+              <div style={{ color: "red", fontSize: 14, marginTop: 4 }}>
                 {errors.fullName}
               </div>
             )}
           </div>
 
           <div className="form-group">
-            <label htmlFor="email" className="form-label">
-              Email
-            </label>
+            <label className="form-label">Email</label>
             <input
-              id="email"
               type="email"
               value={email}
-              onChange={handleEmailChange}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrors((p) => ({
+                  ...p,
+                  email: validateEmail(e.target.value),
+                }));
+              }}
               className="form-input"
             />
             {errors.email && (
-              <div style={{ color: "red", fontSize: "14px", marginTop: "4px" }}>
+              <div style={{ color: "red", fontSize: 14, marginTop: 4 }}>
                 {errors.email}
               </div>
             )}
           </div>
 
           <div className="form-group">
-            <label htmlFor="password" className="form-label">
-              Mật khẩu
-            </label>
-
+            <label className="form-label">Mật khẩu</label>
             <input
-              id="password"
               type={showPw ? "text" : "password"}
               value={password}
-              onChange={handlePasswordChange}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setErrors((p) => ({
+                  ...p,
+                  password: validatePassword(e.target.value),
+                }));
+              }}
               className="form-input"
             />
             {errors.password && (
-              <div style={{ color: "red", fontSize: "14px", marginTop: "4px" }}>
+              <div style={{ color: "red", fontSize: 14, marginTop: 4 }}>
                 {errors.password}
               </div>
             )}
-
             <div className="form-row">
               <div className="form-hint">Tối thiểu 6 ký tự.</div>
-
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
@@ -373,11 +364,8 @@ function CreateUserModal({ onClose, onCreate }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="role" className="form-label">
-              Vai trò
-            </label>
+            <label className="form-label">Vai trò</label>
             <select
-              id="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
               className="form-select"
