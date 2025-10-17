@@ -9,9 +9,9 @@ export default function AllContracts() {
   const [loading, setLoading] = useState(true);
   const [contracts, setContracts] = useState([]);
 
-  // 🧮 Thêm state cho phân trang
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // mỗi trang 10 dòng
+  const pageSize = 20;
 
   const load = async () => {
     try {
@@ -19,7 +19,6 @@ export default function AllContracts() {
       const res = await getAllContracts();
       console.log("📄 Danh sách hợp đồng:", res);
       setContracts(res || []);
-      setCurrentPage(1); // reset về trang đầu mỗi lần reload
     } catch (e) {
       console.error("❌ Lỗi tải hợp đồng:", e);
       const msg = e?.response?.data || e.message || "Không thể tải hợp đồng.";
@@ -33,19 +32,32 @@ export default function AllContracts() {
     load();
   }, []);
 
-  // 🧩 Xử lý phân trang
-  const totalPages = Math.ceil(contracts.length / itemsPerPage);
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentContracts = contracts.slice(indexOfFirst, indexOfLast);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [contracts]);
 
-  const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage((p) => p - 1);
-  };
+  // Pagination calc
+  const totalItems = contracts.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const pageItems = contracts.slice(startIndex, startIndex + pageSize);
 
-  const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-  };
+  function getPageNumbers() {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+    const add = (n) => pages.push(n);
+    add(1);
+    const left = Math.max(2, currentPage - 1);
+    const right = Math.min(totalPages - 1, currentPage + 1);
+    if (left > 2) pages.push("...");
+    for (let i = left; i <= right; i++) add(i);
+    if (right < totalPages - 1) pages.push("...");
+    add(totalPages);
+    return pages;
+  }
 
   return (
     <div style={{ padding: 20 }}>
@@ -83,7 +95,7 @@ export default function AllContracts() {
                 </tr>
               </thead>
               <tbody>
-                {currentContracts.map((c, idx) => {
+                {pageItems.map((c, idx) => {
                   const fileUrl =
                     c.file_url && c.file_url !== "-" ? c.file_url : null;
                   const fileName =
@@ -92,7 +104,7 @@ export default function AllContracts() {
                       : "-";
 
                   return (
-                    <tr key={idx}>
+                    <tr key={`${c.intern_name}-${c.uploaded_at}-${idx}`}>
                       <td>{c.intern_name || "N/A"}</td>
                       <td>{c.hr_name || "N/A"}</td>
                       <td>{fileName}</td>
@@ -121,67 +133,52 @@ export default function AllContracts() {
               </tbody>
             </table>
 
-            {/* 🧭 Điều hướng phân trang */}
-            <div
-              style={{
-                marginTop: 16,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "12px",
-              }}
-            >
-              <button
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  border: "1px solid #ccc",
-                  background: currentPage === 1 ? "#eee" : "white",
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                }}
-              >
-                ◀ Trang trước
-              </button>
+            {/* Pagination */}
+            <div className="pagination">
+              <div className="pagination-info">
+                Hiển thị {totalItems === 0 ? 0 : startIndex + 1}–
+                {Math.min(startIndex + pageSize, totalItems)} trên {totalItems}
+              </div>
+              <div className="pagination-controls">
+                <button
+                  className="btn btn-sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  ‹ Trước
+                </button>
 
-              <span>
-                Trang {currentPage} / {totalPages || 1}
-              </span>
+                {getPageNumbers().map((p, idx) =>
+                  p === "..." ? (
+                    <span key={`dots-${idx}`} className="page-dots">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      className={`btn btn-sm page-btn ${
+                        p === currentPage ? "active" : ""
+                      }`}
+                      onClick={() => setCurrentPage(p)}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
 
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  border: "1px solid #ccc",
-                  background: currentPage === totalPages ? "#eee" : "white",
-                  cursor:
-                    currentPage === totalPages ? "not-allowed" : "pointer",
-                }}
-              >
-                Trang sau ▶
-              </button>
+                <button
+                  className="btn btn-sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                >
+                  Sau ›
+                </button>
+              </div>
             </div>
           </>
         )}
-
-        <div style={{ marginTop: 16, textAlign: "center" }}>
-          <button
-            onClick={load}
-            style={{
-              background: "#007bff",
-              color: "white",
-              padding: "8px 16px",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            🔄 Làm mới
-          </button>
-        </div>
       </div>
 
       <ToastContainer

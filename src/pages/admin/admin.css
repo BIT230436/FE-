@@ -10,7 +10,7 @@
   --admin-bg-card: #fff;
   --admin-border-radius: 12px;
   --admin-shadow: 0 4px 16px rgba(19, 19, 20, 0.08);
-  --admin-font-main: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  --admin-font-main: "Segoe UI", "Roboto", Arial, sans-serif;
 }
 
 /* ================================
@@ -384,7 +384,8 @@
   .admin-table {
     font-size: 14px;
   }
-  .admin-th, .admin-td {
+  .admin-th,
+  .admin-td {
     padding: 10px 8px;
   }
   .modal-box {
@@ -416,7 +417,8 @@
   .admin-table {
     font-size: 13px;
   }
-  .admin-th, .admin-td {
+  .admin-th,
+  .admin-td {
     padding: 8px 6px;
   }
   .admin-btn {

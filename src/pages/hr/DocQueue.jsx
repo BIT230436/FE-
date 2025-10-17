@@ -9,6 +9,10 @@ export default function DocQueue() {
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
   async function load() {
     setLoading(true);
     // Chỉ lấy CV chờ duyệt, không lấy documents
@@ -49,7 +53,28 @@ export default function DocQueue() {
     load(); // Reload danh sách sau khi duyệt
   };
 
+  // Pagination calc
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const pageItems = items.slice(startIndex, startIndex + pageSize);
 
+  function getPageNumbers() {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+    const add = (n) => pages.push(n);
+    add(1);
+    const left = Math.max(2, currentPage - 1);
+    const right = Math.min(totalPages - 1, currentPage + 1);
+    if (left > 2) pages.push("...");
+    for (let i = left; i <= right; i++) add(i);
+    if (right < totalPages - 1) pages.push("...");
+    add(totalPages);
+    return pages;
+  }
 
   return (
     <div>
@@ -77,7 +102,7 @@ export default function DocQueue() {
                 <td colSpan={6} className="empty">Không có hồ sơ chờ duyệt.</td>
               </tr>
             )}
-            {items.map((d) => (
+            {pageItems.map((d) => (
               <tr key={d.id}>
                 <td className="table-td">{d.type}</td>
                 <td className="table-td">
@@ -106,6 +131,53 @@ export default function DocQueue() {
             ))}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <div className="pagination-info">
+              Hiển thị {totalItems === 0 ? 0 : startIndex + 1}–
+              {Math.min(startIndex + pageSize, totalItems)} trên {totalItems}
+            </div>
+            <div className="pagination-controls">
+              <button
+                className="btn btn-sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                ‹ Trước
+              </button>
+
+              {getPageNumbers().map((p, idx) =>
+                p === "..." ? (
+                  <span key={`dots-${idx}`} className="page-dots">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`btn btn-sm page-btn ${
+                      p === currentPage ? "active" : ""
+                    }`}
+                    onClick={() => setCurrentPage(p)}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              <button
+                className="btn btn-sm"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+              >
+                Sau ›
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       {reviewing && (
         <ReviewModal

@@ -22,9 +22,9 @@ export default function Users() {
   const [showCreate, setShowCreate] = useState(false);
   const [err, setErr] = useState("");
 
-  // ✅ Thêm state phân trang
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+  const pageSize = 10;
 
   async function load() {
     setLoading(true);
@@ -37,7 +37,6 @@ export default function Users() {
       });
       setItems(content || []);
       setTotal(total || content?.length || 0);
-      setCurrentPage(1); // Reset về trang đầu
     } catch (e) {
       setErr(e?.response?.data?.message || "Không tải được danh sách.");
     } finally {
@@ -47,6 +46,11 @@ export default function Users() {
 
   useEffect(() => {
     load();
+  }, [q, filterRole, filterStatus]);
+
+  // Reset về trang 1 khi filter/search thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
   }, [q, filterRole, filterStatus]);
 
   async function onUpdateUser(id, field, value) {
@@ -85,12 +89,28 @@ export default function Users() {
     }
   }
 
-  // ✅ Tính toán phân trang
-  const totalPages = Math.ceil(items.length / rowsPerPage);
-  const paginatedItems = items.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+  // Pagination calc
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const pageItems = items.slice(startIndex, startIndex + pageSize);
+
+  function getPageNumbers() {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+    const add = (n) => pages.push(n);
+    add(1);
+    const left = Math.max(2, currentPage - 1);
+    const right = Math.min(totalPages - 1, currentPage + 1);
+    if (left > 2) pages.push("...");
+    for (let i = left; i <= right; i++) add(i);
+    if (right < totalPages - 1) pages.push("...");
+    add(totalPages);
+    return pages;
+  }
 
   return (
     <div className="admin-container">
@@ -158,7 +178,7 @@ export default function Users() {
                 </td>
               </tr>
             )}
-            {!loading && paginatedItems.length === 0 && (
+            {!loading && pageItems.length === 0 && (
               <tr>
                 <td colSpan={6} className="admin-empty">
                   Không có dữ liệu.
@@ -166,9 +186,9 @@ export default function Users() {
               </tr>
             )}
             {!loading &&
-              paginatedItems.map((u, index) => (
+              pageItems.map((u, index) => (
                 <tr key={u.id} className="admin-tr">
-                  <Td>{(currentPage - 1) * rowsPerPage + index + 1}</Td>
+                  <Td>{startIndex + index + 1}</Td>
                   <Td>{u.fullName}</Td>
                   <Td>{u.email}</Td>
                   <Td>
@@ -216,26 +236,48 @@ export default function Users() {
           </tbody>
         </table>
 
-        {/* ✅ Phân trang */}
-        {!loading && totalPages > 1 && (
-          <div className="pagination">
+        {/* Pagination */}
+        <div className="pagination">
+          <div className="pagination-info">
+            Hiển thị {totalItems === 0 ? 0 : startIndex + 1}–
+            {Math.min(startIndex + pageSize, totalItems)} trên {totalItems}
+          </div>
+          <div className="pagination-controls">
             <button
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              className="btn btn-sm"
               disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             >
-              Trang trước
+              ‹ Trước
             </button>
-            <span>
-              Trang {currentPage}/{totalPages}
-            </span>
+
+            {getPageNumbers().map((p, idx) =>
+              p === "..." ? (
+                <span key={`dots-${idx}`} className="page-dots">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={p}
+                  className={`btn btn-sm page-btn ${
+                    p === currentPage ? "active" : ""
+                  }`}
+                  onClick={() => setCurrentPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            )}
+
             <button
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              className="btn btn-sm"
               disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             >
-              Trang sau
+              Sau ›
             </button>
           </div>
-        )}
+        </div>
       </div>
 
       {showCreate && (
@@ -278,7 +320,11 @@ function CreateUserModal({ onClose, onCreate }) {
     const fullNameError = validateFullName(fullName);
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    setErrors({ fullName: fullNameError, email: emailError, password: passwordError });
+    setErrors({
+      fullName: fullNameError,
+      email: emailError,
+      password: passwordError,
+    });
     if (fullNameError || emailError || passwordError) {
       toast.error("Vui lòng kiểm tra lại thông tin");
       return;

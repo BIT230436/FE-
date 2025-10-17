@@ -376,3 +376,42 @@ body {
     padding: 8px 10px;
   }
 }
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.pagination-info {
+  color: #555;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.page-btn {
+  min-width: 34px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.page-btn.active {
+  border-color: #2b7cff;
+  background: #eaf2ff;
+  font-weight: 600;
+}
+
+.page-dots {
+  padding: 0 6px;
+  color: #777;
+}
