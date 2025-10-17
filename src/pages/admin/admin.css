@@ -184,6 +184,11 @@
   text-align: center;
 }
 
+.admin-th:first-child,
+.admin-td:first-child {
+  text-align: center;
+}
+
 /* ================================
    🧱 MODAL FORM
    ================================ */
