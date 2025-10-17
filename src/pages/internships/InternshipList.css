@@ -10,6 +10,19 @@
   --border-radius: 10px;
   --shadow: 0 4px 16px rgba(43, 124, 255, 0.08);
   --font-main: "Segoe UI", "Roboto", Arial, sans-serif;
+
+}
+
+/* Thêm vào InternshipList.css hoặc file CSS chung */
+
+.input-error {
+  border-color: #dc3545 !important; /* Màu đỏ */
+}
+
+.error-message {
+  color: #dc3545; /* Màu đỏ */
+  font-size: 0.85rem;
+  margin-top: 4px;
 }
 
 body {

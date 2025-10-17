@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import {
   getUsers,
   createUser,
@@ -52,7 +53,7 @@ export default function Users() {
         prev.map((u) => (u.id === id ? { ...u, [field]: value } : u))
       );
     } catch (e) {
-      alert(e?.response?.data?.message || "Cập nhật thất bại");
+      toast.error(e?.response?.data?.message || "Cập nhật thất bại");
     } finally {
       setSavingId(null);
     }
@@ -61,11 +62,11 @@ export default function Users() {
   async function onCreate(data) {
     try {
       await createUser(data);
-      alert("Tạo thành công.");
+      toast.success("Tạo thành công.");
       setShowCreate(false);
       await load();
     } catch (e) {
-      alert(e?.response?.data?.message || "Tạo tài khoản thất bại");
+      toast.error(e?.response?.data?.message || "Tạo tài khoản thất bại");
     }
   }
 
@@ -75,7 +76,7 @@ export default function Users() {
       await deleteUser(id);
       await load();
     } catch (e) {
-      alert(e?.response?.data?.message || "Xóa thất bại");
+      toast.error(e?.response?.data?.message || "Xóa thất bại");
     }
   }
 
@@ -120,9 +121,7 @@ export default function Users() {
         >
           Thêm người dùng
         </button>
-        <div className="admin-total">
-          Tổng: {total}
-        </div>
+        <div className="admin-total">Tổng: {total}</div>
       </div>
 
       {err && <div className="admin-alert">{err}</div>}
@@ -218,16 +217,87 @@ function CreateUserModal({ onClose, onCreate }) {
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
 
+  // State lưu lỗi cho từng field
+  const [errors, setErrors] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+  });
+
+  // Validate fullName
+  const validateFullName = (value) => {
+    if (!value.trim()) {
+      return "Họ tên không được để trống";
+    }
+    return "";
+  };
+
+  // Validate email
+  const validateEmail = (value) => {
+    if (!value.trim()) {
+      return "Email không được để trống";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      return "Email không đúng định dạng";
+    }
+    return "";
+  };
+
+  // Validate password
+  const validatePassword = (value) => {
+    if (!value) {
+      return "Mật khẩu không được để trống";
+    }
+    if (value.length < 6) {
+      return "Mật khẩu phải có tối thiểu 6 ký tự";
+    }
+    return "";
+  };
+
+  // Handle thay đổi fullName
+  const handleFullNameChange = (e) => {
+    const value = e.target.value;
+    setFullName(value);
+    setErrors((prev) => ({ ...prev, fullName: validateFullName(value) }));
+  };
+
+  // Handle thay đổi email
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+  };
+
+  // Handle thay đổi password
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!fullName || !email || !password) {
-      alert("Vui lòng điền đầy đủ thông tin");
+
+    // Validate tất cả fields
+    const fullNameError = validateFullName(fullName);
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+
+    // Cập nhật errors
+    setErrors({
+      fullName: fullNameError,
+      email: emailError,
+      password: passwordError,
+    });
+
+    // Nếu có lỗi, hiển thị toast và không submit
+    if (fullNameError || emailError || passwordError) {
+      toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
-    if (password.length < 6) {
-      alert("Mật khẩu phải có tối thiểu 6 ký tự");
-      return;
-    }
+
+    // Nếu không có lỗi, gọi onCreate
     onCreate({ fullName, email, role, password });
   };
 
@@ -243,10 +313,16 @@ function CreateUserModal({ onClose, onCreate }) {
             <input
               id="fullName"
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              onChange={handleFullNameChange}
               className="form-input"
             />
+            {errors.fullName && (
+              <div style={{ color: "red", fontSize: "14px", marginTop: "4px" }}>
+                {errors.fullName}
+              </div>
+            )}
           </div>
+
           <div className="form-group">
             <label htmlFor="email" className="form-label">
               Email
@@ -255,33 +331,37 @@ function CreateUserModal({ onClose, onCreate }) {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               className="form-input"
             />
+            {errors.email && (
+              <div style={{ color: "red", fontSize: "14px", marginTop: "4px" }}>
+                {errors.email}
+              </div>
+            )}
           </div>
+
           <div className="form-group">
             <label htmlFor="password" className="form-label">
               Mật khẩu
             </label>
 
-            {/* Ô nhập mật khẩu */}
             <input
               id="password"
               type={showPw ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
               className="form-input"
             />
-
-            {/* thay vì để text và button tách rời nhau,
-      gộp vào 1 <div> có display:flex để nằm cùng dòng */}
-            <div className="form-row">
-              {/* Text hướng dẫn */}
-              <div className="form-hint">
-                Tối thiểu 6 ký tự.
+            {errors.password && (
+              <div style={{ color: "red", fontSize: "14px", marginTop: "4px" }}>
+                {errors.password}
               </div>
+            )}
 
-              {/* Nút Ẩn/Hiện */}
+            <div className="form-row">
+              <div className="form-hint">Tối thiểu 6 ký tự.</div>
+
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
@@ -309,6 +389,7 @@ function CreateUserModal({ onClose, onCreate }) {
               ))}
             </select>
           </div>
+
           <div className="form-actions">
             <button type="button" onClick={onClose} className="btn-outline">
               Hủy
@@ -324,6 +405,8 @@ function CreateUserModal({ onClose, onCreate }) {
 }
 
 const Th = ({ children, style }) => (
-  <th className="admin-th" style={style}>{children}</th>
+  <th className="admin-th" style={style}>
+    {children}
+  </th>
 );
 const Td = ({ children }) => <td className="admin-td">{children}</td>;

@@ -145,3 +145,9 @@ html, body {
   
   .auth-right { width:95%; max-width:100%; padding:2rem 1rem; flex:none; border-radius:0; }
 }
+.auth-inline-error {
+  color: red;
+  font-size: 14px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}

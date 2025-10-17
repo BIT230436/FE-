@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAuthStore } from "../../store/authStore";
-import { register } from "../../services/authService"; // Import từ authService
+import { register } from "../../services/authService";
 import "./auth.css";
 
 import teamworkImage from "../../assets/Hinh-anh-ky-nang-lam-viec-nhom.jpg";
@@ -15,54 +16,119 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  function validate(values) {
-    const errs = {};
-    const name = values.fullName.trim();
-    const mail = values.email.trim();
-    const pass = values.password;
-    const cpass = values.confirmPassword;
+  // State lưu lỗi cho từng field
+  const [errors, setErrors] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-    if (!name) errs.fullName = "Vui lòng nhập họ và tên";
+  // Validate fullName
+  const validateFullName = (value) => {
+    if (!value.trim()) {
+      return "Vui lòng nhập họ và tên";
+    }
+    return "";
+  };
+
+  // Validate email
+  const validateEmail = (value) => {
+    const mail = value.trim();
     if (!mail) {
-      errs.email = "Vui lòng nhập email";
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(mail)) errs.email = "Email không hợp lệ";
+      return "Vui lòng nhập email";
     }
-    if (!pass) {
-      errs.password = "Vui lòng nhập mật khẩu";
-    } else if (pass.length < 6) {
-      errs.password = "Mật khẩu phải có ít nhất 6 ký tự";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(mail)) {
+      return "Email không hợp lệ";
     }
-    if (!cpass) {
-      errs.confirmPassword = "Vui lòng xác nhận mật khẩu";
-    } else if (pass !== cpass) {
-      errs.confirmPassword = "Mật khẩu xác nhận không khớp";
+    return "";
+  };
+
+  // Validate password
+  const validatePassword = (value) => {
+    if (!value) {
+      return "Vui lòng nhập mật khẩu";
     }
-    return errs;
-  }
+    if (value.length < 6) {
+      return "Mật khẩu phải có ít nhất 6 ký tự";
+    }
+    return "";
+  };
+
+  // Validate confirmPassword
+  const validateConfirmPassword = (value) => {
+    if (!value) {
+      return "Vui lòng xác nhận mật khẩu";
+    }
+    if (password !== value) {
+      return "Mật khẩu xác nhận không khớp";
+    }
+    return "";
+  };
+
+  // Handle thay đổi fullName
+  const handleFullNameChange = (e) => {
+    const value = e.target.value;
+    setFullName(value);
+    setErrors((prev) => ({ ...prev, fullName: validateFullName(value) }));
+  };
+
+  // Handle thay đổi email
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+  };
+
+  // Handle thay đổi password
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+    // Nếu đã có confirmPassword, cần validate lại confirmPassword
+    if (confirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword:
+          value !== confirmPassword ? "Mật khẩu xác nhận không khớp" : "",
+      }));
+    }
+  };
+
+  // Handle thay đổi confirmPassword
+  const handleConfirmPasswordChange = (e) => {
+    const value = e.target.value;
+    setConfirmPassword(value);
+    setErrors((prev) => ({
+      ...prev,
+      confirmPassword: validateConfirmPassword(value),
+    }));
+  };
 
   async function onRegister(e) {
     e.preventDefault();
-    setError("");
-    setFieldErrors({});
     setLoading(true);
 
-    const values = {
-      fullName: fullName.trim(),
-      email: email.trim().toLowerCase(),
-      password,
-      confirmPassword,
-    };
+    // Validate tất cả fields
+    const fullNameError = validateFullName(fullName);
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    const confirmPasswordError = validateConfirmPassword(confirmPassword);
 
-    const errs = validate(values);
-    if (Object.keys(errs).length > 0) {
-      setFieldErrors(errs);
-      setError("Vui lòng kiểm tra lại thông tin");
+    // Cập nhật errors
+    setErrors({
+      fullName: fullNameError,
+      email: emailError,
+      password: passwordError,
+      confirmPassword: confirmPasswordError,
+    });
+
+    // Nếu có lỗi, hiển thị toast và không submit
+    if (fullNameError || emailError || passwordError || confirmPasswordError) {
+      toast.error("Vui lòng kiểm tra lại thông tin");
       setLoading(false);
       return;
     }
@@ -70,14 +136,14 @@ export default function Register() {
     try {
       // Gọi API register từ authService
       const response = await register({
-        fullName: values.fullName,
-        email: values.email,
-        password: values.password,
-        role: "USER", // Người đăng ký mặc định là USER
+        fullName: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+        role: "USER",
       });
 
       if (!response.success) {
-        setError(response.message || "Đăng ký thất bại");
+        toast.error(response.message || "Đăng ký thất bại");
         setLoading(false);
         return;
       }
@@ -87,7 +153,7 @@ export default function Register() {
       setAuth(response.user, token);
 
       // Hiển thị thông báo thành công
-      alert("Đăng ký thành công!");
+      toast.success("Đăng ký thành công!");
 
       // Chuyển về trang login hoặc upload-documents
       if (response.user.role === "USER") {
@@ -97,9 +163,8 @@ export default function Register() {
       }
     } catch (err) {
       console.error("Register error:", err);
-      setError(
-        err.response?.data?.message || 
-        "Đăng ký thất bại. Vui lòng thử lại."
+      toast.error(
+        err.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại."
       );
     } finally {
       setLoading(false);
@@ -119,59 +184,59 @@ export default function Register() {
 
         <h1 className="auth-title">Đăng ký</h1>
 
-        {error && <div className="auth-alert">{error}</div>}
-
         <form onSubmit={onRegister}>
           <input
             value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={handleFullNameChange}
             placeholder="Họ và tên"
             className="auth-input"
             disabled={loading}
           />
-          {fieldErrors.fullName && (
-            <div className="auth-inline-error">{fieldErrors.fullName}</div>
+          {errors.fullName && (
+            <div className="auth-inline-error">{errors.fullName}</div>
           )}
-          
+
           <input
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
             placeholder="Email"
             className="auth-input"
             type="email"
             disabled={loading}
           />
-          {fieldErrors.email && (
-            <div className="auth-inline-error">{fieldErrors.email}</div>
+          {errors.email && (
+            <div className="auth-inline-error">{errors.email}</div>
           )}
-          
+
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
             placeholder="Mật khẩu"
             className="auth-input"
             disabled={loading}
           />
-          {fieldErrors.password && (
-            <div className="auth-inline-error">{fieldErrors.password}</div>
+          {errors.password && (
+            <div className="auth-inline-error">{errors.password}</div>
           )}
-          
+
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={handleConfirmPasswordChange}
             placeholder="Xác nhận mật khẩu"
             className="auth-input"
             disabled={loading}
           />
-          {fieldErrors.confirmPassword && (
-            <div className="auth-inline-error">{fieldErrors.confirmPassword}</div>
+          {errors.confirmPassword && (
+            <div className="auth-inline-error">{errors.confirmPassword}</div>
           )}
 
           <button
             type="submit"
-            disabled={loading || !fullName || !email || !password || !confirmPassword}
+            disabled={
+              loading || !fullName || !email || !password || !confirmPassword
+            }
             className="btn btn-success"
           >
             {loading ? "Đang đăng ký..." : "Đăng ký"}

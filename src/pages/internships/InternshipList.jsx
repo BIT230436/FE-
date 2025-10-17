@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import "./InternshipList.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   getInternships,
   createInternship,
@@ -38,7 +40,7 @@ export default function InternshipList() {
       setInternships(response.data || []);
     } catch (error) {
       console.error("Error loading internships:", error);
-      alert("Không thể tải danh sách thực tập");
+      toast.error("Không thể tải danh sách thực tập");
     } finally {
       setLoading(false);
     }
@@ -82,6 +84,17 @@ export default function InternshipList() {
 
   return (
     <div className="page-container">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="page-header">
         <h1 className="page-title">Danh sách Thực tập</h1>
         <button
@@ -247,15 +260,16 @@ export default function InternshipList() {
                 endDate: data.endDate,
               };
               console.log("Sending data:", payload);
-              const response = await createInternship(payload);
-              console.log("Response:", response);
-              alert("Tạo thực tập sinh thành công!");
+              await createInternship(payload);
+
+              toast.success("Tạo thực tập sinh thành công! 🎉");
               setShowCreate(false);
               await loadInternships();
             } catch (error) {
               console.error("Error creating internship:", error);
               console.error("Error response:", error?.response?.data);
-              alert(
+
+              toast.error(
                 error?.response?.data?.message ||
                   error?.message ||
                   "Tạo thất bại"
@@ -283,11 +297,15 @@ export default function InternshipList() {
                 startDate: updated.startDate,
                 endDate: updated.endDate,
               });
-              alert("Cập nhật thành công!");
+              // Thay alert bằng toast
+              toast.success("Cập nhật thành công! ✅");
               setEditing(null);
               await loadInternships();
             } catch (error) {
-              alert(error?.response?.data?.message || "Cập nhật thất bại");
+              // Thay alert bằng toast
+              toast.error(
+                error?.response?.data?.message || "Cập nhật thất bại"
+              );
             }
           }}
         />
@@ -317,36 +335,79 @@ function CreateInternshipModal({ onClose, onCreate }) {
   const [status, setStatus] = useState("active");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [err, setErr] = useState("");
+
+  // State lưu lỗi validation chi tiết
+  const [validationErrors, setValidationErrors] = useState({});
   const [showSelectIntern, setShowSelectIntern] = useState(false);
+
+  // Logic validation
+  const validate = (data) => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!data.title.trim()) {
+      errors.title = "Vị trí không được để trống";
+    }
+    if (!data.student.trim()) {
+      errors.student = "Tên sinh viên không được để trống";
+    }
+    if (!data.studentEmail.trim()) {
+      errors.studentEmail = "Email không được để trống";
+    } else if (!emailRegex.test(data.studentEmail.trim())) {
+      errors.studentEmail = "Email không hợp lệ";
+    }
+    if (!data.startDate) {
+      errors.startDate = "Ngày bắt đầu không được để trống";
+    }
+    if (!data.endDate) {
+      errors.endDate = "Ngày kết thúc không được để trống";
+    }
+
+    return errors;
+  };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    setErr("");
-    if (!title.trim() || !student.trim() || !studentEmail.trim()) {
-      setErr("Vui lòng nhập Vị trí, Sinh viên và Email");
+    const data = {
+      title,
+      student,
+      studentEmail,
+      school,
+      major,
+      status,
+      startDate,
+      endDate,
+    };
+    const errors = validate(data);
+
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error(
+        "Vui lòng kiểm tra lại thông tin nhập. Các trường bắt buộc chưa hợp lệ."
+      );
       return;
     }
-    const email = studentEmail.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setErr("Email không hợp lệ");
-      return;
-    }
-    if (!startDate || !endDate) {
-      setErr("Vui lòng chọn Thời gian");
-      return;
-    }
+
+    // Nếu hợp lệ thì gọi onCreate
     onCreate({
       title: title.trim(),
       student: student.trim(),
-      studentEmail: email,
+      studentEmail: studentEmail.trim(),
       school: school.trim() || undefined,
       major: major.trim() || undefined,
       status,
       startDate,
       endDate,
     });
+  };
+
+  // Hàm xóa lỗi khi người dùng gõ lại input
+  const handleInputChange = (setter, field) => (e) => {
+    setter(e.target.value);
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
   return (
@@ -378,45 +439,63 @@ function CreateInternshipModal({ onClose, onCreate }) {
             Chọn từ danh sách INTERN
           </button>
         </div>
-        {err && <div style={{ color: "#dc3545", marginBottom: 8 }}>{err}</div>}
+
         <form onSubmit={onSubmit}>
           <div className="form-row cols-2-1">
             <div className="form-group">
               <label className="form-label" htmlFor="title">
-                Vị trí
+                Vị trí <span style={{ color: "red" }}>*</span>
               </label>
               <input
                 id="title"
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.title ? "input-error" : ""
+                }`}
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={handleInputChange(setTitle, "title")}
               />
+              {validationErrors.title && (
+                <div className="error-message">{validationErrors.title}</div>
+              )}
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="studentEmail">
-                Email
+                Email <span style={{ color: "red" }}>*</span>
               </label>
               <input
                 id="studentEmail"
                 type="email"
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.studentEmail ? "input-error" : ""
+                }`}
                 value={studentEmail}
-                onChange={(e) => setStudentEmail(e.target.value)}
+                onChange={handleInputChange(setStudentEmail, "studentEmail")}
                 placeholder="name@example.com"
               />
+              {validationErrors.studentEmail && (
+                <div className="error-message">
+                  {validationErrors.studentEmail}
+                </div>
+              )}
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label" htmlFor="student">
-                Tên sinh viên
+                Tên sinh viên <span style={{ color: "red" }}>*</span>
               </label>
               <input
                 id="student"
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.student ? "input-error" : ""
+                }`}
                 value={student}
-                onChange={(e) => setStudent(e.target.value)}
+                onChange={handleInputChange(setStudent, "student")}
               />
+              {validationErrors.student && (
+                <div className="error-message">{validationErrors.student}</div>
+              )}
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="school">
@@ -431,6 +510,7 @@ function CreateInternshipModal({ onClose, onCreate }) {
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label" htmlFor="major">
@@ -459,32 +539,46 @@ function CreateInternshipModal({ onClose, onCreate }) {
               </select>
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label" htmlFor="start">
-                Ngày bắt đầu
+                Ngày bắt đầu <span style={{ color: "red" }}>*</span>
               </label>
               <input
                 id="start"
                 type="date"
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.startDate ? "input-error" : ""
+                }`}
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={handleInputChange(setStartDate, "startDate")}
               />
+              {validationErrors.startDate && (
+                <div className="error-message">
+                  {validationErrors.startDate}
+                </div>
+              )}
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="end">
-                Ngày kết thúc
+                Ngày kết thúc <span style={{ color: "red" }}>*</span>
               </label>
               <input
                 id="end"
                 type="date"
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.endDate ? "input-error" : ""
+                }`}
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={handleInputChange(setEndDate, "endDate")}
               />
+              {validationErrors.endDate && (
+                <div className="error-message">{validationErrors.endDate}</div>
+              )}
             </div>
           </div>
+
           <div className="form-actions">
             <button type="button" className="btn-outline" onClick={onClose}>
               Hủy
@@ -494,12 +588,18 @@ function CreateInternshipModal({ onClose, onCreate }) {
             </button>
           </div>
         </form>
+
         {showSelectIntern && (
           <SelectInternModal
             onClose={() => setShowSelectIntern(false)}
             onSelect={(user) => {
               setStudent(user.fullName);
               setStudentEmail(user.email);
+              setValidationErrors((prev) => ({
+                ...prev,
+                student: undefined,
+                studentEmail: undefined,
+              }));
               setShowSelectIntern(false);
             }}
           />
@@ -573,30 +673,61 @@ function EditInternshipModal({ data, onClose, onSave }) {
   const [status, setStatus] = useState(data.status || "active");
   const [startDate, setStartDate] = useState(data.startDate || "");
   const [endDate, setEndDate] = useState(data.endDate || "");
-  const [err, setErr] = useState("");
+  // const [err, setErr] = useState(""); // ❌ Bỏ state lỗi chung này
+  const [validationErrors, setValidationErrors] = useState({}); // ✅ Thêm state lỗi chi tiết
+
+  const validate = (data) => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!data.title.trim()) {
+      errors.title = "Vị trí không được để trống";
+    }
+    if (!data.student.trim()) {
+      errors.student = "Tên sinh viên không được để trống";
+    }
+    if (!data.studentEmail.trim()) {
+      errors.studentEmail = "Email không được để trống";
+    } else if (!emailRegex.test(data.studentEmail.trim())) {
+      errors.studentEmail = "Email không hợp lệ";
+    }
+    if (!data.startDate) {
+      errors.startDate = "Ngày bắt đầu không được để trống";
+    }
+    if (!data.endDate) {
+      errors.endDate = "Ngày kết thúc không được để trống";
+    }
+
+    return errors;
+  };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    setErr("");
-    if (!title.trim() || !student.trim() || !studentEmail.trim()) {
-      setErr("Vui lòng nhập Vị trí, Sinh viên và Email");
+    const updatedData = {
+      title,
+      student,
+      studentEmail,
+      school,
+      major,
+      status,
+      startDate,
+      endDate,
+    };
+    const errors = validate(updatedData);
+
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      // Hiển thị toast lỗi chung khi nhấn submit và có lỗi
+      toast.error("Vui lòng kiểm tra lại thông tin nhập");
       return;
     }
-    const email = studentEmail.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setErr("Email không hợp lệ");
-      return;
-    }
-    if (!startDate || !endDate) {
-      setErr("Vui lòng chọn Thời gian");
-      return;
-    }
+
     onSave({
       ...data,
       title: title.trim(),
       student: student.trim(),
-      studentEmail: email,
+      studentEmail: studentEmail.trim(),
       school: school.trim() || undefined,
       major: major.trim() || undefined,
       status,
@@ -605,40 +736,73 @@ function EditInternshipModal({ data, onClose, onSave }) {
     });
   };
 
+  // Hàm xử lý thay đổi input để xóa lỗi ngay khi người dùng gõ
+  const handleInputChange = (setter, field) => (e) => {
+    setter(e.target.value);
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   return (
     <div className="modal-overlay">
       <div className="modal-box">
         <h2 className="modal-title">Sửa thông tin thực tập</h2>
-        {err && <div style={{ color: "#dc3545", marginBottom: 8 }}>{err}</div>}
+        {/* ❌ Bỏ div lỗi chung */}
+        {/* {err && <div style={{ color: "#dc3545", marginBottom: 8 }}>{err}</div>} */}
         <form onSubmit={onSubmit}>
           <div className="form-row cols-2-1">
             <div className="form-group">
-              <label className="form-label">Vị trí</label>
+              <label className="form-label">
+                Vị trí <span style={{ color: "red" }}>*</span>
+              </label>
               <input
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.title ? "input-error" : ""
+                }`}
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={handleInputChange(setTitle, "title")} // ✅ Sử dụng handleInputChange
               />
+              {validationErrors.title && ( // ✅ Hiển thị lỗi dưới field
+                <div className="error-message">{validationErrors.title}</div>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label">Email</label>
+              <label className="form-label">
+                Email <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="email"
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.studentEmail ? "input-error" : ""
+                }`}
                 value={studentEmail}
-                onChange={(e) => setStudentEmail(e.target.value)}
+                onChange={handleInputChange(setStudentEmail, "studentEmail")} // ✅ Sử dụng handleInputChange
                 placeholder="name@example.com"
               />
+              {validationErrors.studentEmail && ( // ✅ Hiển thị lỗi dưới field
+                <div className="error-message">
+                  {validationErrors.studentEmail}
+                </div>
+              )}
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Sinh viên</label>
+              <label className="form-label">
+                Sinh viên <span style={{ color: "red" }}>*</span>
+              </label>
               <input
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.student ? "input-error" : ""
+                }`}
                 value={student}
-                onChange={(e) => setStudent(e.target.value)}
+                onChange={handleInputChange(setStudent, "student")}
               />
+              {validationErrors.student && (
+                <div className="error-message">{validationErrors.student}</div>
+              )}
             </div>
             <div className="form-group">
               <label className="form-label">Trường</label>
@@ -672,22 +836,38 @@ function EditInternshipModal({ data, onClose, onSave }) {
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Ngày bắt đầu</label>
+              <label className="form-label">
+                Ngày bắt đầu <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="date"
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.startDate ? "input-error" : ""
+                }`}
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={handleInputChange(setStartDate, "startDate")}
               />
+              {validationErrors.startDate && (
+                <div className="error-message">
+                  {validationErrors.startDate}
+                </div>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label">Ngày kết thúc</label>
+              <label className="form-label">
+                Ngày kết thúc <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="date"
-                className="form-input"
+                className={`form-input ${
+                  validationErrors.endDate ? "input-error" : ""
+                }`}
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={handleInputChange(setEndDate, "endDate")}
               />
+              {validationErrors.endDate && (
+                <div className="error-message">{validationErrors.endDate}</div>
+              )}
             </div>
           </div>
           <div className="form-actions">
