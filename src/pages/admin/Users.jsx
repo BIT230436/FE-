@@ -297,6 +297,7 @@ function CreateUserModal({ onClose, onCreate }) {
   const [role, setRole] = useState("INTERN");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({
     fullName: "",
     email: "",
@@ -315,21 +316,42 @@ function CreateUserModal({ onClose, onCreate }) {
     return value.length < 6 ? "Mật khẩu phải có tối thiểu 6 ký tự" : "";
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const fullNameError = validateFullName(fullName);
-    const emailError = validateEmail(email);
+    let emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    setErrors({
-      fullName: fullNameError,
-      email: emailError,
-      password: passwordError,
-    });
+
     if (fullNameError || emailError || passwordError) {
+      setErrors({ fullName: fullNameError, email: emailError, password: passwordError });
       toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
-    onCreate({ fullName, email, role, password });
+
+    setSubmitting(true);
+    try {
+      // Check if email exists
+      const { total } = await getUsers({ q: email.trim() });
+      if (total > 0) {
+        emailError = "Email này đã được sử dụng.";
+      }
+    } catch (error) {
+      // Ignore email check error, let backend handle it
+      console.error("Email check failed:", error);
+    }
+
+    if (emailError) {
+      setErrors({ fullName: fullNameError, email: emailError, password: passwordError });
+      toast.error("Vui lòng kiểm tra lại thông tin");
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      await onCreate({ fullName, email, role, password });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -425,11 +447,11 @@ function CreateUserModal({ onClose, onCreate }) {
           </div>
 
           <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-outline">
+            <button type="button" onClick={onClose} className="btn-outline" disabled={submitting}>
               Hủy
             </button>
-            <button type="submit" className="btn-primary">
-              Tạo
+            <button type="submit" className="btn-primary" disabled={submitting}>
+              {submitting ? "Đang xử lý..." : "Tạo"}
             </button>
           </div>
         </form>
