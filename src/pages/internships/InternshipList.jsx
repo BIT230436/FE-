@@ -23,7 +23,10 @@ export default function InternshipList() {
   const [mentors, setMentors] = useState([]);
   const [loadingMentors, setLoadingMentors] = useState(false);
 
-  // Load initial data
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+
   useEffect(() => {
     loadInternships();
   }, []);
@@ -32,10 +35,10 @@ export default function InternshipList() {
     setLoading(true);
     try {
       const response = await getInternships({
-        q: "", // Lấy tất cả, filter ở client
+        q: "",
         status: "",
         page: 0,
-        size: 100,
+        size: 1000, // lấy rộng để phân trang phía client
       });
       setInternships(response.data || []);
     } catch (error) {
@@ -59,7 +62,7 @@ export default function InternshipList() {
     }
   }
 
-  // Derived values for filters
+  // Derived filters
   const schools = [
     ...new Set(internships.map((it) => it.school).filter(Boolean)),
   ];
@@ -67,7 +70,6 @@ export default function InternshipList() {
     ...new Set(internships.map((it) => it.major).filter(Boolean)),
   ];
 
-  // Apply search + filters
   const filteredInternships = internships.filter((it) => {
     const matchesSearch = searchText
       ? it.student?.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -78,23 +80,45 @@ export default function InternshipList() {
     return matchesSearch && matchesSchool && matchesMajor;
   });
 
+  // Reset về trang 1 khi filter/search thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchText, schoolFilter, majorFilter]);
+
+  // Pagination calc
+  const totalItems = filteredInternships.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const pageItems = filteredInternships.slice(
+    startIndex,
+    startIndex + pageSize
+  );
+
+  function getPageNumbers() {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+    const add = (n) => pages.push(n);
+    add(1);
+    const left = Math.max(2, currentPage - 1);
+    const right = Math.min(totalPages - 1, currentPage + 1);
+    if (left > 2) pages.push("...");
+    for (let i = left; i <= right; i++) add(i);
+    if (right < totalPages - 1) pages.push("...");
+    add(totalPages);
+    return pages;
+  }
+
   if (loading) {
     return <div className="loading center">Đang tải...</div>;
   }
 
   return (
     <div className="page-container">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+      <ToastContainer position="top-right" autoClose={5000} />
+
       <div className="page-header">
         <h1 className="page-title">Danh sách Thực tập</h1>
         <button
@@ -175,6 +199,7 @@ export default function InternshipList() {
         <table className="table">
           <thead>
             <tr>
+              <th className="table-th">STT</th>
               <th className="table-th">Vị trí</th>
               <th className="table-th">Tên sinh viên</th>
               <th className="table-th">Email</th>
@@ -186,15 +211,17 @@ export default function InternshipList() {
             </tr>
           </thead>
           <tbody>
-            {filteredInternships.length === 0 ? (
+            {pageItems.length === 0 ? (
               <tr>
-                <td className="table-td center" colSpan={8}>
+                <td className="table-td center" colSpan={9}>
                   Không tìm thấy thực tập sinh.
                 </td>
               </tr>
             ) : (
-              filteredInternships.map((internship) => (
+              pageItems.map((internship, index) => (
                 <tr key={internship.intern_id}>
+                  <td className="table-td">{startIndex + index + 1}</td>{" "}
+                  {/* ✅ STT */}
                   <td className="table-td">{internship.title}</td>
                   <td className="table-td">{internship.student}</td>
                   <td className="table-td">{internship.studentEmail}</td>
@@ -243,7 +270,51 @@ export default function InternshipList() {
             )}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        <div className="pagination">
+          <div className="pagination-info">
+            Hiển thị {totalItems === 0 ? 0 : startIndex + 1}–
+            {Math.min(startIndex + pageSize, totalItems)} trên {totalItems}
+          </div>
+          <div className="pagination-controls">
+            <button
+              className="btn btn-sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              ‹ Trước
+            </button>
+
+            {getPageNumbers().map((p, idx) =>
+              p === "..." ? (
+                <span key={`dots-${idx}`} className="page-dots">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={p}
+                  className={`btn btn-sm page-btn ${
+                    p === currentPage ? "active" : ""
+                  }`}
+                  onClick={() => setCurrentPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            )}
+
+            <button
+              className="btn btn-sm"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Sau ›
+            </button>
+          </div>
+        </div>
       </div>
+
       {showCreate && (
         <CreateInternshipModal
           onClose={() => setShowCreate(false)}
@@ -259,16 +330,12 @@ export default function InternshipList() {
                 startDate: data.startDate,
                 endDate: data.endDate,
               };
-              console.log("Sending data:", payload);
               await createInternship(payload);
-
               toast.success("Tạo thực tập sinh thành công! 🎉");
               setShowCreate(false);
               await loadInternships();
             } catch (error) {
               console.error("Error creating internship:", error);
-              console.error("Error response:", error?.response?.data);
-
               toast.error(
                 error?.response?.data?.message ||
                   error?.message ||
@@ -278,9 +345,11 @@ export default function InternshipList() {
           }}
         />
       )}
+
       {viewing && (
         <ViewInternshipModal data={viewing} onClose={() => setViewing(null)} />
       )}
+
       {editing && (
         <EditInternshipModal
           data={editing}
@@ -297,12 +366,10 @@ export default function InternshipList() {
                 startDate: updated.startDate,
                 endDate: updated.endDate,
               });
-              // Thay alert bằng toast
               toast.success("Cập nhật thành công! ✅");
               setEditing(null);
               await loadInternships();
             } catch (error) {
-              // Thay alert bằng toast
               toast.error(
                 error?.response?.data?.message || "Cập nhật thất bại"
               );
@@ -310,6 +377,7 @@ export default function InternshipList() {
           }}
         />
       )}
+
       {mentorAssignment && (
         <MentorAssignmentModal
           internship={mentorAssignment}
@@ -317,7 +385,7 @@ export default function InternshipList() {
           loadingMentors={loadingMentors}
           onClose={() => {
             setMentorAssignment(null);
-            loadInternships(); // Reload để cập nhật trạng thái
+            loadInternships();
           }}
           onLoadMentors={loadMentors}
         />
@@ -336,33 +404,21 @@ function CreateInternshipModal({ onClose, onCreate }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // State lưu lỗi validation chi tiết
   const [validationErrors, setValidationErrors] = useState({});
   const [showSelectIntern, setShowSelectIntern] = useState(false);
 
-  // Logic validation
   const validate = (data) => {
     const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!data.title.trim()) {
-      errors.title = "Vị trí không được để trống";
-    }
-    if (!data.student.trim()) {
+    if (!data.title.trim()) errors.title = "Vị trí không được để trống";
+    if (!data.student.trim())
       errors.student = "Tên sinh viên không được để trống";
-    }
-    if (!data.studentEmail.trim()) {
+    if (!data.studentEmail.trim())
       errors.studentEmail = "Email không được để trống";
-    } else if (!emailRegex.test(data.studentEmail.trim())) {
+    else if (!emailRegex.test(data.studentEmail.trim()))
       errors.studentEmail = "Email không hợp lệ";
-    }
-    if (!data.startDate) {
-      errors.startDate = "Ngày bắt đầu không được để trống";
-    }
-    if (!data.endDate) {
-      errors.endDate = "Ngày kết thúc không được để trống";
-    }
-
+    if (!data.startDate) errors.startDate = "Ngày bắt đầu không được để trống";
+    if (!data.endDate) errors.endDate = "Ngày kết thúc không được để trống";
     return errors;
   };
 
@@ -379,17 +435,13 @@ function CreateInternshipModal({ onClose, onCreate }) {
       endDate,
     };
     const errors = validate(data);
-
     setValidationErrors(errors);
-
     if (Object.keys(errors).length > 0) {
       toast.error(
         "Vui lòng kiểm tra lại thông tin nhập. Các trường bắt buộc chưa hợp lệ."
       );
       return;
     }
-
-    // Nếu hợp lệ thì gọi onCreate
     onCreate({
       title: title.trim(),
       student: student.trim(),
@@ -402,12 +454,10 @@ function CreateInternshipModal({ onClose, onCreate }) {
     });
   };
 
-  // Hàm xóa lỗi khi người dùng gõ lại input
   const handleInputChange = (setter, field) => (e) => {
     setter(e.target.value);
-    if (validationErrors[field]) {
+    if (validationErrors[field])
       setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
   };
 
   return (
@@ -673,37 +723,25 @@ function EditInternshipModal({ data, onClose, onSave }) {
   const [status, setStatus] = useState(data.status || "active");
   const [startDate, setStartDate] = useState(data.startDate || "");
   const [endDate, setEndDate] = useState(data.endDate || "");
-  // const [err, setErr] = useState(""); // ❌ Bỏ state lỗi chung này
-  const [validationErrors, setValidationErrors] = useState({}); // ✅ Thêm state lỗi chi tiết
+  const [validationErrors, setValidationErrors] = useState({});
 
-  const validate = (data) => {
+  const validate = (d) => {
     const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!data.title.trim()) {
-      errors.title = "Vị trí không được để trống";
-    }
-    if (!data.student.trim()) {
-      errors.student = "Tên sinh viên không được để trống";
-    }
-    if (!data.studentEmail.trim()) {
+    if (!d.title.trim()) errors.title = "Vị trí không được để trống";
+    if (!d.student.trim()) errors.student = "Tên sinh viên không được để trống";
+    if (!d.studentEmail.trim())
       errors.studentEmail = "Email không được để trống";
-    } else if (!emailRegex.test(data.studentEmail.trim())) {
+    else if (!emailRegex.test(d.studentEmail.trim()))
       errors.studentEmail = "Email không hợp lệ";
-    }
-    if (!data.startDate) {
-      errors.startDate = "Ngày bắt đầu không được để trống";
-    }
-    if (!data.endDate) {
-      errors.endDate = "Ngày kết thúc không được để trống";
-    }
-
+    if (!d.startDate) errors.startDate = "Ngày bắt đầu không được để trống";
+    if (!d.endDate) errors.endDate = "Ngày kết thúc không được để trống";
     return errors;
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    const updatedData = {
+    const updated = {
       title,
       student,
       studentEmail,
@@ -713,16 +751,12 @@ function EditInternshipModal({ data, onClose, onSave }) {
       startDate,
       endDate,
     };
-    const errors = validate(updatedData);
-
+    const errors = validate(updated);
     setValidationErrors(errors);
-
     if (Object.keys(errors).length > 0) {
-      // Hiển thị toast lỗi chung khi nhấn submit và có lỗi
       toast.error("Vui lòng kiểm tra lại thông tin nhập");
       return;
     }
-
     onSave({
       ...data,
       title: title.trim(),
@@ -736,20 +770,16 @@ function EditInternshipModal({ data, onClose, onSave }) {
     });
   };
 
-  // Hàm xử lý thay đổi input để xóa lỗi ngay khi người dùng gõ
   const handleInputChange = (setter, field) => (e) => {
     setter(e.target.value);
-    if (validationErrors[field]) {
+    if (validationErrors[field])
       setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal-box">
         <h2 className="modal-title">Sửa thông tin thực tập</h2>
-        {/* ❌ Bỏ div lỗi chung */}
-        {/* {err && <div style={{ color: "#dc3545", marginBottom: 8 }}>{err}</div>} */}
         <form onSubmit={onSubmit}>
           <div className="form-row cols-2-1">
             <div className="form-group">
@@ -761,9 +791,9 @@ function EditInternshipModal({ data, onClose, onSave }) {
                   validationErrors.title ? "input-error" : ""
                 }`}
                 value={title}
-                onChange={handleInputChange(setTitle, "title")} // ✅ Sử dụng handleInputChange
+                onChange={handleInputChange(setTitle, "title")}
               />
-              {validationErrors.title && ( // ✅ Hiển thị lỗi dưới field
+              {validationErrors.title && (
                 <div className="error-message">{validationErrors.title}</div>
               )}
             </div>
@@ -777,10 +807,10 @@ function EditInternshipModal({ data, onClose, onSave }) {
                   validationErrors.studentEmail ? "input-error" : ""
                 }`}
                 value={studentEmail}
-                onChange={handleInputChange(setStudentEmail, "studentEmail")} // ✅ Sử dụng handleInputChange
+                onChange={handleInputChange(setStudentEmail, "studentEmail")}
                 placeholder="name@example.com"
               />
-              {validationErrors.studentEmail && ( // ✅ Hiển thị lỗi dưới field
+              {validationErrors.studentEmail && (
                 <div className="error-message">
                   {validationErrors.studentEmail}
                 </div>
@@ -813,6 +843,7 @@ function EditInternshipModal({ data, onClose, onSave }) {
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Ngành</label>
@@ -834,6 +865,7 @@ function EditInternshipModal({ data, onClose, onSave }) {
               </select>
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">
@@ -870,6 +902,7 @@ function EditInternshipModal({ data, onClose, onSave }) {
               )}
             </div>
           </div>
+
           <div className="form-actions">
             <button type="button" className="btn-outline" onClick={onClose}>
               Hủy
