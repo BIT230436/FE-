@@ -17,26 +17,26 @@ export default function DocQueue() {
     setLoading(true);
     // Chỉ lấy CV chờ duyệt, không lấy documents
     const cvList = await getPendingCVs();
-    
+
     // Lọc chỉ lấy CV có status PENDING
-    const filteredCVs = cvList.filter(cv => cv.status === 'PENDING');
-    
+    const filteredCVs = cvList.filter((cv) => cv.status === "PENDING");
+
     // Map CV thành format hiển thị
-    const combinedItems = filteredCVs.map(cv => ({
+    const combinedItems = filteredCVs.map((cv) => ({
       id: cv.id,
-      type: 'CV',
+      type: "CV",
       fileName: cv.fileName,
       uploadedAt: cv.uploadedAt,
       status: cv.status,
-      note: '',
+      note: "",
       userEmail: cv.userEmail,
       isCV: true,
       storagePath: cv.storagePath,
       internName: cv.internName,
       university: cv.university,
-      phone: cv.phone
+      phone: cv.phone,
     }));
-    
+
     setItems(combinedItems);
     setLoading(false);
   }
@@ -78,7 +78,9 @@ export default function DocQueue() {
 
   return (
     <div>
-      <h1 className="page-title" style={{ marginBottom: 12 }}>Hồ sơ chờ duyệt</h1>
+      <h1 className="page-title" style={{ marginBottom: 12 }}>
+        Hồ sơ chờ duyệt
+      </h1>
       <div className="card">
         <table className="table" style={{ fontSize: 14 }}>
           <thead>
@@ -87,19 +89,24 @@ export default function DocQueue() {
               <th className="table-th">Tên file</th>
               <th className="table-th">Ngày nộp</th>
               <th className="table-th">Trạng thái</th>
-              <th className="table-th">Ghi chú</th>
-              <th className="table-th" style={{ width: 200 }}>Thao tác</th>
+              <th className="table-th" style={{ width: 200 }}>
+                Thao tác
+              </th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={6} className="loading">Đang tải…</td>
+                <td colSpan={5} className="loading">
+                  Đang tải…
+                </td>
               </tr>
             )}
             {!loading && items.length === 0 && (
               <tr>
-                <td colSpan={6} className="empty">Không có hồ sơ chờ duyệt.</td>
+                <td colSpan={5} className="empty">
+                  Không có hồ sơ chờ duyệt.
+                </td>
               </tr>
             )}
             {pageItems.map((d) => (
@@ -107,23 +114,36 @@ export default function DocQueue() {
                 <td className="table-td">{d.type}</td>
                 <td className="table-td">
                   {d.storagePath ? (
-                    <a href={d.storagePath} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>
+                    <a
+                      href={d.storagePath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#1976d2", textDecoration: "underline" }}
+                    >
                       {d.fileName}
                     </a>
                   ) : (
                     d.fileName
                   )}
                 </td>
-                <td className="table-td">{new Date(d.uploadedAt).toLocaleDateString()}</td>
+                <td className="table-td">
+                  {new Date(d.uploadedAt).toLocaleDateString()}
+                </td>
                 <td className="table-td">
                   <StatusBadge status={d.status} />
                 </td>
-                <td className="table-td">{d.note || "-"}</td>
                 <td className="table-td">
-                  <button onClick={() => handleReview(d, "APPROVE")} className="btn btn-success" style={{ marginRight: 8 }}>
+                  <button
+                    onClick={() => handleReview(d, "APPROVE")}
+                    className="btn btn-success"
+                    style={{ marginRight: 8 }}
+                  >
                     Duyệt
                   </button>
-                  <button onClick={() => handleReview(d, "REJECT")} className="btn btn-outline-danger">
+                  <button
+                    onClick={() => handleReview(d, "REJECT")}
+                    className="btn btn-outline-danger"
+                  >
                     Từ chối
                   </button>
                 </td>
