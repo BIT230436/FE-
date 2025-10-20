@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import "./InternshipProgramList.css";
+// import "./InternshipProgramList.css"; dùng chung css với internshiplist.css
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -223,7 +223,9 @@ function CreateProgramModal({ onClose, onCreate }) {
             </label>
             <input
               id="name"
-              className={`form-input ${validationErrors.name ? "input-error" : ""}`}
+              className={`form-input ${
+                validationErrors.name ? "input-error" : ""
+              }`}
               value={name}
               onChange={handleInputChange(setName, "name")}
             />
@@ -246,7 +248,9 @@ function CreateProgramModal({ onClose, onCreate }) {
                 onChange={handleInputChange(setDepartment, "department")}
               />
               {validationErrors.department && (
-                <div className="error-message">{validationErrors.department}</div>
+                <div className="error-message">
+                  {validationErrors.department}
+                </div>
               )}
             </div>
             <div className="form-group">
@@ -283,7 +287,9 @@ function CreateProgramModal({ onClose, onCreate }) {
                 onChange={handleInputChange(setStartDate, "startDate")}
               />
               {validationErrors.startDate && (
-                <div className="error-message">{validationErrors.startDate}</div>
+                <div className="error-message">
+                  {validationErrors.startDate}
+                </div>
               )}
             </div>
             <div className="form-group">
@@ -419,7 +425,9 @@ function EditProgramModal({ program, onClose, onSave }) {
           <div className="form-group">
             <label className="form-label">Tên chương trình</label>
             <input
-              className={`form-input ${validationErrors.name ? "input-error" : ""}`}
+              className={`form-input ${
+                validationErrors.name ? "input-error" : ""
+              }`}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -438,7 +446,9 @@ function EditProgramModal({ program, onClose, onSave }) {
                 onChange={(e) => setDepartment(e.target.value)}
               />
               {validationErrors.department && (
-                <div className="error-message">{validationErrors.department}</div>
+                <div className="error-message">
+                  {validationErrors.department}
+                </div>
               )}
             </div>
             <div className="form-group">
@@ -468,7 +478,9 @@ function EditProgramModal({ program, onClose, onSave }) {
                 onChange={(e) => setStartDate(e.target.value)}
               />
               {validationErrors.startDate && (
-                <div className="error-message">{validationErrors.startDate}</div>
+                <div className="error-message">
+                  {validationErrors.startDate}
+                </div>
               )}
             </div>
             <div className="form-group">
