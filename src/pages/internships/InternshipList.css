@@ -147,8 +147,8 @@ body {
 .table .btn-warning {
   background: var(--warning);
   color: #222;
-  padding: 5px 12px;
-  font-size: 20px;
+  padding: 5px 15px;
+  font-size: 17px;
 }
 .btn-warning:hover {
   background: #ffe066;

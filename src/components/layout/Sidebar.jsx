@@ -40,6 +40,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "🗂️",
       requiredRoles: ["HR", "ADMIN"],
     },
+    {
+      label: "Chương trình TT",
+      path: "/hr/internship-programs",
+      icon: "🎓",
+      requiredRoles: ["HR", "ADMIN"],
+    },
     //     {
     //       label: "Phân quyền",
     //       path: "/admin/permissions",

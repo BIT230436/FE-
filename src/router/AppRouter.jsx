@@ -21,6 +21,7 @@ import AccessGuard from "../components/layout/AccessGuard";
 import DocQueue from "../pages/hr/DocQueue";
 import ContractUpload from "../pages/hr/ContractUpload";
 import ContractList from "../pages/hr/ContractList";
+import InternshipProgramList from "../pages/hr/InternshipProgramList";
 import Profile from "../pages/students/Profile";
 import DocumentUpload from "../pages/students/DocumentUpload";
 import MyDocuments from "../pages/students/MyDocuments";
@@ -104,6 +105,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <ContractList />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/hr/internship-programs"
+              element={
+                <AccessGuard requiredRoles={["HR", "ADMIN"]}>
+                  <InternshipProgramList />
                 </AccessGuard>
               }
             />
