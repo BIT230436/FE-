@@ -92,7 +92,7 @@ const MentorManagement = () => {
           className="btn btn-primary"
           onClick={() => setShowAddModal(true)}
         >
-          Quân công Mentor
+          Phân công Mentor
         </button>
       </div>
 
