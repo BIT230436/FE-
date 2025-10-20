@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
-import PropTypes from 'prop-types';
-import { getMentors, getMentorAssignments, unassignMentor, assignMentor } from "../../services/mentorService";
+import PropTypes from "prop-types";
+import {
+  getMentors,
+  getMentorAssignments,
+  unassignMentor,
+  assignMentor,
+} from "../../services/mentorService";
 import { getInterns } from "../../services/internService";
 import { toast } from "react-toastify";
 import "./MentorManagement.css";
@@ -30,28 +35,28 @@ const MentorManagement = () => {
       const [mentorsRes, assignmentsRes, internsRes] = await Promise.all([
         getMentors({ q: debouncedSearchText, size: 1000 }),
         getMentorAssignments({ size: 1000 }),
-        getInterns({ size: 1000 })
+        getInterns({ size: 1000 }),
       ]);
 
       const mentors = mentorsRes.items || [];
       const allAssignments = assignmentsRes.items || [];
-      const interns = internsRes.items || [];
+      const interns = internsRes || [];
 
       // Create a map for quick lookup
-      const mentorMap = new Map(mentors.map(m => [m.id, m.name]));
-      const internMap = new Map(interns.map(i => [i.id, i.fullName]));
+      const mentorMap = new Map(mentors.map((m) => [m.id, m.name]));
+      const internMap = new Map(interns.map((i) => [i.id, i.fullName]));
 
       // Create a detailed list of assignments
-      const detailedAssignments = allAssignments.map(a => ({
+      const detailedAssignments = allAssignments.map((a) => ({
         ...a,
-        mentorName: mentorMap.get(a.mentorId) || 'N/A',
-        internName: internMap.get(a.internId) || 'N/A',
+        mentorName: mentorMap.get(a.mentorId) || "N/A",
+        internName: internMap.get(a.internId) || "N/A",
       }));
-      
+
       // If there's a search query, we need to filter assignments by the mentors that were returned
-      const mentorIdsFromSearch = new Set(mentors.map(m => m.id));
+      const mentorIdsFromSearch = new Set(mentors.map((m) => m.id));
       const finalAssignments = debouncedSearchText
-        ? detailedAssignments.filter(a => mentorIdsFromSearch.has(a.mentorId))
+        ? detailedAssignments.filter((a) => mentorIdsFromSearch.has(a.mentorId))
         : detailedAssignments;
 
       setAssignments(finalAssignments);
@@ -83,8 +88,11 @@ const MentorManagement = () => {
     <div className="mentor-management-container">
       <div className="page-header">
         <h1 className="page-title">Quản lý Mentor</h1>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-          Thêm Mentor
+        <button
+          className="btn btn-primary"
+          onClick={() => setShowAddModal(true)}
+        >
+          Quân công Mentor
         </button>
       </div>
 
@@ -119,7 +127,9 @@ const MentorManagement = () => {
               <td>{assignment.internName}</td>
               <td>
                 <button
-                  onClick={() => handleUnassign(assignment.internId, assignment.mentorId)}
+                  onClick={() =>
+                    handleUnassign(assignment.internId, assignment.mentorId)
+                  }
                   className="delete-button"
                 >
                   Xóa
@@ -142,27 +152,34 @@ const MentorManagement = () => {
 
 export default MentorManagement;
 
-// --- AssignMentorModal Component --- 
+// --- AssignMentorModal Component ---
 function AssignMentorModal({ onClose, onAssignmentCreated }) {
   const [availableMentors, setAvailableMentors] = useState([]);
   const [availableInterns, setAvailableInterns] = useState([]);
-  const [selectedMentor, setSelectedMentor] = useState('');
-  const [selectedIntern, setSelectedIntern] = useState('');
+  const [selectedMentor, setSelectedMentor] = useState("");
+  const [selectedIntern, setSelectedIntern] = useState("");
 
   useEffect(() => {
     // Fetch available mentors and interns when the modal opens
     const loadInitialData = async () => {
       try {
-        const [allMentorsRes, allInternsRes, allAssignmentsRes] = await Promise.all([
-          getMentors({ size: 1000 }),
-          getInterns({ size: 1000 }),
-          getMentorAssignments({ size: 1000 })
-        ]);
+        const [allMentorsRes, allInternsRes, allAssignmentsRes] =
+          await Promise.all([
+            getMentors({ size: 1000 }),
+            getInterns({ size: 1000 }),
+            getMentorAssignments({ size: 1000 }),
+          ]);
 
-        const assignedInternIds = new Set(allAssignmentsRes.items.map(a => a.internId));
-        
+        const assignedInternIds = new Set(
+          allAssignmentsRes.items.map((a) => a.internId)
+        );
+
         setAvailableMentors(allMentorsRes.items || []);
-        setAvailableInterns((allInternsRes.items || []).filter(i => !assignedInternIds.has(i.id)));
+        setAvailableInterns(
+          (allInternsRes.items || []).filter(
+            (i) => !assignedInternIds.has(i.id)
+          )
+        );
       } catch (error) {
         toast.error("Không thể tải danh sách mentor hoặc thực tập sinh.");
       }
@@ -178,8 +195,11 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
     }
 
     try {
-      await assignMentor({ mentorId: selectedMentor, internId: selectedIntern });
-      toast.success('Phân công thành công!');
+      await assignMentor({
+        mentorId: selectedMentor,
+        internId: selectedIntern,
+      });
+      toast.success("Phân công thành công!");
       onAssignmentCreated();
       onClose();
     } catch (error) {
@@ -195,19 +215,37 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="mentor-select">Chọn Mentor</label>
-            <select id="mentor-select" className="form-select" value={selectedMentor} onChange={e => setSelectedMentor(e.target.value)}>
-              <option value="" disabled>-- Chọn một mentor --</option>
-              {availableMentors.map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
+            <select
+              id="mentor-select"
+              className="form-select"
+              value={selectedMentor}
+              onChange={(e) => setSelectedMentor(e.target.value)}
+            >
+              <option value="" disabled>
+                -- Chọn một mentor --
+              </option>
+              {availableMentors.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
               ))}
             </select>
           </div>
           <div className="form-group">
             <label htmlFor="intern-select">Chọn Thực tập sinh</label>
-            <select id="intern-select" className="form-select" value={selectedIntern} onChange={e => setSelectedIntern(e.target.value)}>
-              <option value="" disabled>-- Chọn một thực tập sinh --</option>
-              {availableInterns.map(i => (
-                <option key={i.id} value={i.id}>{i.fullName}</option>
+            <select
+              id="intern-select"
+              className="form-select"
+              value={selectedIntern}
+              onChange={(e) => setSelectedIntern(e.target.value)}
+            >
+              <option value="" disabled>
+                -- Chọn một thực tập sinh --
+              </option>
+              {availableInterns.map((i) => (
+                <option key={i.id} value={i.id}>
+                  {i.fullName}
+                </option>
               ))}
             </select>
           </div>

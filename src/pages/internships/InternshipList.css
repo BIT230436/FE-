@@ -148,7 +148,7 @@ body {
   background: var(--warning);
   color: #222;
   padding: 5px 12px;
-  font-size: 18px;
+  font-size: 20px;
 }
 .btn-warning:hover {
   background: #ffe066;

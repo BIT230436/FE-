@@ -8,7 +8,6 @@ import {
   updateInternship,
 } from "../../services/internshipService";
 import { getUsers } from "../../services/adminService";
-import MentorAssignmentModal from "../mentor/MentorAssignmentModal";
 
 export default function InternshipList() {
   const [internships, setInternships] = useState([]);
@@ -19,9 +18,6 @@ export default function InternshipList() {
   const [searchText, setSearchText] = useState("");
   const [schoolFilter, setSchoolFilter] = useState("");
   const [majorFilter, setMajorFilter] = useState("");
-  const [mentorAssignment, setMentorAssignment] = useState(null);
-  const [mentors, setMentors] = useState([]);
-  const [loadingMentors, setLoadingMentors] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,19 +42,6 @@ export default function InternshipList() {
       toast.error("Không thể tải danh sách thực tập");
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function loadMentors() {
-    setLoadingMentors(true);
-    try {
-      const response = await getUsers({ role: "MENTOR", status: "" });
-      const userList = response.content || [];
-      setMentors(userList);
-    } catch (e) {
-      console.error("loadMentors error", e);
-    } finally {
-      setLoadingMentors(false);
     }
   }
 
@@ -207,13 +190,14 @@ export default function InternshipList() {
               <th className="table-th">Ngành</th>
               <th className="table-th">Trạng thái</th>
               <th className="table-th">Thời gian</th>
+              <th className="table-th">Mentor</th>
               <th className="table-th">Hành động</th>
             </tr>
           </thead>
           <tbody>
             {pageItems.length === 0 ? (
               <tr>
-                <td className="table-td center" colSpan={9}>
+                <td className="table-td center" colSpan={10}>
                   Không tìm thấy thực tập sinh.
                 </td>
               </tr>
@@ -243,6 +227,7 @@ export default function InternshipList() {
                   <td className="table-td">
                     {internship.startDate} - {internship.endDate}
                   </td>
+                  <td className="table-td">{internship.mentorName || "-"}</td>
                   <td className="table-td">
                     <button
                       className="btn btn-success"
@@ -257,12 +242,6 @@ export default function InternshipList() {
                       onClick={() => setEditing(internship)}
                     >
                       Sửa
-                    </button>
-                    <button
-                      className="btn btn-info"
-                      onClick={() => setMentorAssignment(internship)}
-                    >
-                      Phân công mentor
                     </button>
                   </td>
                 </tr>
@@ -375,19 +354,6 @@ export default function InternshipList() {
               );
             }
           }}
-        />
-      )}
-
-      {mentorAssignment && (
-        <MentorAssignmentModal
-          internship={mentorAssignment}
-          mentors={mentors}
-          loadingMentors={loadingMentors}
-          onClose={() => {
-            setMentorAssignment(null);
-            loadInternships();
-          }}
-          onLoadMentors={loadMentors}
         />
       )}
     </div>
