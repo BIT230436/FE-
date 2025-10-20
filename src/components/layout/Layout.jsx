@@ -16,7 +16,7 @@ export default function Layout() {
     backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="layout-overlay"></div>
+     
       <div className="layout-sidebar">
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       </div>
