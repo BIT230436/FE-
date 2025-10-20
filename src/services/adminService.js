@@ -1,9 +1,15 @@
 import api from "./apiClient";
 
 // LIST
-export async function getUsers({ q = "", role = "", status = "" } = {}) {
+export async function getUsers({
+  q = "",
+  role = "",
+  status = "",
+  page = 0,
+  size = 10,
+} = {}) {
   const { data } = await api.get("/admin/users", {
-    params: { q, role, status },
+    params: { q, role, status, page, size },
   });
   return data;
 }

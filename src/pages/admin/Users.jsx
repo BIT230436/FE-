@@ -30,13 +30,19 @@ export default function Users() {
     setLoading(true);
     setErr("");
     try {
-      const { content, total } = await getUsers({
+      const res = await getUsers({
         q,
         role: filterRole,
         status: filterStatus,
+        page: currentPage - 1,
+        size: pageSize,
       });
-      setItems(content || []);
-      setTotal(total || content?.length || 0);
+
+      setItems(res.content || []);
+      setTotal(
+        res.totalElements || res.total || res.content?.length || 0 // ✅ thêm fallback đúng
+      );
+    console.log(res)
     } catch (e) {
       setErr(e?.response?.data?.message || "Không tải được danh sách.");
     } finally {
@@ -46,7 +52,8 @@ export default function Users() {
 
   useEffect(() => {
     load();
-  }, [q, filterRole, filterStatus]);
+  }, [q, filterRole, filterStatus, currentPage]); // 🔧 thêm currentPage
+
 
   // Reset về trang 1 khi filter/search thay đổi
   useEffect(() => {
@@ -89,11 +96,10 @@ export default function Users() {
     }
   }
 
-  // Pagination calc
-  const totalItems = items.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  // Pagination calc (🔧 chỉnh lại)
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
-  const pageItems = items.slice(startIndex, startIndex + pageSize);
+
 
   function getPageNumbers() {
     const pages = [];
@@ -178,7 +184,7 @@ export default function Users() {
                 </td>
               </tr>
             )}
-            {!loading && pageItems.length === 0 && (
+            {!loading && items.length === 0 && ( // 🔧 đổi pageItems → items
               <tr>
                 <td colSpan={6} className="admin-empty">
                   Không có dữ liệu.
@@ -186,7 +192,7 @@ export default function Users() {
               </tr>
             )}
             {!loading &&
-              pageItems.map((u, index) => (
+              items.map((u, index) => ( // 🔧 đổi pageItems → items
                 <tr key={u.id} className="admin-tr">
                   <Td>{startIndex + index + 1}</Td>
                   <Td>{u.fullName}</Td>
@@ -239,8 +245,8 @@ export default function Users() {
         {/* Pagination */}
         <div className="pagination">
           <div className="pagination-info">
-            Hiển thị {totalItems === 0 ? 0 : startIndex + 1}–
-            {Math.min(startIndex + pageSize, totalItems)} trên {totalItems}
+            Hiển thị {items.length === 0 ? 0 : startIndex + 1}–
+            {startIndex + items.length} trên {total} {/* 🔧 đổi totalItems → total */}
           </div>
           <div className="pagination-controls">
             <button
