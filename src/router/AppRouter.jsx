@@ -9,6 +9,7 @@ import Dashboard from "../pages/dashboard/Index";
 import InternshipList from "../pages/internships/InternshipList";
 import Users from "../pages/admin/Users";
 import Permissions from "../pages/admin/Permissions";
+import MentorManagement from "../pages/mentor/MentorManagement";
 import OAuthCallback from "../pages/auth/OAuthCallback";
 import MyContract from "../pages/students/MyContract";
 
@@ -63,6 +64,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredPermissions={["MANAGE_USERS"]}>
                   <Users />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/admin/mentors"
+              element={
+                <AccessGuard requiredPermissions={["MANAGE_USERS"]}>
+                  <MentorManagement />
                 </AccessGuard>
               }
             />

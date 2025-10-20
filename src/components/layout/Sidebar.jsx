@@ -40,12 +40,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "🗂️",
       requiredRoles: ["HR", "ADMIN"],
     },
-//     {
-//       label: "Phân quyền",
-//       path: "/admin/permissions",
-//       icon: "🔐",
-//       requiredPermissions: ["MANAGE_PERMISSIONS"],
-//     },
+    //     {
+    //       label: "Phân quyền",
+    //       path: "/admin/permissions",
+    //       icon: "🔐",
+    //       requiredPermissions: ["MANAGE_PERMISSIONS"],
+    //     },
     {
       label: "Hợp đồng",
       icon: "📑",
@@ -72,6 +72,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       path: "/my-contract",
       icon: "📃",
       requiredRoles: ["INTERN"],
+    },
+    {
+      label: "Quản lý mentor",
+      path: "/admin/mentors",
+      icon: "👨‍🏫",
+      requiredRoles: ["ADMIN"],
     },
   ];
 
