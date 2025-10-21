@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+// ✅ Đã sử dụng: useAuthStore
 import { useAuthStore } from "../../store/authStore";
 
+// ✅ Đã sử dụng: Các service API
 import {
   getAllPrograms,
   createProgram,
@@ -11,6 +13,11 @@ import {
   deleteProgram,
 } from "../../services/programService";
 
+import { getDepartmentsByProgram } from "../../services/departmentService";
+
+// ==========================================================
+// 🚀 1. COMPONENT CHÍNH: InternshipProgramList
+// ==========================================================
 export default function InternshipProgramList() {
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +33,7 @@ export default function InternshipProgramList() {
         setPrograms(data);
       } catch (error) {
         console.error("Load programs error:", error);
-        toast.error("Không thể tải danh sách chương trình!");
+        toast.error("Không thể tải danh sách chương trình! Vui lòng thử lại.");
       } finally {
         setLoading(false);
       }
@@ -38,14 +45,10 @@ export default function InternshipProgramList() {
   const handleCreateProgram = async (newProgramData) => {
     const { userId, ...programData } = newProgramData;
 
-    console.log("Creating program with data:", {
-      programData,
-      userId,
-    });
-
     try {
       await createProgram(programData, userId);
       toast.success("Tạo chương trình thành công! 🎉");
+      // Tải lại danh sách
       const data = await getAllPrograms();
       setPrograms(data);
       setShowCreate(false);
@@ -62,8 +65,10 @@ export default function InternshipProgramList() {
   // ✏️ Cập nhật chương trình
   const handleUpdateProgram = async (updatedData) => {
     try {
+      // API call: updateProgram(id, data)
       await updateProgram(updatedData.id, updatedData);
       toast.success("Cập nhật chương trình thành công! ✅");
+      // Tải lại danh sách
       const data = await getAllPrograms();
       setPrograms(data);
       setEditing(null);
@@ -76,15 +81,21 @@ export default function InternshipProgramList() {
       toast.error(errorMsg);
     }
   };
+
   // 🗑️ Xóa chương trình
   const handleDeleteProgram = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa chương trình này không?")) {
+    if (
+      !window.confirm(
+        "⚠️ Bạn có chắc chắn muốn xóa chương trình này không? Hành động này không thể hoàn tác."
+      )
+    ) {
       return;
     }
 
     try {
       await deleteProgram(id);
       toast.success("Đã xóa chương trình thành công! 🗑️");
+      // Tải lại danh sách
       const data = await getAllPrograms();
       setPrograms(data);
     } catch (error) {
@@ -98,7 +109,9 @@ export default function InternshipProgramList() {
   };
 
   if (loading) {
-    return <div className="loading center">Đang tải...</div>;
+    return (
+      <div className="loading center">Đang tải danh sách chương trình...</div>
+    );
   }
 
   return (
@@ -110,7 +123,7 @@ export default function InternshipProgramList() {
           className="btn btn-primary btn-sm"
           onClick={() => setShowCreate(true)}
         >
-          Tạo chương trình mới
+          ➕ Tạo chương trình mới
         </button>
       </div>
 
@@ -131,7 +144,7 @@ export default function InternshipProgramList() {
             {programs.length === 0 ? (
               <tr>
                 <td className="table-td center" colSpan={7}>
-                  Chưa có chương trình nào.
+                  Chưa có chương trình nào. Hãy tạo một chương trình mới.
                 </td>
               </tr>
             ) : (
@@ -141,24 +154,26 @@ export default function InternshipProgramList() {
                   <td className="table-td">{program.programName}</td>
                   <td className="table-td">{program.dateCreate}</td>
                   <td className="table-td">{program.dateEnd}</td>
-                  <td className="table-td">{program.description}</td>
+                  <td className="table-td text-truncate">
+                    {program.description}
+                  </td>
                   <td className="table-td">{program.hrName || "Không rõ"}</td>
-                  <td className="table-td">
+                  <td className="table-td action-buttons">
+                    {/* ✅ Gán program object vào state viewing */}
                     <button
-                      className="btn btn-success"
-                      style={{ marginRight: 8 }}
+                      className="btn btn-info btn-sm"
                       onClick={() => setViewing(program)}
                     >
-                      Xem
+                      Chi tiết P.Ban
                     </button>
                     <button
-                      className="btn btn-warning"
+                      className="btn btn-warning btn-sm"
                       onClick={() => setEditing(program)}
                     >
                       Sửa
                     </button>
                     <button
-                      className="btn btn-warning"
+                      className="btn btn-danger btn-sm" // ⚠️ Đã đổi màu sang đỏ cho hành động xóa
                       onClick={() => handleDeleteProgram(program.id)}
                     >
                       Xóa
@@ -178,6 +193,7 @@ export default function InternshipProgramList() {
         />
       )}
 
+      {/* ✅ Modal View nhận program object, bao gồm cả program.id */}
       {viewing && (
         <ViewProgramModal program={viewing} onClose={() => setViewing(null)} />
       )}
@@ -193,6 +209,9 @@ export default function InternshipProgramList() {
   );
 }
 
+// ==========================================================
+// ➕ 2. MODAL TẠO CHƯƠNG TRÌNH: CreateProgramModal
+// ==========================================================
 function CreateProgramModal({ onClose, onCreate }) {
   const user = useAuthStore((state) => state.user);
 
@@ -201,10 +220,6 @@ function CreateProgramModal({ onClose, onCreate }) {
   const [dateEnd, setDateEnd] = useState("");
   const [description, setDescription] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
-
-  useEffect(() => {
-    console.log("Current user from store:", user);
-  }, [user]);
 
   const validate = () => {
     const errors = {};
@@ -228,52 +243,32 @@ function CreateProgramModal({ onClose, onCreate }) {
       return;
     }
 
-    // ✅ Lấy user.id từ Zustand
-    const userId = user?.id;
-
-    console.log("Submitting with userId:", userId);
-    console.log("User object:", user);
+    const userId = user?.id; // Lấy userId từ Zustand
 
     if (!userId) {
       toast.error(
-        "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại!"
+        "Lỗi xác thực: Không tìm thấy ID người dùng. Vui lòng đăng nhập lại!"
       );
       return;
     }
 
-    // ✅ Payload - Đảm bảo format đúng cho backend
     const payload = {
       programName: programName.trim(),
-      dateCreate: dateCreate,
-      dateEnd: dateEnd,
+      dateCreate: dateCreate, // Định dạng YYYY-MM-DD
+      dateEnd: dateEnd, // Định dạng YYYY-MM-DD
       description: description.trim(),
-      userId,
+      userId, // ID của người tạo (HR)
     };
-
-    console.log("=== PAYLOAD DEBUG ===");
-    console.log("Full payload:", JSON.stringify(payload, null, 2));
-    console.log(
-      "dateCreate type:",
-      typeof payload.dateCreate,
-      "value:",
-      payload.dateCreate
-    );
-    console.log(
-      "dateEnd type:",
-      typeof payload.dateEnd,
-      "value:",
-      payload.dateEnd
-    );
-    console.log("====================");
 
     onCreate(payload);
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-box">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">Tạo chương trình thực tập mới</h2>
         <form onSubmit={handleSubmit}>
+          {/* Tên chương trình */}
           <div className="form-group">
             <label>Tên chương trình *</label>
             <input
@@ -290,6 +285,7 @@ function CreateProgramModal({ onClose, onCreate }) {
             )}
           </div>
 
+          {/* Ngày bắt đầu & Ngày kết thúc */}
           <div className="form-row">
             <div className="form-group">
               <label>Ngày bắt đầu *</label>
@@ -324,21 +320,15 @@ function CreateProgramModal({ onClose, onCreate }) {
             </div>
           </div>
 
+          {/* Mô tả */}
           <div className="form-group">
-            <label>Mô tả *</label>
+            <label>Mô tả</label>
             <textarea
-              className={`form-input ${
-                validationErrors.description ? "input-error" : ""
-              }`}
+              className="form-input"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-            {validationErrors.description && (
-              <div className="error-message">
-                {validationErrors.description}
-              </div>
-            )}
           </div>
 
           <div className="form-actions">
@@ -346,7 +336,7 @@ function CreateProgramModal({ onClose, onCreate }) {
               Hủy
             </button>
             <button type="submit" className="btn-primary">
-              Tạo
+              Tạo chương trình
             </button>
           </div>
         </form>
@@ -360,33 +350,101 @@ CreateProgramModal.propTypes = {
   onCreate: PropTypes.func.isRequired,
 };
 
+// ==========================================================
+// 🔎 3. MODAL XEM CHI TIẾT: ViewProgramModal
+// ==========================================================
 function ViewProgramModal({ program, onClose }) {
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // 🔹 Gọi API lấy departments khi mở modal
+  // ✅ program.id được sử dụng TẠI ĐÂY
+  useEffect(() => {
+    async function loadDepartments() {
+      setLoading(true);
+      setError(null);
+      try {
+        console.log("Fetching departments for program ID:", program.id);
+        const data = await getDepartmentsByProgram(program.id);
+        setDepartments(data);
+      } catch (err) {
+        console.error("❌ Lỗi khi tải departments:", err);
+        setError("Không thể tải danh sách phòng ban.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDepartments();
+  }, [program.id]); // Dependency array đảm bảo chỉ gọi khi program.id thay đổi
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-box">
-        <h2 className="modal-title">Chi tiết chương trình</h2>
-        <div className="form-group">
-          <label>Tên chương trình</label>
-          <div>{program.programName}</div>
-        </div>
-        <div className="form-row">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        <h2 className="modal-title">
+          Chi tiết chương trình: {program.programName}
+        </h2>
+        <div className="modal-content-scroll">
+          {" "}
+          {/* Thêm scroll cho nội dung */}
           <div className="form-group">
-            <label>Ngày bắt đầu</label>
-            <div>{program.dateCreate}</div>
+            <label>Tên chương trình</label>
+            <div className="detail-value">{program.programName}</div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Ngày bắt đầu</label>
+              <div className="detail-value">{program.dateCreate}</div>
+            </div>
+            <div className="form-group">
+              <label>Ngày kết thúc</label>
+              <div className="detail-value">{program.dateEnd}</div>
+            </div>
           </div>
           <div className="form-group">
-            <label>Ngày kết thúc</label>
-            <div>{program.dateEnd}</div>
+            <label>Mô tả</label>
+            <div className="detail-value text-pre-wrap">
+              {program.description || "Không có mô tả"}
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Người khởi tạo</label>
+            <div className="detail-value">{program.hrName || "Không rõ"}</div>
+          </div>
+          {/* 🔹 Danh sách Department */}
+          <div className="form-group section-title">
+            <h3
+              style={{
+                marginBottom: "5px",
+                borderBottom: "1px solid #eee",
+                paddingBottom: "5px",
+              }}
+            >
+              Phòng ban thuộc chương trình
+            </h3>
+            {loading ? (
+              <div className="loading center">Đang tải phòng ban...</div>
+            ) : error ? (
+              <div className="error-message">{error}</div>
+            ) : departments.length === 0 ? (
+              <div className="info-message">
+                Chưa có phòng ban nào trong chương trình này.
+              </div>
+            ) : (
+              <ul className="department-list">
+                {departments.map((d) => (
+                  <li key={d.id} className="department-item">
+                    <strong>{d.departmentName}</strong>
+                    {d.description && (
+                      <div className="text-sm">{d.description}</div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
-        <div className="form-group">
-          <label>Mô tả</label>
-          <div>{program.description}</div>
-        </div>
-        <div className="form-group">
-          <label>Người khởi tạo</label>
-          <div>{program.hrName || "Không rõ"}</div>
-        </div>
+
         <div className="form-actions">
           <button type="button" className="btn-outline" onClick={onClose}>
             Đóng
@@ -402,10 +460,11 @@ ViewProgramModal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-//
-// ✏️ MODAL CHỈNH SỬA
-//
+// ==========================================================
+// ✏️ 4. MODAL CHỈNH SỬA: EditProgramModal
+// ==========================================================
 function EditProgramModal({ program, onClose, onSave }) {
+  // Lấy giá trị hiện tại của program để khởi tạo state
   const [programName, setProgramName] = useState(program.programName);
   const [dateCreate, setDateCreate] = useState(program.dateCreate);
   const [dateEnd, setDateEnd] = useState(program.dateEnd);
@@ -434,20 +493,24 @@ function EditProgramModal({ program, onClose, onSave }) {
       return;
     }
 
+    // Gửi dữ liệu đã cập nhật, bao gồm cả id
     onSave({
-      ...program,
+      id: program.id, // Đảm bảo ID được gửi đi để cập nhật
       programName: programName.trim(),
       dateCreate,
       dateEnd,
       description: description.trim(),
+      // Giữ lại các trường khác (như hrId) nếu cần
+      hrId: program.hrId, // Hoặc thông tin người tạo cũ
     });
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-box">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">Chỉnh sửa chương trình</h2>
         <form onSubmit={handleSubmit}>
+          {/* Tên chương trình */}
           <div className="form-group">
             <label>Tên chương trình *</label>
             <input
@@ -464,6 +527,7 @@ function EditProgramModal({ program, onClose, onSave }) {
             )}
           </div>
 
+          {/* Ngày bắt đầu & Ngày kết thúc */}
           <div className="form-row">
             <div className="form-group">
               <label>Ngày bắt đầu *</label>
@@ -497,21 +561,15 @@ function EditProgramModal({ program, onClose, onSave }) {
             </div>
           </div>
 
+          {/* Mô tả */}
           <div className="form-group">
-            <label>Mô tả *</label>
+            <label>Mô tả</label>
             <textarea
-              className={`form-input ${
-                validationErrors.description ? "input-error" : ""
-              }`}
+              className="form-input"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-            {validationErrors.description && (
-              <div className="error-message">
-                {validationErrors.description}
-              </div>
-            )}
           </div>
 
           <div className="form-actions">

@@ -71,7 +71,7 @@ export default function AppRouter() {
             <Route
               path="/admin/mentors"
               element={
-                <AccessGuard requiredPermissions={["MANAGE_USERS"]}>
+                <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <MentorManagement />
                 </AccessGuard>
               }
