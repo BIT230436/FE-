@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // credential đã tạo
-        IMAGE_NAME = 'minhp205/internship-fe'
+   environment {
+        DOCKER_IMAGE = 'minhp205/internship-be'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
     }
 
     stages {
