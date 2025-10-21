@@ -1,30 +1,15 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-// import "./InternshipProgramList.css"; dùng chung css với internshiplist.css
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuthStore } from "../../store/authStore";
 
-// Mock data for now
-const mockPrograms = [
-  {
-    id: 1,
-    name: "Chương trình thực tập Hè 2024",
-    department: "Công nghệ thông tin",
-    quantity: 10,
-    startDate: "2024-06-01",
-    endDate: "2024-08-31",
-    status: "opening",
-  },
-  {
-    id: 2,
-    name: "Thực tập sinh Marketing Quý 3",
-    department: "Marketing",
-    quantity: 5,
-    startDate: "2024-07-01",
-    endDate: "2024-09-30",
-    status: "closed",
-  },
-];
+import {
+  getAllPrograms,
+  createProgram,
+  updateProgram,
+  deleteProgram,
+} from "../../services/programService";
 
 export default function InternshipProgramList() {
   const [programs, setPrograms] = useState([]);
@@ -33,30 +18,83 @@ export default function InternshipProgramList() {
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
 
+  // 📥 Load danh sách chương trình từ API
   useEffect(() => {
-    // In the future, we will call a service to get programs
-    setTimeout(() => {
-      setPrograms(mockPrograms);
-      setLoading(false);
-    }, 500);
+    async function loadPrograms() {
+      try {
+        const data = await getAllPrograms();
+        setPrograms(data);
+      } catch (error) {
+        console.error("Load programs error:", error);
+        toast.error("Không thể tải danh sách chương trình!");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPrograms();
   }, []);
 
-  const handleCreateProgram = (newProgramData) => {
-    const newProgram = {
-      ...newProgramData,
-      id: Date.now(), // Use timestamp as a temporary unique ID
-    };
-    setPrograms([newProgram, ...programs]);
-    setShowCreate(false);
-    toast.success("Tạo chương trình thành công! 🎉");
+  // ➕ Tạo chương trình
+  const handleCreateProgram = async (newProgramData) => {
+    const { userId, ...programData } = newProgramData;
+
+    console.log("Creating program with data:", {
+      programData,
+      userId,
+    });
+
+    try {
+      await createProgram(programData, userId);
+      toast.success("Tạo chương trình thành công! 🎉");
+      const data = await getAllPrograms();
+      setPrograms(data);
+      setShowCreate(false);
+    } catch (error) {
+      console.error("Create program error:", error);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể tạo chương trình!";
+      toast.error(errorMsg);
+    }
   };
 
-  const handleUpdateProgram = (updatedData) => {
-    setPrograms(
-      programs.map((p) => (p.id === updatedData.id ? updatedData : p))
-    );
-    setEditing(null);
-    toast.success("Cập nhật chương trình thành công! ✅");
+  // ✏️ Cập nhật chương trình
+  const handleUpdateProgram = async (updatedData) => {
+    try {
+      await updateProgram(updatedData.id, updatedData);
+      toast.success("Cập nhật chương trình thành công! ✅");
+      const data = await getAllPrograms();
+      setPrograms(data);
+      setEditing(null);
+    } catch (error) {
+      console.error("Update program error:", error);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể cập nhật chương trình!";
+      toast.error(errorMsg);
+    }
+  };
+  // 🗑️ Xóa chương trình
+  const handleDeleteProgram = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa chương trình này không?")) {
+      return;
+    }
+
+    try {
+      await deleteProgram(id);
+      toast.success("Đã xóa chương trình thành công! 🗑️");
+      const data = await getAllPrograms();
+      setPrograms(data);
+    } catch (error) {
+      console.error("Delete program error:", error);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể xóa chương trình!";
+      toast.error(errorMsg);
+    }
   };
 
   if (loading) {
@@ -65,8 +103,7 @@ export default function InternshipProgramList() {
 
   return (
     <div className="page-container">
-      <ToastContainer position="top-right" autoClose={5000} />
-
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h1 className="page-title">Chương trình Thực tập</h1>
         <button
@@ -83,10 +120,10 @@ export default function InternshipProgramList() {
             <tr>
               <th className="table-th">STT</th>
               <th className="table-th">Tên chương trình</th>
-              <th className="table-th">Phòng ban</th>
-              <th className="table-th">Số lượng</th>
-              <th className="table-th">Thời gian</th>
-              <th className="table-th">Trạng thái</th>
+              <th className="table-th">Ngày bắt đầu</th>
+              <th className="table-th">Ngày kết thúc</th>
+              <th className="table-th">Mô tả</th>
+              <th className="table-th">Người khởi tạo</th>
               <th className="table-th">Hành động</th>
             </tr>
           </thead>
@@ -101,23 +138,11 @@ export default function InternshipProgramList() {
               programs.map((program, index) => (
                 <tr key={program.id}>
                   <td className="table-td">{index + 1}</td>
-                  <td className="table-td">{program.name}</td>
-                  <td className="table-td">{program.department}</td>
-                  <td className="table-td">{program.quantity}</td>
-                  <td className="table-td">
-                    {program.startDate} - {program.endDate}
-                  </td>
-                  <td className="table-td">
-                    <span
-                      className={`badge ${
-                        program.status === "opening"
-                          ? "badge-success"
-                          : "badge-danger"
-                      }`}
-                    >
-                      {program.status === "opening" ? "Đang mở" : "Đã đóng"}
-                    </span>
-                  </td>
+                  <td className="table-td">{program.programName}</td>
+                  <td className="table-td">{program.dateCreate}</td>
+                  <td className="table-td">{program.dateEnd}</td>
+                  <td className="table-td">{program.description}</td>
+                  <td className="table-td">{program.hrName || "Không rõ"}</td>
                   <td className="table-td">
                     <button
                       className="btn btn-success"
@@ -128,10 +153,15 @@ export default function InternshipProgramList() {
                     </button>
                     <button
                       className="btn btn-warning"
-                      style={{ marginRight: 8 }}
                       onClick={() => setEditing(program)}
                     >
                       Sửa
+                    </button>
+                    <button
+                      className="btn btn-warning"
+                      onClick={() => handleDeleteProgram(program.id)}
+                    >
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -164,23 +194,26 @@ export default function InternshipProgramList() {
 }
 
 function CreateProgramModal({ onClose, onCreate }) {
-  const [name, setName] = useState("");
-  const [department, setDepartment] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const user = useAuthStore((state) => state.user);
+
+  const [programName, setProgramName] = useState("");
+  const [dateCreate, setDateCreate] = useState("");
+  const [dateEnd, setDateEnd] = useState("");
+  const [description, setDescription] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
+
+  useEffect(() => {
+    console.log("Current user from store:", user);
+  }, [user]);
 
   const validate = () => {
     const errors = {};
-    if (!name.trim()) errors.name = "Tên chương trình không được để trống";
-    if (!department.trim()) errors.department = "Phòng ban không được để trống";
-    if (!quantity || Number.isNaN(quantity) || Number.parseInt(quantity) <= 0)
-      errors.quantity = "Số lượng phải là một số dương";
-    if (!startDate) errors.startDate = "Ngày bắt đầu không được để trống";
-    if (!endDate) errors.endDate = "Ngày kết thúc không được để trống";
-    else if (startDate && endDate && new Date(startDate) > new Date(endDate))
-      errors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+    if (!programName.trim())
+      errors.programName = "Tên chương trình không được để trống";
+    if (!dateCreate) errors.dateCreate = "Ngày bắt đầu không được để trống";
+    if (!dateEnd) errors.dateEnd = "Ngày kết thúc không được để trống";
+    else if (new Date(dateEnd) < new Date(dateCreate))
+      errors.dateEnd = "Ngày kết thúc phải sau ngày bắt đầu";
 
     return errors;
   };
@@ -195,21 +228,45 @@ function CreateProgramModal({ onClose, onCreate }) {
       return;
     }
 
-    onCreate({
-      name: name.trim(),
-      department: department.trim(),
-      quantity: Number.parseInt(quantity),
-      startDate,
-      endDate,
-      status: "opening", // Default status
-    });
-  };
+    // ✅ Lấy user.id từ Zustand
+    const userId = user?.id;
 
-  const handleInputChange = (setter, field) => (e) => {
-    setter(e.target.value);
-    if (validationErrors[field]) {
-      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
+    console.log("Submitting with userId:", userId);
+    console.log("User object:", user);
+
+    if (!userId) {
+      toast.error(
+        "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại!"
+      );
+      return;
     }
+
+    // ✅ Payload - Đảm bảo format đúng cho backend
+    const payload = {
+      programName: programName.trim(),
+      dateCreate: dateCreate,
+      dateEnd: dateEnd,
+      description: description.trim(),
+      userId,
+    };
+
+    console.log("=== PAYLOAD DEBUG ===");
+    console.log("Full payload:", JSON.stringify(payload, null, 2));
+    console.log(
+      "dateCreate type:",
+      typeof payload.dateCreate,
+      "value:",
+      payload.dateCreate
+    );
+    console.log(
+      "dateEnd type:",
+      typeof payload.dateEnd,
+      "value:",
+      payload.dateEnd
+    );
+    console.log("====================");
+
+    onCreate(payload);
   };
 
   return (
@@ -218,97 +275,70 @@ function CreateProgramModal({ onClose, onCreate }) {
         <h2 className="modal-title">Tạo chương trình thực tập mới</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="name">
-              Tên chương trình <span style={{ color: "red" }}>*</span>
-            </label>
+            <label>Tên chương trình *</label>
             <input
-              id="name"
               className={`form-input ${
-                validationErrors.name ? "input-error" : ""
+                validationErrors.programName ? "input-error" : ""
               }`}
-              value={name}
-              onChange={handleInputChange(setName, "name")}
+              value={programName}
+              onChange={(e) => setProgramName(e.target.value)}
             />
-            {validationErrors.name && (
-              <div className="error-message">{validationErrors.name}</div>
+            {validationErrors.programName && (
+              <div className="error-message">
+                {validationErrors.programName}
+              </div>
             )}
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label" htmlFor="department">
-                Phòng ban <span style={{ color: "red" }}>*</span>
-              </label>
+              <label>Ngày bắt đầu *</label>
               <input
-                id="department"
+                type="date"
                 className={`form-input ${
-                  validationErrors.department ? "input-error" : ""
+                  validationErrors.dateCreate ? "input-error" : ""
                 }`}
-                value={department}
-                onChange={handleInputChange(setDepartment, "department")}
+                value={dateCreate}
+                onChange={(e) => setDateCreate(e.target.value)}
               />
-              {validationErrors.department && (
+              {validationErrors.dateCreate && (
                 <div className="error-message">
-                  {validationErrors.department}
+                  {validationErrors.dateCreate}
                 </div>
               )}
             </div>
+
             <div className="form-group">
-              <label className="form-label" htmlFor="quantity">
-                Số lượng <span style={{ color: "red" }}>*</span>
-              </label>
+              <label>Ngày kết thúc *</label>
               <input
-                id="quantity"
-                type="number"
+                type="date"
                 className={`form-input ${
-                  validationErrors.quantity ? "input-error" : ""
+                  validationErrors.dateEnd ? "input-error" : ""
                 }`}
-                value={quantity}
-                onChange={handleInputChange(setQuantity, "quantity")}
+                value={dateEnd}
+                onChange={(e) => setDateEnd(e.target.value)}
               />
-              {validationErrors.quantity && (
-                <div className="error-message">{validationErrors.quantity}</div>
+              {validationErrors.dateEnd && (
+                <div className="error-message">{validationErrors.dateEnd}</div>
               )}
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label" htmlFor="start">
-                Ngày bắt đầu <span style={{ color: "red" }}>*</span>
-              </label>
-              <input
-                id="start"
-                type="date"
-                className={`form-input ${
-                  validationErrors.startDate ? "input-error" : ""
-                }`}
-                value={startDate}
-                onChange={handleInputChange(setStartDate, "startDate")}
-              />
-              {validationErrors.startDate && (
-                <div className="error-message">
-                  {validationErrors.startDate}
-                </div>
-              )}
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="end">
-                Ngày kết thúc <span style={{ color: "red" }}>*</span>
-              </label>
-              <input
-                id="end"
-                type="date"
-                className={`form-input ${
-                  validationErrors.endDate ? "input-error" : ""
-                }`}
-                value={endDate}
-                onChange={handleInputChange(setEndDate, "endDate")}
-              />
-              {validationErrors.endDate && (
-                <div className="error-message">{validationErrors.endDate}</div>
-              )}
-            </div>
+          <div className="form-group">
+            <label>Mô tả *</label>
+            <textarea
+              className={`form-input ${
+                validationErrors.description ? "input-error" : ""
+              }`}
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            {validationErrors.description && (
+              <div className="error-message">
+                {validationErrors.description}
+              </div>
+            )}
           </div>
 
           <div className="form-actions">
@@ -336,30 +366,26 @@ function ViewProgramModal({ program, onClose }) {
       <div className="modal-box">
         <h2 className="modal-title">Chi tiết chương trình</h2>
         <div className="form-group">
-          <label className="form-label">Tên chương trình</label>
-          <div>{program.name}</div>
+          <label>Tên chương trình</label>
+          <div>{program.programName}</div>
         </div>
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Phòng ban</label>
-            <div>{program.department}</div>
+            <label>Ngày bắt đầu</label>
+            <div>{program.dateCreate}</div>
           </div>
           <div className="form-group">
-            <label className="form-label">Số lượng</label>
-            <div>{program.quantity}</div>
+            <label>Ngày kết thúc</label>
+            <div>{program.dateEnd}</div>
           </div>
         </div>
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Thời gian</label>
-            <div>
-              {program.startDate} - {program.endDate}
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Trạng thái</label>
-            <div>{program.status === "opening" ? "Đang mở" : "Đã đóng"}</div>
-          </div>
+        <div className="form-group">
+          <label>Mô tả</label>
+          <div>{program.description}</div>
+        </div>
+        <div className="form-group">
+          <label>Người khởi tạo</label>
+          <div>{program.hrName || "Không rõ"}</div>
         </div>
         <div className="form-actions">
           <button type="button" className="btn-outline" onClick={onClose}>
@@ -376,25 +402,25 @@ ViewProgramModal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
+//
+// ✏️ MODAL CHỈNH SỬA
+//
 function EditProgramModal({ program, onClose, onSave }) {
-  const [name, setName] = useState(program.name);
-  const [department, setDepartment] = useState(program.department);
-  const [quantity, setQuantity] = useState(program.quantity);
-  const [startDate, setStartDate] = useState(program.startDate);
-  const [endDate, setEndDate] = useState(program.endDate);
-  const [status, setStatus] = useState(program.status);
+  const [programName, setProgramName] = useState(program.programName);
+  const [dateCreate, setDateCreate] = useState(program.dateCreate);
+  const [dateEnd, setDateEnd] = useState(program.dateEnd);
+  const [description, setDescription] = useState(program.description);
   const [validationErrors, setValidationErrors] = useState({});
 
   const validate = () => {
     const errors = {};
-    if (!name.trim()) errors.name = "Tên chương trình không được để trống";
-    if (!department.trim()) errors.department = "Phòng ban không được để trống";
-    if (!quantity || Number.isNaN(quantity) || Number.parseInt(quantity) <= 0)
-      errors.quantity = "Số lượng phải là một số dương";
-    if (!startDate) errors.startDate = "Ngày bắt đầu không được để trống";
-    if (!endDate) errors.endDate = "Ngày kết thúc không được để trống";
-    else if (startDate && endDate && new Date(startDate) > new Date(endDate))
-      errors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+    if (!programName.trim())
+      errors.programName = "Tên chương trình không được để trống";
+    if (!dateCreate) errors.dateCreate = "Ngày bắt đầu không được để trống";
+    if (!dateEnd) errors.dateEnd = "Ngày kết thúc không được để trống";
+    else if (new Date(dateEnd) < new Date(dateCreate))
+      errors.dateEnd = "Ngày kết thúc phải sau ngày bắt đầu";
+
     return errors;
   };
 
@@ -402,18 +428,18 @@ function EditProgramModal({ program, onClose, onSave }) {
     e.preventDefault();
     const errors = validate();
     setValidationErrors(errors);
+
     if (Object.keys(errors).length > 0) {
       toast.error("Vui lòng kiểm tra lại thông tin nhập.");
       return;
     }
+
     onSave({
       ...program,
-      name: name.trim(),
-      department: department.trim(),
-      quantity: Number.parseInt(quantity),
-      startDate,
-      endDate,
-      status,
+      programName: programName.trim(),
+      dateCreate,
+      dateEnd,
+      description: description.trim(),
     });
   };
 
@@ -423,92 +449,71 @@ function EditProgramModal({ program, onClose, onSave }) {
         <h2 className="modal-title">Chỉnh sửa chương trình</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Tên chương trình</label>
+            <label>Tên chương trình *</label>
             <input
               className={`form-input ${
-                validationErrors.name ? "input-error" : ""
+                validationErrors.programName ? "input-error" : ""
               }`}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={programName}
+              onChange={(e) => setProgramName(e.target.value)}
             />
-            {validationErrors.name && (
-              <div className="error-message">{validationErrors.name}</div>
+            {validationErrors.programName && (
+              <div className="error-message">
+                {validationErrors.programName}
+              </div>
             )}
           </div>
+
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Phòng ban</label>
+              <label>Ngày bắt đầu *</label>
               <input
+                type="date"
                 className={`form-input ${
-                  validationErrors.department ? "input-error" : ""
+                  validationErrors.dateCreate ? "input-error" : ""
                 }`}
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
+                value={dateCreate}
+                onChange={(e) => setDateCreate(e.target.value)}
               />
-              {validationErrors.department && (
+              {validationErrors.dateCreate && (
                 <div className="error-message">
-                  {validationErrors.department}
+                  {validationErrors.dateCreate}
                 </div>
               )}
             </div>
             <div className="form-group">
-              <label className="form-label">Số lượng</label>
-              <input
-                type="number"
-                className={`form-input ${
-                  validationErrors.quantity ? "input-error" : ""
-                }`}
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-              />
-              {validationErrors.quantity && (
-                <div className="error-message">{validationErrors.quantity}</div>
-              )}
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Ngày bắt đầu</label>
+              <label>Ngày kết thúc *</label>
               <input
                 type="date"
                 className={`form-input ${
-                  validationErrors.startDate ? "input-error" : ""
+                  validationErrors.dateEnd ? "input-error" : ""
                 }`}
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={dateEnd}
+                onChange={(e) => setDateEnd(e.target.value)}
               />
-              {validationErrors.startDate && (
-                <div className="error-message">
-                  {validationErrors.startDate}
-                </div>
-              )}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Ngày kết thúc</label>
-              <input
-                type="date"
-                className={`form-input ${
-                  validationErrors.endDate ? "input-error" : ""
-                }`}
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-              {validationErrors.endDate && (
-                <div className="error-message">{validationErrors.endDate}</div>
+              {validationErrors.dateEnd && (
+                <div className="error-message">{validationErrors.dateEnd}</div>
               )}
             </div>
           </div>
+
           <div className="form-group">
-            <label className="form-label">Trạng thái</label>
-            <select
-              className="form-select"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="opening">Đang mở</option>
-              <option value="closed">Đã đóng</option>
-            </select>
+            <label>Mô tả *</label>
+            <textarea
+              className={`form-input ${
+                validationErrors.description ? "input-error" : ""
+              }`}
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            {validationErrors.description && (
+              <div className="error-message">
+                {validationErrors.description}
+              </div>
+            )}
           </div>
+
           <div className="form-actions">
             <button type="button" className="btn-outline" onClick={onClose}>
               Hủy
