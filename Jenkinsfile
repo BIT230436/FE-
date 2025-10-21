@@ -50,7 +50,7 @@ pipeline {
                 bat '''
                 docker stop internship-fe || echo Container not running
                 docker rm internship-fe || echo Container not found
-                docker run -d -p 3000:80 --name internship-fe minhp205/internship-fe:latest
+                docker run -d -p 5173:80 --name internship-fe minhp205/internship-fe:latest
                 '''
             }
         }
