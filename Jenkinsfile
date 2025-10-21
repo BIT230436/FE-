@@ -1,34 +1,44 @@
 pipeline {
     agent any
 
-   environment {
-        DOCKER_IMAGE = 'minhp205/internship-be'
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+    environment {
+        DOCKER_IMAGE = 'minhp205/internship-fe'          
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'  
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                echo '📥 Cloning FE repository...'
+                echo '🔹 Cloning FE source code...'
                 git branch: 'main', url: 'https://github.com/Qu-n-Ly-Internship/FE.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build React App') {
             steps {
-                echo '🐳 Building Docker image...'
-                script {
-                    docker.build("${IMAGE_NAME}:latest")
-                }
+                echo '🔹 Building React app...'
+                bat '''
+                if exist package.json (
+                    echo Installing dependencies...
+                    call npm install
+                    echo Building project...
+                    call npm run build
+                ) else (
+                    echo package.json not found!
+                    exit /b 1
+                )
+                '''
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Build & Push Docker Image') {
             steps {
-                echo '⬆️ Pushing image to DockerHub...'
+                echo '🐳 Building Docker image...'
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKERHUB_CREDENTIALS}") {
-                        docker.image("${IMAGE_NAME}:latest").push()
+                    def image = docker.build("${DOCKER_IMAGE}:latest")
+
+                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
+                        image.push('latest')
                     }
                 }
             }
@@ -36,11 +46,11 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo '🚀 Deploying container...'
+                echo '🚀 Deploying frontend container...'
                 bat '''
-                    docker stop internship-fe || echo Container not running
-                    docker rm internship-fe || echo Container not found
-                    docker run -d -p 3000:80 --name internship-fe minhp205/internship-fe:latest
+                docker stop internship-fe || echo Container not running
+                docker rm internship-fe || echo Container not found
+                docker run -d -p 3000:80 --name internship-fe minhp205/internship-fe:latest
                 '''
             }
         }
@@ -48,10 +58,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Frontend deployed successfully!'
+            echo '✅ Frontend deployment successful!'
         }
         failure {
-            echo '❌ Deployment failed!'
+            echo '❌ Frontend build failed!'
         }
     }
 }
