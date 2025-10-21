@@ -297,6 +297,7 @@ export default function InternshipList() {
       {showCreate && (
         <CreateInternshipModal
           onClose={() => setShowCreate(false)}
+          existingInternships={internships}
           onCreate={async (data) => {
             try {
               const payload = {
@@ -360,7 +361,7 @@ export default function InternshipList() {
   );
 }
 
-function CreateInternshipModal({ onClose, onCreate }) {
+function CreateInternshipModal({ onClose, onCreate, existingInternships = [] }) {
   const [title, setTitle] = useState("");
   const [student, setStudent] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
@@ -618,6 +619,7 @@ function CreateInternshipModal({ onClose, onCreate }) {
               }));
               setShowSelectIntern(false);
             }}
+            existingInternships={existingInternships}
           />
         )}
       </div>
@@ -883,7 +885,7 @@ function EditInternshipModal({ data, onClose, onSave }) {
   );
 }
 
-function SelectInternModal({ onClose, onSelect }) {
+function SelectInternModal({ onClose, onSelect, existingInternships = [] }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
@@ -906,7 +908,18 @@ function SelectInternModal({ onClose, onSelect }) {
     }
   }
 
+  // Lấy danh sách email đã có trong internships
+  const existingEmails = new Set(
+    existingInternships.map((intern) => intern.studentEmail?.toLowerCase()).filter(Boolean)
+  );
+
   const filteredUsers = users.filter((user) => {
+    // Loại bỏ những user đã có trong danh sách thực tập
+    if (existingEmails.has(user.email?.toLowerCase())) {
+      return false;
+    }
+    
+    // Filter theo search text
     if (!searchText) return true;
     const search = searchText.toLowerCase();
     return (

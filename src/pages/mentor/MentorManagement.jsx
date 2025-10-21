@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
-  getMentors,
   getMentorAssignments,
   unassignMentor,
   assignMentor,
 } from "../../services/mentorService";
-import { getInterns } from "../../services/internService";
+import { getInternships } from "../../services/internshipService";
+import { getUsers } from "../../services/adminService";
 import { toast } from "react-toastify";
 import "./MentorManagement.css";
 
@@ -32,31 +32,32 @@ const MentorManagement = () => {
     setLoading(true);
     try {
       // Fetch all necessary data in parallel
-      const [mentorsRes, assignmentsRes, internsRes] = await Promise.all([
-        getMentors({ q: debouncedSearchText, size: 1000 }),
-        getMentorAssignments({ size: 1000 }),
-        getInterns({ size: 1000 }),
+      const [mentorsRes, assignmentsRes, internshipsRes] = await Promise.all([
+        getUsers({ role: "MENTOR", size: 1000 }),
+        getMentorAssignments({}).catch(() => ({ data: [] })),
+        getInternships({ size: 1000 }),
       ]);
 
-      const mentors = mentorsRes.items || [];
-      const allAssignments = assignmentsRes.items || [];
-      const interns = internsRes || [];
+      const mentors = mentorsRes.content || [];
+      const allAssignments = assignmentsRes.data || [];
+      const internships = internshipsRes.data || [];
 
       // Create a map for quick lookup
-      const mentorMap = new Map(mentors.map((m) => [m.id, m.name]));
-      const internMap = new Map(interns.map((i) => [i.id, i.fullName]));
+      const mentorMap = new Map(mentors.map((m) => [m.id, m.fullName]));
+      const internMap = new Map(internships.map((i) => [i.intern_id, i.student]));
 
       // Create a detailed list of assignments
       const detailedAssignments = allAssignments.map((a) => ({
         ...a,
-        mentorName: mentorMap.get(a.mentorId) || "N/A",
-        internName: internMap.get(a.internId) || "N/A",
+        mentorName: mentorMap.get(a.mentor_id) || "N/A",
+        internName: internMap.get(a.intern_id) || "N/A",
       }));
 
-      // If there's a search query, we need to filter assignments by the mentors that were returned
-      const mentorIdsFromSearch = new Set(mentors.map((m) => m.id));
+      // If there's a search query, filter by mentor name
       const finalAssignments = debouncedSearchText
-        ? detailedAssignments.filter((a) => mentorIdsFromSearch.has(a.mentorId))
+        ? detailedAssignments.filter((a) => 
+            a.mentorName.toLowerCase().includes(debouncedSearchText.toLowerCase())
+          )
         : detailedAssignments;
 
       setAssignments(finalAssignments);
@@ -75,7 +76,7 @@ const MentorManagement = () => {
   const handleUnassign = async (internId, mentorId) => {
     if (globalThis.confirm("Bạn có chắc chắn muốn hủy phân công này không?")) {
       try {
-        await unassignMentor({ internId, mentorId });
+        await unassignMentor(internId, mentorId);
         toast.success("Đã hủy phân công thành công.");
         fetchData(); // Refetch data to update the list
       } catch (error) {
@@ -122,13 +123,13 @@ const MentorManagement = () => {
         </thead>
         <tbody>
           {assignments.map((assignment) => (
-            <tr key={`${assignment.mentorId}-${assignment.internId}`}>
+            <tr key={`${assignment.mentor_id}-${assignment.intern_id}`}>
               <td>{assignment.mentorName}</td>
               <td>{assignment.internName}</td>
               <td>
                 <button
                   onClick={() =>
-                    handleUnassign(assignment.internId, assignment.mentorId)
+                    handleUnassign(assignment.intern_id, assignment.mentor_id)
                   }
                   className="delete-button"
                 >
@@ -163,23 +164,30 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
     // Fetch available mentors and interns when the modal opens
     const loadInitialData = async () => {
       try {
-        const [allMentorsRes, allInternsRes, allAssignmentsRes] =
+        const [allMentorsRes, allInternshipsRes, allAssignmentsRes] =
           await Promise.all([
-            getMentors({ size: 1000 }),
-            getInterns({ size: 1000 }),
-            getMentorAssignments({ size: 1000 }),
+            getUsers({ role: "MENTOR", size: 1000 }),
+            getInternships({ size: 1000 }),
+            getMentorAssignments({}).catch(() => ({ data: [] })),
           ]);
 
         const assignedInternIds = new Set(
-          allAssignmentsRes.items.map((a) => a.internId)
+          (allAssignmentsRes.data || []).map((a) => a.intern_id)
         );
 
-        setAvailableMentors(allMentorsRes.items || []);
-        setAvailableInterns(
-          (allInternsRes.items || []).filter(
-            (i) => !assignedInternIds.has(i.id)
-          )
+        // Lấy mentors từ users có role MENTOR
+        setAvailableMentors(allMentorsRes.content || []);
+        
+        // Lấy interns từ danh sách thực tập, loại bỏ những người đã được phân công
+        const internships = allInternshipsRes.data || [];
+        const availableInternsList = internships.filter(
+          (i) => !assignedInternIds.has(i.intern_id)
         );
+        
+        console.log("Available interns:", availableInternsList);
+        console.log("First intern sample:", availableInternsList[0]);
+        console.log("All keys:", availableInternsList[0] ? Object.keys(availableInternsList[0]) : []);
+        setAvailableInterns(availableInternsList);
       } catch (error) {
         toast.error("Không thể tải danh sách mentor hoặc thực tập sinh.");
       }
@@ -189,22 +197,43 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    console.log("handleSubmit called!");
+    console.log("selectedMentor:", selectedMentor);
+    console.log("selectedIntern:", selectedIntern);
+    
     if (!selectedMentor || !selectedIntern) {
+      console.log("Validation failed - missing mentor or intern");
       toast.error("Vui lòng chọn mentor và thực tập sinh.");
       return;
     }
 
+    console.log("Submitting:", {
+      mentorId: Number(selectedMentor),
+      internId: Number(selectedIntern),
+    });
+
     try {
-      await assignMentor({
-        mentorId: selectedMentor,
-        internId: selectedIntern,
+      const result = await assignMentor({
+        mentorId: Number(selectedMentor),
+        internId: Number(selectedIntern),
       });
-      toast.success("Phân công thành công!");
-      onAssignmentCreated();
-      onClose();
+      
+      console.log("Assign result:", result);
+      
+      if (result.success) {
+        toast.success(result.message || "Phân công thành công!");
+        onAssignmentCreated();
+        onClose();
+      } else {
+        toast.error(result.message || "Phân công thất bại.");
+      }
     } catch (error) {
       console.error("Failed to assign mentor:", error);
-      toast.error("Phân công thất bại.");
+      console.error("Error response:", error?.response);
+      console.error("Error data:", error?.response?.data);
+      const errorMsg = error?.response?.data?.message || error?.message || "Phân công thất bại.";
+      toast.error(errorMsg);
     }
   };
 
@@ -226,7 +255,7 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
               </option>
               {availableMentors.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.name}
+                  {m.fullName} ({m.email})
                 </option>
               ))}
             </select>
@@ -243,8 +272,8 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
                 -- Chọn một thực tập sinh --
               </option>
               {availableInterns.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.fullName}
+                <option key={i.intern_id} value={i.intern_id}>
+                  {i.student} ({i.studentEmail})
                 </option>
               ))}
             </select>
