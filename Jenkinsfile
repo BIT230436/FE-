@@ -2,19 +2,21 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // credential đã tạo
         IMAGE_NAME = 'minhp205/internship-fe'
     }
 
     stages {
-        stage('Clone repository') {
+        stage('Clone Repository') {
             steps {
+                echo '📥 Cloning FE repository...'
                 git branch: 'main', url: 'https://github.com/Qu-n-Ly-Internship/FE.git'
             }
         }
 
-        stage('Build Docker image') {
+        stage('Build Docker Image') {
             steps {
+                echo '🐳 Building Docker image...'
                 script {
                     docker.build("${IMAGE_NAME}:latest")
                 }
@@ -23,6 +25,7 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
+                echo '⬆️ Pushing image to DockerHub...'
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKERHUB_CREDENTIALS}") {
                         docker.image("${IMAGE_NAME}:latest").push()
@@ -31,8 +34,9 @@ pipeline {
             }
         }
 
-        stage('Deploy container') {
+        stage('Deploy') {
             steps {
+                echo '🚀 Deploying container...'
                 bat '''
                     docker stop internship-fe || echo Container not running
                     docker rm internship-fe || echo Container not found
