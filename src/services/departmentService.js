@@ -58,6 +58,26 @@ export const createDepartmentsBatch = async (programId, departments) => {
   }
 };
 
+export const getAllDepartments = async () => {
+  try {
+    const response = await api.get("/departments");
+    return response.data;
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy tất cả department:", error);
+    throw error;
+  }
+};
+
+export const updateDepartment = async (id, departmentData) => {
+  try {
+    const response = await api.put(`/departments/${id}`, departmentData);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Lỗi khi cập nhật department:", error);
+    throw error;
+  }
+};
+
 export const deleteDepartment = async (id) => {
   try {
     const response = await api.delete(`/departments/${id}`);

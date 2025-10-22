@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -16,14 +17,37 @@ import {
 import { getDepartmentsByProgram } from "../../services/departmentService";
 
 // ==========================================================
+// 🚀 UTILITY FUNCTION: Định dạng ngày tháng
+// ==========================================================
+function formatDate(dateString) {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error("Invalid date format:", dateString);
+    return dateString; // Trả về chuỗi gốc nếu có lỗi
+  }
+}
+
+// ==========================================================
 // 🚀 1. COMPONENT CHÍNH: InternshipProgramList
 // ==========================================================
 export default function InternshipProgramList() {
+  const navigate = useNavigate();
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
+
+  // State for filters
+  const [nameFilter, setNameFilter] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
 
   // 📥 Load danh sách chương trình từ API
   useEffect(() => {
@@ -108,6 +132,25 @@ export default function InternshipProgramList() {
     }
   };
 
+  const filteredPrograms = programs.filter((program) => {
+    const nameMatch = program.programName
+      .toLowerCase()
+      .includes(nameFilter.toLowerCase());
+
+    const startDate = startDateFilter ? new Date(startDateFilter) : null;
+    const endDate = endDateFilter ? new Date(endDateFilter) : null;
+    const programDate = new Date(program.dateCreate);
+
+    if (startDate && programDate < startDate) {
+      return false;
+    }
+    if (endDate && programDate > endDate) {
+      return false;
+    }
+
+    return nameMatch;
+  });
+
   if (loading) {
     return (
       <div className="loading center">Đang tải danh sách chương trình...</div>
@@ -127,6 +170,52 @@ export default function InternshipProgramList() {
         </button>
       </div>
 
+      {/* Filters */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="form-row" style={{ padding: 16, gap: 16, alignItems: 'flex-end' }}>
+          <div className="form-group">
+            <label className="form-label">Lọc theo tên</label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Nhập tên chương trình..."
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Từ ngày</label>
+            <input
+              type="date"
+              className="form-input"
+              value={startDateFilter}
+              onChange={(e) => setStartDateFilter(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Đến ngày</label>
+            <input
+              type="date"
+              className="form-input"
+              value={endDateFilter}
+              onChange={(e) => setEndDateFilter(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <button
+              className="btn clear-filters-btn"
+              onClick={() => {
+                setNameFilter("");
+                setStartDateFilter("");
+                setEndDateFilter("");
+              }}
+            >
+              Xóa bộ lọc
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="card">
         <table className="table">
           <thead>
@@ -141,28 +230,27 @@ export default function InternshipProgramList() {
             </tr>
           </thead>
           <tbody>
-            {programs.length === 0 ? (
+            {filteredPrograms.length === 0 ? (
               <tr>
                 <td className="table-td center" colSpan={7}>
-                  Chưa có chương trình nào. Hãy tạo một chương trình mới.
+                  Không tìm thấy chương trình nào.
                 </td>
               </tr>
             ) : (
-              programs.map((program, index) => (
+              filteredPrograms.map((program, index) => (
                 <tr key={program.id}>
                   <td className="table-td">{index + 1}</td>
                   <td className="table-td">{program.programName}</td>
-                  <td className="table-td">{program.dateCreate}</td>
-                  <td className="table-td">{program.dateEnd}</td>
+                  <td className="table-td">{formatDate(program.dateCreate)}</td>
+                  <td className="table-td">{formatDate(program.dateEnd)}</td>
                   <td className="table-td text-truncate">
                     {program.description}
                   </td>
                   <td className="table-td">{program.hrName || "Không rõ"}</td>
                   <td className="table-td action-buttons">
-                    {/* ✅ Gán program object vào state viewing */}
                     <button
                       className="btn btn-info btn-sm"
-                      onClick={() => setViewing(program)}
+                      onClick={() => navigate("/hr/departments")}
                     >
                       Chi tiết P.Ban
                     </button>
@@ -173,7 +261,7 @@ export default function InternshipProgramList() {
                       Sửa
                     </button>
                     <button
-                      className="btn btn-danger btn-sm" // ⚠️ Đã đổi màu sang đỏ cho hành động xóa
+                      className="btn btn-danger btn-sm"
                       onClick={() => handleDeleteProgram(program.id)}
                     >
                       Xóa
