@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
-import "./Sidebar.css"; // Thêm import CSS
-
-import { TbLogout2 } from "react-icons/tb";
 import "./Sidebar.css"; // CSS
+import { TbLogout2 } from "react-icons/tb";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
@@ -20,6 +18,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const userRole = user?.role;
   const userPermissions = user?.permissions || [];
 
+  // --- MENU ITEMS ---
   const menuItems = [
     { label: "Dashboard", path: "/", icon: "📊" },
     {
@@ -27,6 +26,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       path: "/internships",
       icon: "💼",
       requiredPermissions: ["VIEW_INTERNSHIPS"],
+    },
+    {
+      label: " Lịch thực tập",
+      path: "/intern-schedule",
+      icon: "🗓️",
+      requiredRoles: ["INTERN", "HR", "ADMIN"], // Ai có thể xem
     },
     {
       label: "Quản lý người dùng",
@@ -46,12 +51,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "🎓",
       requiredRoles: ["HR", "ADMIN"],
     },
-    //     {
-    //       label: "Phân quyền",
-    //       path: "/admin/permissions",
-    //       icon: "🔐",
-    //       requiredPermissions: ["MANAGE_PERMISSIONS"],
-    //     },
     {
       label: "Hợp đồng",
       icon: "📑",
@@ -93,6 +92,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     },
   ];
 
+  // --- Lọc menu theo role / quyền ---
   const visibleItems = menuItems.filter((item) => {
     if (item.requiredPermissions?.length) {
       return item.requiredPermissions.some((p) => userPermissions.includes(p));
@@ -108,7 +108,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     setOpenSubmenu(openSubmenu === label ? null : label);
   };
 
-  // Lấy chữ cái đầu tiên của tên (nếu có)
+  // --- Hiển thị avatar ---
   const initial = user?.fullName
     ? user.fullName.trim().charAt(0).toUpperCase()
     : "?";

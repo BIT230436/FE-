@@ -12,6 +12,7 @@ import Permissions from "../pages/admin/Permissions";
 import MentorManagement from "../pages/mentor/MentorManagement";
 import OAuthCallback from "../pages/auth/OAuthCallback";
 import MyContract from "../pages/students/MyContract";
+import InternSchedule from "../pages/internships/InternshipSchedule"; // ✅ Thêm dòng này
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -53,6 +54,8 @@ export default function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+
+            {/* ✅ Thực tập */}
             <Route
               path="/internships"
               element={
@@ -61,6 +64,18 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+
+            {/* ✅ Lịch thực tập */}
+            <Route
+              path="/intern-schedule"
+              element={
+                <AccessGuard requiredRoles={["INTERN", "HR", "ADMIN"]}>
+                  <InternSchedule />
+                </AccessGuard>
+              }
+            />
+
+            {/* ADMIN / HR */}
             <Route
               path="/admin/users"
               element={
@@ -125,6 +140,8 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+
+            {/* USER */}
             <Route
               path="/upload-documents"
               element={
@@ -151,6 +168,7 @@ export default function AppRouter() {
             />
           </Route>
         </Route>
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
