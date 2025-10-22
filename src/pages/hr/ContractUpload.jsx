@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { getInternships } from "../../services/internshipService";
 import { uploadToCloud } from "../../services/documentService";
 import { useAuthStore } from "../../store/authStore";
+import InternSelectionModal from "../../components/common/InternSelectionModal";
 import "./ContractUpload.css";
 
 export default function UploadContractForm() {
@@ -11,66 +11,10 @@ export default function UploadContractForm() {
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [interns, setInterns] = useState([]);
   const [selectedIntern, setSelectedIntern] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
-  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState("");
-
-  // Debounce search query
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 600); // 300ms delay
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
-
-  // Fetch danh sách intern khi mở modal hoặc khi query thay đổi
-  useEffect(() => {
-    if (showModal) {
-      fetchInterns();
-    }
-  }, [showModal, debouncedSearchQuery]);
-
-  const fetchInterns = async () => {
-    setLoading(true);
-    const startTime = Date.now();
-
-    try {
-      const response = await getInternships({
-        q: debouncedSearchQuery,
-        size: 50,
-      });
-
-      const internList = response.data || response;
-      setInterns(internList);
-    } catch (error) {
-      console.error("Error fetching interns:", error);
-      setInterns([]);
-    } finally {
-      const duration = Date.now() - startTime;
-      const minDisplayTime = 600; // ms
-
-      if (duration < minDisplayTime) {
-        setTimeout(() => {
-          setLoading(false);
-        }, minDisplayTime - duration);
-      } else {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleSelectIntern = (intern) => {
-    setSelectedIntern(intern);
-    setShowModal(false);
-  };
 
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -444,194 +388,14 @@ export default function UploadContractForm() {
         </div>
       </div>
 
-      {/* Modal chọn intern */}
       {showModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "16px",
+        <InternSelectionModal
+          onClose={() => setShowModal(false)}
+          onSelect={(intern) => {
+            setSelectedIntern(intern);
+            setShowModal(false);
           }}
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            style={{
-              backgroundColor: "white",
-              borderRadius: "12px",
-              width: "100%",
-              maxWidth: "600px",
-              maxHeight: "80vh",
-              display: "flex",
-              flexDirection: "column",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: "24px",
-                borderBottom: "1px solid #e5e7eb",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "16px",
-                }}
-              >
-                <h2
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "bold",
-                    color: "#1f2937",
-                    margin: 0,
-                  }}
-                >
-                  Chọn Thực Tập Sinh
-                </h2>
-                <button
-                  onClick={() => setShowModal(false)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "24px",
-                    color: "#6b7280",
-                    cursor: "pointer",
-                    padding: 0,
-                    lineHeight: 1,
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Search */}
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo tên hoặc email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#3b82f6";
-                  e.target.style.boxShadow =
-                    "0 0 0 3px rgba(59, 130, 246, 0.1)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#d1d5db";
-                  e.target.style.boxShadow = "none";
-                }}
-              />
-            </div>
-
-            {/* Modal Body */}
-            <div
-              style={{
-                padding: "16px 24px",
-                overflowY: "auto",
-                flex: 1,
-              }}
-            >
-              {loading ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "24px",
-                    color: "#6b7280",
-                    transition: "opacity 0.3s ease-in-out",
-                    opacity: loading ? 1 : 0,
-                  }}
-                >
-                  Đang tải...
-                </div>
-              ) : interns.length === 0 ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "24px",
-                    color: "#6b7280",
-                  }}
-                >
-                  Không tìm thấy thực tập sinh
-                </div>
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                  }}
-                >
-                  {interns.map((intern) => (
-                    <div
-                      key={intern.intern_id}
-                      onClick={() => handleSelectIntern(intern)}
-                      style={{
-                        padding: "16px",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                        backgroundColor:
-                          selectedIntern?.intern_id === intern.intern_id
-                            ? "#eff6ff"
-                            : "white",
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f9fafb";
-                        e.currentTarget.style.borderColor = "#3b82f6";
-                      }}
-                      onMouseOut={(e) => {
-                        if (selectedIntern?.intern_id !== intern.intern_id) {
-                          e.currentTarget.style.backgroundColor = "white";
-                        } else {
-                          e.currentTarget.style.backgroundColor = "#eff6ff";
-                        }
-                        e.currentTarget.style.borderColor = "#e5e7eb";
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontWeight: "500",
-                          color: "#1f2937",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        {intern.student}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "14px",
-                          color: "#6b7280",
-                        }}
-                      >
-                        {intern.studentEmail}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        />
       )}
     </div>
   );

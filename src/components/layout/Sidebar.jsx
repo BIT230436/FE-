@@ -90,6 +90,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "👨",
       requiredRoles: ["ADMIN", "HR"],
     },
+    {
+      label: "Quản lý Phụ cấp",
+      path: "/hr/allowances",
+      icon: "💰",
+      requiredRoles: ["HR", "ADMIN"],
+    },
   ];
 
   // --- Lọc menu theo role / quyền ---
