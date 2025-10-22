@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// ✅ Đã sử dụng: useAuthStore
 import { useAuthStore } from "../../store/authStore";
 
-// ✅ Đã sử dụng: Các service API
 import {
   getAllPrograms,
   createProgram,
@@ -16,9 +14,6 @@ import {
 
 import { getDepartmentsByProgram } from "../../services/departmentService";
 
-// ==========================================================
-// 🚀 UTILITY FUNCTION: Định dạng ngày tháng
-// ==========================================================
 function formatDate(dateString) {
   if (!dateString) return "";
   try {
@@ -27,15 +22,12 @@ function formatDate(dateString) {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
-  } catch (error) {
+  } catch {
     console.error("Invalid date format:", dateString);
-    return dateString; // Trả về chuỗi gốc nếu có lỗi
+    return dateString;
   }
 }
 
-// ==========================================================
-// 🚀 1. COMPONENT CHÍNH: InternshipProgramList
-// ==========================================================
 export default function InternshipProgramList() {
   const navigate = useNavigate();
   const [programs, setPrograms] = useState([]);
@@ -253,7 +245,7 @@ export default function InternshipProgramList() {
                   <td className="table-td action-buttons">
                     <button
                       className="btn btn-info btn-sm"
-                      onClick={() => navigate("/hr/departments")}
+                      onClick={() => navigate(`/hr/departments/${program.id}`)}
                     >
                       Chi tiết P.Ban
                     </button>
@@ -531,7 +523,7 @@ function ViewProgramModal({ program, onClose }) {
                     )}
                   </li>
                 ))}
-              </ul>
+              </ul> 
             )}
           </div>
         </div>
