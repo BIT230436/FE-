@@ -440,7 +440,7 @@ function ViewProgramModal({ program, onClose }) {
                     )}
                   </li>
                 ))}
-              </ul>
+              </ul> 
             )}
           </div>
         </div>
