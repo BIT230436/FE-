@@ -85,6 +85,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "👨‍🏫",
       requiredRoles: ["ADMIN", "HR"],
     },
+    {
+      label: "Quản lý phòng ban",
+      path: "/hr/departments",
+      icon: "👨",
+      requiredRoles: ["ADMIN", "HR"],
+    },
   ];
 
   const visibleItems = menuItems.filter((item) => {

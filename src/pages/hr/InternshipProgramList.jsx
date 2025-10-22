@@ -172,7 +172,10 @@ export default function InternshipProgramList() {
 
       {/* Filters */}
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="form-row" style={{ padding: 16, gap: 16, alignItems: 'flex-end' }}>
+        <div
+          className="form-row"
+          style={{ padding: 16, gap: 16, alignItems: "flex-end" }}
+        >
           <div className="form-group">
             <label className="form-label">Lọc theo tên</label>
             <input

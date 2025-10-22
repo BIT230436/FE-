@@ -361,7 +361,11 @@ export default function InternshipList() {
   );
 }
 
-function CreateInternshipModal({ onClose, onCreate, existingInternships = [] }) {
+function CreateInternshipModal({
+  onClose,
+  onCreate,
+  existingInternships = [],
+}) {
   const [title, setTitle] = useState("");
   const [student, setStudent] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
@@ -910,7 +914,9 @@ function SelectInternModal({ onClose, onSelect, existingInternships = [] }) {
 
   // Lấy danh sách email đã có trong internships
   const existingEmails = new Set(
-    existingInternships.map((intern) => intern.studentEmail?.toLowerCase()).filter(Boolean)
+    existingInternships
+      .map((intern) => intern.studentEmail?.toLowerCase())
+      .filter(Boolean)
   );
 
   const filteredUsers = users.filter((user) => {
@@ -918,7 +924,7 @@ function SelectInternModal({ onClose, onSelect, existingInternships = [] }) {
     if (existingEmails.has(user.email?.toLowerCase())) {
       return false;
     }
-    
+
     // Filter theo search text
     if (!searchText) return true;
     const search = searchText.toLowerCase();
