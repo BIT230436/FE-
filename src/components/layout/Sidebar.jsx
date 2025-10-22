@@ -31,7 +31,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       label: " Lịch thực tập",
       path: "/intern-schedule",
       icon: "🗓️",
-      requiredRoles: ["INTERN", "HR", "ADMIN"], // Ai có thể xem
+      requiredRoles: ["INTERN"], // Ai có thể xem
     },
     {
       label: "Quản lý người dùng",
@@ -43,18 +43,18 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       label: "Duyệt hồ sơ",
       path: "/hr/documents",
       icon: "🗂️",
-      requiredRoles: ["HR", "ADMIN"],
+      requiredRoles: ["HR"],
     },
     {
       label: "Chương trình TT",
       path: "/hr/internship-programs",
       icon: "🎓",
-      requiredRoles: ["HR", "ADMIN"],
+      requiredRoles: ["HR"],
     },
     {
       label: "Hợp đồng",
       icon: "📑",
-      requiredRoles: ["HR", "ADMIN"],
+      requiredRoles: ["HR"],
       submenuItems: [
         { label: "Tải hợp đồng", path: "/hr/contract-upload" },
         { label: "Danh sách hợp đồng", path: "/hr/contract-list" },
@@ -79,22 +79,22 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["INTERN"],
     },
     {
-      label: "Quản lý mentor",
+      label: "Quản lý dự án",
       path: "/admin/mentors",
       icon: "👨‍🏫",
-      requiredRoles: ["ADMIN", "HR"],
+      requiredRoles: ["HR"],
     },
     {
       label: "Quản lý phòng ban",
       path: "/hr/departments",
       icon: "👨",
-      requiredRoles: ["ADMIN", "HR"],
+      requiredRoles: ["HR"],
     },
     {
       label: "Quản lý Phụ cấp",
       path: "/hr/allowances",
       icon: "💰",
-      requiredRoles: ["HR", "ADMIN"],
+      requiredRoles: ["HR"],
     },
     {
       label: "Phụ cấp của tôi",
