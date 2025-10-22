@@ -146,9 +146,7 @@ export default function DepartmentManagement() {
           >
             ← Quay lại danh sách chương trình
           </button>
-          <h1 className="page-title">
-            Quản lý Phòng ban (Chương trình ID: {programId})
-          </h1>
+          <h1 className="page-title">Quản lý Phòng ban</h1>
         </div>
         <button
           className="btn btn-primary btn-sm"

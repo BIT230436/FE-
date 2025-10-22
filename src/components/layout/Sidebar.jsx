@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import "./Sidebar.css"; // CSS
 import { TbLogout2 } from "react-icons/tb";
@@ -115,7 +115,29 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     return true;
   });
 
-  const [openSubmenu, setOpenSubmenu] = useState(null);
+  const location = useLocation();
+  const { pathname } = location;
+
+  // Tìm menu cha của submenu item đang active
+  const getActiveSubmenuParent = () => {
+    for (const item of menuItems) {
+      if (item.submenuItems?.some((sub) => sub.path === pathname)) {
+        return item.label;
+      }
+    }
+    return null;
+  };
+
+  const [openSubmenu, setOpenSubmenu] = useState(getActiveSubmenuParent());
+
+  useEffect(() => {
+    const activeParent = getActiveSubmenuParent();
+    if (activeParent) {
+      setOpenSubmenu(activeParent);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   const toggleSubmenu = (label) => {
     setOpenSubmenu(openSubmenu === label ? null : label);
   };
@@ -165,7 +187,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         {visibleItems.map((item) => (
           <div key={item.label} className="sidebar-nav-item">
             <button
-              className="sidebar-nav-btn"
+              className={`sidebar-nav-btn ${pathname === item.path ? "active" : ""}`}
               onClick={() =>
                 item.submenuItems
                   ? toggleSubmenu(item.label)
@@ -197,7 +219,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 {item.submenuItems.map((sub) => (
                   <button
                     key={sub.path}
-                    className="sidebar-submenu-btn"
+                    className={`sidebar-submenu-btn ${pathname === sub.path ? "active" : ""}`}
                     onClick={() => handleNavigate(sub.path)}
                   >
                     {sub.label}

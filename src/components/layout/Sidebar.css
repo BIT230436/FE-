@@ -183,6 +183,26 @@
   background-color: #d32f2f;
 }
 
+/* --- Active Menu Item Styles --- */
+.sidebar-nav-btn.active,
+.sidebar-submenu-btn.active {
+  /* background-color: #2b7cff;  */
+  color: #ac158bd1; /* Màu chữ trắng */
+  font-weight: 600; /* Chữ đậm hơn */
+  box-shadow: 0 4px 12px rgba(43, 124, 255, 0.25); /* Thêm bóng đổ */
+}
+
+.sidebar-nav-btn.active:hover,
+.sidebar-submenu-btn.active:hover {
+  background-color: #1a6ad9; /* Màu nền đậm hơn khi hover */
+  color: #ffffff; /* Giữ màu chữ trắng */
+}
+
+/* Đảm bảo icon bên trong cũng đổi màu */
+.sidebar-nav-btn.active .sidebar-nav-icon {
+  color: #ffffff;
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 100vw;

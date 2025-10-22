@@ -158,7 +158,7 @@ export default function InternshipProgramList() {
           className="btn btn-primary btn-sm"
           onClick={() => setShowCreate(true)}
         >
-          ➕ Tạo chương trình mới
+          Tạo chương trình mới
         </button>
       </div>
 
@@ -523,7 +523,7 @@ function ViewProgramModal({ program, onClose }) {
                     )}
                   </li>
                 ))}
-              </ul> 
+              </ul>
             )}
           </div>
         </div>
