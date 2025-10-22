@@ -12,6 +12,7 @@ import Permissions from "../pages/admin/Permissions";
 import MentorManagement from "../pages/mentor/MentorManagement";
 import OAuthCallback from "../pages/auth/OAuthCallback";
 import MyContract from "../pages/students/MyContract";
+import AllowanceHistory from "../pages/internships/AllowanceHistory";
 import InternSchedule from "../pages/internships/InternshipSchedule"; // ✅ Thêm dòng này
 
 // Layout & Guards
@@ -172,6 +173,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredRoles={["INTERN"]}>
                   <MyContract />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/my-allowance-history"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <AllowanceHistory />
                 </AccessGuard>
               }
             />

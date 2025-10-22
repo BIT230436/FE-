@@ -22,3 +22,11 @@ export const getAllowances = () => {
 export const createAllowance = (allowanceData) => {
   return api.post(API_URL, allowanceData);
 };
+
+/**
+ * Lấy lịch sử phụ cấp của thực tập sinh
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const getMyAllowanceHistory = () => {
+  return api.get(`${API_URL}/my-history`);
+};

@@ -96,6 +96,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "💰",
       requiredRoles: ["HR", "ADMIN"],
     },
+    {
+      label: "Phụ cấp của tôi",
+      path: "/my-allowance-history",
+      icon: "💰",
+      requiredRoles: ["INTERN"],
+    },
   ];
 
   // --- Lọc menu theo role / quyền ---
