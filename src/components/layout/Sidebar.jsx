@@ -46,12 +46,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["HR"],
     },
     {
-      label: "Chương trình TT",
-      path: "/hr/internship-programs",
-      icon: "🎓",
-      requiredRoles: ["HR"],
-    },
-    {
       label: "Hợp đồng",
       icon: "📑",
       requiredRoles: ["HR"],
@@ -79,15 +73,15 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["INTERN"],
     },
     {
-      label: "Quản lý dự án",
-      path: "/admin/mentors",
-      icon: "👨‍🏫",
+      label: "Chương trình TT",
+      path: "/hr/internship-programs",
+      icon: "🎓",
       requiredRoles: ["HR"],
     },
     {
-      label: "Quản lý phòng ban",
-      path: "/hr/departments",
-      icon: "👨",
+      label: "Quản lý dự án",
+      path: "/admin/mentors",
+      icon: "👨‍🏫",
       requiredRoles: ["HR"],
     },
     {
@@ -135,7 +129,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     if (activeParent) {
       setOpenSubmenu(activeParent);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   const toggleSubmenu = (label) => {
@@ -187,7 +181,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         {visibleItems.map((item) => (
           <div key={item.label} className="sidebar-nav-item">
             <button
-              className={`sidebar-nav-btn ${pathname === item.path ? "active" : ""}`}
+              className={`sidebar-nav-btn ${
+                pathname === item.path ? "active" : ""
+              }`}
               onClick={() =>
                 item.submenuItems
                   ? toggleSubmenu(item.label)
@@ -219,7 +215,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 {item.submenuItems.map((sub) => (
                   <button
                     key={sub.path}
-                    className={`sidebar-submenu-btn ${pathname === sub.path ? "active" : ""}`}
+                    className={`sidebar-submenu-btn ${
+                      pathname === sub.path ? "active" : ""
+                    }`}
                     onClick={() => handleNavigate(sub.path)}
                   >
                     {sub.label}

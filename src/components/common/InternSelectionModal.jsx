@@ -10,7 +10,10 @@ export default function InternSelectionModal({ onClose, onSelect }) {
 
   useEffect(() => {
     const fetchInterns = async () => {
-      setLoading(true);
+      // Chỉ hiển thị loading toàn màn hình cho lần tải đầu tiên
+      if (interns.length === 0) {
+        setLoading(true);
+      }
       try {
         const response = await getInternships({ q: searchQuery, size: 50 });
         setInterns(response.data || response || []);
@@ -19,6 +22,7 @@ export default function InternSelectionModal({ onClose, onSelect }) {
         toast.error("Không thể tải danh sách thực tập sinh.");
         setInterns([]);
       } finally {
+        // Luôn tắt loading sau khi hoàn tất
         setLoading(false);
       }
     };
