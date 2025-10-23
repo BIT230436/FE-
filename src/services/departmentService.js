@@ -1,89 +1,62 @@
+// src/services/departmentService.js
 import api from "./apiClient";
+import { useAuthStore } from "../store/authStore";
 
+function getCurrentUserId() {
+  const { user } = useAuthStore.getState();
+  if (!user || !user.id)
+    throw new Error("Không tìm thấy user. Hãy đăng nhập lại!");
+  return user.id;
+}
+
+// ✅ Lấy danh sách department theo program
 export const getDepartmentsByProgram = async (programId) => {
-
-    
   try {
     const response = await api.get(`/departments/program/${programId}`);
     const rows = response.data || [];
 
     return rows.map((d) => ({
       id: d.id,
-      departmentName: d.nameDepartment,
-
-        description: d.description || "", 
-
-        capacity: d.capacity, 
+      departmentName: d.nameDepartment, // ✅ BE field: nameDepartment
+      capacity: d.capacity,
       programId: d.programId,
+      hrName: d.hrName || "Không rõ", // ✅ BE field: hrName
     }));
   } catch (error) {
-    console.error("❌ Lỗi khi lấy danh sách department:", error);
-    throw error;
+    console.error("Error fetching departments:", error);
+    return [];
   }
 };
 
+// ✅ Tạo 1 department
 export const createDepartment = async (programId, departmentData) => {
-  try {
-    const payload = {
-      departmentName: departmentData.departmentName,
-      description: departmentData.description,
-    };
+  const userId = getCurrentUserId();
 
-    const response = await api.post(
-      `/departments/program/${programId}`,
-      payload
-    );
-    return response.data;
-  } catch (error) {
-    console.error("❌ Lỗi khi tạo department:", error);
-    throw error;
-  }
+  console.log("=== DEBUG SERVICE CREATE ===");
+  console.log("User ID:", userId);
+  console.log("Program ID:", programId);
+  console.log(
+    "Request URL:",
+    `/departments/program/${programId}/user/${userId}`
+  );
+  console.log("Request Body:", departmentData);
+  console.log("============================");
+
+  const response = await api.post(
+    `/departments/program/${programId}/user/${userId}`,
+    departmentData
+  );
+  return response.data;
 };
 
-export const createDepartmentsBatch = async (programId, departments) => {
-  try {
-    const payload = departments.map((d) => ({
-      departmentName: d.departmentName,
-      description: d.description,
-    }));
-
-    const response = await api.post(
-      `/departments/program/${programId}/batch`,
-      payload
-    );
-    return response.data;
-  } catch (error) {
-    console.error("❌ Lỗi khi tạo nhiều department:", error);
-    throw error;
-  }
-};
-
-export const getAllDepartments = async () => {
-  try {
-    const response = await api.get("/departments");
-    return response.data;
-  } catch (error) {
-    console.error("❌ Lỗi khi lấy tất cả department:", error);
-    throw error;
-  }
-};
-
+// ✅ Cập nhật department
 export const updateDepartment = async (id, departmentData) => {
-  try {
-    const response = await api.put(`/departments/${id}`, departmentData);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Lỗi khi cập nhật department:", error);
-    throw error;
-  }
+  const response = await api.put(`/departments/${id}`, departmentData);
+  return response.data;
 };
 
+// ✅ Xoá department
 export const deleteDepartment = async (id) => {
-  try {
-    const response = await api.delete(`/departments/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Lỗi khi xóa department:", error);
-    throw error;
-  }
+  const response = await api.delete(`/departments/${id}`);
+  return response.data;
 };

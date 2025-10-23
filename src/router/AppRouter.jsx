@@ -134,14 +134,22 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+
+            {/* 🔴 XÓA ROUTE CŨ: path="/hr/departments" 
+                Nếu bạn đã loại bỏ chế độ quản lý chung, route này không cần thiết nữa.
+                Nếu bạn vẫn cần nó cho menu, hãy giữ lại nó, nhưng thêm route dynamic sau.
+            */}
+
+            {/* 🟢 THÊM ROUTE DYNAMIC CHO CHI TIẾT PHÒNG BAN THEO CHƯƠNG TRÌNH */}
             <Route
-              path="/hr/departments"
+              path="/hr/departments/:programId" // <-- Đã thêm tham số :programId
               element={
                 <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <DepartmentManagement />
                 </AccessGuard>
               }
             />
+
             <Route
               path="/hr/allowances"
               element={
