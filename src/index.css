@@ -24,6 +24,28 @@ body {
   min-height: 100vh;
 }
 
+.app-date-picker {
+  width: 100%;
+  box-sizing: border-box;
+  background: #f8fbff;
+  border: 1px solid #e3eaf2;
+  border-radius: 8px;
+  box-shadow: none;
+  padding: 10px 14px;
+  height: 39px;
+  display: flex;
+  align-items: center;
+}
+
+.app-date-picker .ant-picker-input > input {
+  font-size: 15px;
+}
+
+.app-date-picker.ant-picker-focused,
+.app-date-picker:hover {
+  border-color: #2b7cff;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;

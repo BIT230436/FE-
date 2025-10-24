@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
+import dayjs from "dayjs";
+import { DatePicker } from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuthStore } from "../../store/authStore";
@@ -299,8 +301,8 @@ function CreateProgramModal({ onClose, onCreate }) {
   const user = useAuthStore((state) => state.user);
 
   const [programName, setProgramName] = useState("");
-  const [dateCreate, setDateCreate] = useState("");
-  const [dateEnd, setDateEnd] = useState("");
+  const [dateCreate, setDateCreate] = useState(null);
+  const [dateEnd, setDateEnd] = useState(null);
   const [description, setDescription] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
 
@@ -310,7 +312,7 @@ function CreateProgramModal({ onClose, onCreate }) {
       errors.programName = "Tên chương trình không được để trống";
     if (!dateCreate) errors.dateCreate = "Ngày bắt đầu không được để trống";
     if (!dateEnd) errors.dateEnd = "Ngày kết thúc không được để trống";
-    else if (new Date(dateEnd) < new Date(dateCreate))
+    else if (dateCreate && dateEnd && dateEnd.isBefore(dateCreate, "day"))
       errors.dateEnd = "Ngày kết thúc phải sau ngày bắt đầu";
 
     return errors;
@@ -337,8 +339,8 @@ function CreateProgramModal({ onClose, onCreate }) {
 
     const payload = {
       programName: programName.trim(),
-      dateCreate: dateCreate, // Định dạng YYYY-MM-DD
-      dateEnd: dateEnd, // Định dạng YYYY-MM-DD
+      dateCreate: dateCreate ? dateCreate.format("YYYY-MM-DD") : "",
+      dateEnd: dateEnd ? dateEnd.format("YYYY-MM-DD") : "",
       description: description.trim(),
       userId, // ID của người tạo (HR)
     };
@@ -355,7 +357,7 @@ function CreateProgramModal({ onClose, onCreate }) {
           <div className="form-group">
             <label>Tên chương trình *</label>
             <input
-              className={`form-input ${
+              className={`   ${
                 validationErrors.programName ? "input-error" : ""
               }`}
               value={programName}
@@ -372,13 +374,13 @@ function CreateProgramModal({ onClose, onCreate }) {
           <div className="form-row">
             <div className="form-group">
               <label>Ngày bắt đầu *</label>
-              <input
-                type="date"
-                className={`form-input ${
-                  validationErrors.dateCreate ? "input-error" : ""
-                }`}
+              <DatePicker
+                format="YYYY-MM-DD"
                 value={dateCreate}
-                onChange={(e) => setDateCreate(e.target.value)}
+                onChange={(value) => setDateCreate(value)}
+                className="app-date-picker"
+                status={validationErrors.dateCreate ? "error" : undefined}
+                showToday={false}
               />
               {validationErrors.dateCreate && (
                 <div className="error-message">
@@ -389,13 +391,13 @@ function CreateProgramModal({ onClose, onCreate }) {
 
             <div className="form-group">
               <label>Ngày kết thúc *</label>
-              <input
-                type="date"
-                className={`form-input ${
-                  validationErrors.dateEnd ? "input-error" : ""
-                }`}
+              <DatePicker
+                format="YYYY-MM-DD"
                 value={dateEnd}
-                onChange={(e) => setDateEnd(e.target.value)}
+                onChange={(value) => setDateEnd(value)}
+                className="app-date-picker"
+                status={validationErrors.dateEnd ? "error" : undefined}
+                showToday={false}
               />
               {validationErrors.dateEnd && (
                 <div className="error-message">{validationErrors.dateEnd}</div>
@@ -549,8 +551,12 @@ ViewProgramModal.propTypes = {
 function EditProgramModal({ program, onClose, onSave }) {
   // Lấy giá trị hiện tại của program để khởi tạo state
   const [programName, setProgramName] = useState(program.programName);
-  const [dateCreate, setDateCreate] = useState(program.dateCreate);
-  const [dateEnd, setDateEnd] = useState(program.dateEnd);
+  const [dateCreate, setDateCreate] = useState(
+    program.dateCreate ? dayjs(program.dateCreate) : null
+  );
+  const [dateEnd, setDateEnd] = useState(
+    program.dateEnd ? dayjs(program.dateEnd) : null
+  );
   const [description, setDescription] = useState(program.description);
   const [validationErrors, setValidationErrors] = useState({});
 
@@ -560,7 +566,7 @@ function EditProgramModal({ program, onClose, onSave }) {
       errors.programName = "Tên chương trình không được để trống";
     if (!dateCreate) errors.dateCreate = "Ngày bắt đầu không được để trống";
     if (!dateEnd) errors.dateEnd = "Ngày kết thúc không được để trống";
-    else if (new Date(dateEnd) < new Date(dateCreate))
+    else if (dateCreate && dateEnd && dateEnd.isBefore(dateCreate, "day"))
       errors.dateEnd = "Ngày kết thúc phải sau ngày bắt đầu";
 
     return errors;
@@ -580,8 +586,8 @@ function EditProgramModal({ program, onClose, onSave }) {
     onSave({
       id: program.id, // Đảm bảo ID được gửi đi để cập nhật
       programName: programName.trim(),
-      dateCreate,
-      dateEnd,
+      dateCreate: dateCreate ? dateCreate.format("YYYY-MM-DD") : "",
+      dateEnd: dateEnd ? dateEnd.format("YYYY-MM-DD") : "",
       description: description.trim(),
       // Giữ lại các trường khác (như hrId) nếu cần
       hrId: program.hrId, // Hoặc thông tin người tạo cũ
@@ -614,13 +620,13 @@ function EditProgramModal({ program, onClose, onSave }) {
           <div className="form-row">
             <div className="form-group">
               <label>Ngày bắt đầu *</label>
-              <input
-                type="date"
-                className={`form-input ${
-                  validationErrors.dateCreate ? "input-error" : ""
-                }`}
+              <DatePicker
+                format="YYYY-MM-DD"
                 value={dateCreate}
-                onChange={(e) => setDateCreate(e.target.value)}
+                onChange={(value) => setDateCreate(value)}
+                className="app-date-picker"
+                status={validationErrors.dateCreate ? "error" : undefined}
+                showToday={false}
               />
               {validationErrors.dateCreate && (
                 <div className="error-message">
@@ -630,13 +636,13 @@ function EditProgramModal({ program, onClose, onSave }) {
             </div>
             <div className="form-group">
               <label>Ngày kết thúc *</label>
-              <input
-                type="date"
-                className={`form-input ${
-                  validationErrors.dateEnd ? "input-error" : ""
-                }`}
+              <DatePicker
+                format="YYYY-MM-DD"
                 value={dateEnd}
-                onChange={(e) => setDateEnd(e.target.value)}
+                onChange={(value) => setDateEnd(value)}
+                className="app-date-picker"
+                status={validationErrors.dateEnd ? "error" : undefined}
+                showToday={false}
               />
               {validationErrors.dateEnd && (
                 <div className="error-message">{validationErrors.dateEnd}</div>

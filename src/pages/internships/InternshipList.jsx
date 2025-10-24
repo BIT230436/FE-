@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import dayjs from "dayjs";
+import { DatePicker } from "antd";
 import "./InternshipList.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -372,8 +374,8 @@ function CreateInternshipModal({
   const [school, setSchool] = useState("");
   const [major, setMajor] = useState("");
   const [status, setStatus] = useState("active");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   const [validationErrors, setValidationErrors] = useState({});
   const [showSelectIntern, setShowSelectIntern] = useState(false);
@@ -420,9 +422,15 @@ function CreateInternshipModal({
       school: school.trim() || undefined,
       major: major.trim() || undefined,
       status,
-      startDate,
-      endDate,
+      startDate: startDate ? startDate.format("YYYY-MM-DD") : "",
+      endDate: endDate ? endDate.format("YYYY-MM-DD") : "",
     });
+  };
+
+  const handleDateChange = (setter, field) => (value) => {
+    setter(value);
+    if (validationErrors[field])
+      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
   const handleInputChange = (setter, field) => (e) => {
@@ -566,14 +574,14 @@ function CreateInternshipModal({
               <label className="form-label" htmlFor="start">
                 Ngày bắt đầu <span style={{ color: "red" }}>*</span>
               </label>
-              <input
+              <DatePicker
                 id="start"
-                type="date"
-                className={`form-input ${
-                  validationErrors.startDate ? "input-error" : ""
-                }`}
+                format="YYYY-MM-DD"
                 value={startDate}
-                onChange={handleInputChange(setStartDate, "startDate")}
+                onChange={handleDateChange(setStartDate, "startDate")}
+                className="app-date-picker"
+                status={validationErrors.startDate ? "error" : undefined}
+                showToday={false}
               />
               {validationErrors.startDate && (
                 <div className="error-message">
@@ -585,14 +593,14 @@ function CreateInternshipModal({
               <label className="form-label" htmlFor="end">
                 Ngày kết thúc <span style={{ color: "red" }}>*</span>
               </label>
-              <input
+              <DatePicker
                 id="end"
-                type="date"
-                className={`form-input ${
-                  validationErrors.endDate ? "input-error" : ""
-                }`}
+                format="YYYY-MM-DD"
                 value={endDate}
-                onChange={handleInputChange(setEndDate, "endDate")}
+                onChange={handleDateChange(setEndDate, "endDate")}
+                className="app-date-picker"
+                status={validationErrors.endDate ? "error" : undefined}
+                showToday={false}
               />
               {validationErrors.endDate && (
                 <div className="error-message">{validationErrors.endDate}</div>
@@ -693,8 +701,12 @@ function EditInternshipModal({ data, onClose, onSave }) {
   const [school, setSchool] = useState(data.school || "");
   const [major, setMajor] = useState(data.major || "");
   const [status, setStatus] = useState(data.status || "active");
-  const [startDate, setStartDate] = useState(data.startDate || "");
-  const [endDate, setEndDate] = useState(data.endDate || "");
+  const [startDate, setStartDate] = useState(
+    data.startDate ? dayjs(data.startDate) : null
+  );
+  const [endDate, setEndDate] = useState(
+    data.endDate ? dayjs(data.endDate) : null
+  );
   const [validationErrors, setValidationErrors] = useState({});
 
   const validate = (d) => {
@@ -843,13 +855,13 @@ function EditInternshipModal({ data, onClose, onSave }) {
               <label className="form-label">
                 Ngày bắt đầu <span style={{ color: "red" }}>*</span>
               </label>
-              <input
-                type="date"
-                className={`form-input ${
-                  validationErrors.startDate ? "input-error" : ""
-                }`}
+              <DatePicker
+                format="YYYY-MM-DD"
                 value={startDate}
-                onChange={handleInputChange(setStartDate, "startDate")}
+                onChange={handleDateChange(setStartDate, "startDate")}
+                className="app-date-picker"
+                status={validationErrors.startDate ? "error" : undefined}
+                showToday={false}
               />
               {validationErrors.startDate && (
                 <div className="error-message">
@@ -861,13 +873,13 @@ function EditInternshipModal({ data, onClose, onSave }) {
               <label className="form-label">
                 Ngày kết thúc <span style={{ color: "red" }}>*</span>
               </label>
-              <input
-                type="date"
-                className={`form-input ${
-                  validationErrors.endDate ? "input-error" : ""
-                }`}
+              <DatePicker
+                format="YYYY-MM-DD"
                 value={endDate}
-                onChange={handleInputChange(setEndDate, "endDate")}
+                onChange={handleDateChange(setEndDate, "endDate")}
+                className="app-date-picker"
+                status={validationErrors.endDate ? "error" : undefined}
+                showToday={false}
               />
               {validationErrors.endDate && (
                 <div className="error-message">{validationErrors.endDate}</div>

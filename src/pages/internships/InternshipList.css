@@ -316,6 +316,7 @@ body {
   background: #f8fbff;
   transition: border 0.18s;
 }
+
 .form-input:focus,
 .form-select:focus {
   border-color: var(--primary);

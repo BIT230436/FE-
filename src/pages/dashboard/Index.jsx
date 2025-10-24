@@ -3,11 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import "./dashboard.css";
 import { getUsers } from "../../services/adminService";
+import { getInternships } from "../../services/internshipService";
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [userCount, setUserCount] = useState(null);
+  const [profileCount, setProfileCount] = useState(null);
+
 
   useEffect(() => {
     console.log("Dashboard - Current user:", user);
@@ -18,20 +22,43 @@ export default function Dashboard() {
     }
   }, [user, navigate]);
 
-  // Load total user count for dashboard
+  // Tổng số người dùng
   useEffect(() => {
     let mounted = true;
     async function fetchUserCount() {
       try {
         const data = await getUsers({ q: "", role: "", status: "" });
-        // backend returns totalUsers (actual count) and total (filtered page size)
+        // Cố gắng lấy totalUsers trước, nếu không có thì lấy total hoặc 0
         if (mounted) setUserCount(data.totalUsers ?? data.total ?? 0);
+
+        
       } catch (err) {
         console.error("Failed to load user count", err);
         if (mounted) setUserCount(0);
       }
     }
     fetchUserCount();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+// Tổng số hồ sơ thực tập sinh
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchProfileCount() {
+      try {
+        // Gọi API /intern-profiles?page=0&size=1 để lấy totalElements
+        const data = await getInternships({ page: 0, size: 1 });
+        const total = data.pagination?.totalElements ?? 0;
+        if (mounted) setProfileCount(total);
+      } catch (err) {
+        console.error("Failed to load intern profile count", err);
+        if (mounted) setProfileCount(0);
+      }
+    }
+
+    fetchProfileCount();
     return () => {
       mounted = false;
     };
@@ -62,7 +89,7 @@ export default function Dashboard() {
     },
     {
       label: "Hồ sơ",
-      value: 10,
+      value: profileCount ?? "loading...",
       icon: "📄",
       bg: "#ffeaea",
     },
