@@ -38,14 +38,13 @@ export async function getInternMentorAssignment(internId) {
 
 // Get all intern-mentor assignments with filtering
 export async function getMentorAssignments(filters = {}) {
-  const params = new URLSearchParams();
+  let url = "/mentors/assignments";
 
-  // Backend chỉ accept mentorId param
-  if (filters.mentorId) params.append("mentorId", filters.mentorId);
+  // ✅ chỉ thêm query param khi có giá trị thật sự
+  if (filters.mentorId !== undefined && filters.mentorId !== null && filters.mentorId !== "") {
+    url += `?mentorId=${encodeURIComponent(filters.mentorId)}`;
+  }
 
-  const queryString = params.toString();
-  const url = queryString ? `/mentors/assignments?${queryString}` : `/mentors/assignments`;
-  
   const { data } = await api.get(url);
   return data;
 }
