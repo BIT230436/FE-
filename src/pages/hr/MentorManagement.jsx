@@ -32,14 +32,15 @@ const MentorManagement = () => {
     setLoading(true);
     try {
       // Fetch all necessary data in parallel
-      const [mentorsRes, assignmentsResponse, internshipsRes] = await Promise.all([
-        getUsers({ role: "MENTOR", size: 1000 }),
-        getMentorAssignments({}).catch((err) => {
-          console.error("Failed to fetch assignments:", err);
-          return { data: [] }; // Return empty data on error
-        }),
-        getInternships({ size: 1000 }),
-      ]);
+      const [mentorsRes, assignmentsResponse, internshipsRes] =
+        await Promise.all([
+          getUsers({ role: "MENTOR", size: 1000 }),
+          getMentorAssignments({}).catch((err) => {
+            console.error("Failed to fetch assignments:", err);
+            return { data: [] }; // Return empty data on error
+          }),
+          getInternships({ size: 1000 }),
+        ]);
 
       const mentors = mentorsRes.content || [];
 
@@ -63,7 +64,8 @@ const MentorManagement = () => {
       allAssignments.forEach((assignment) => {
         const mentorName = mentorMap.get(assignment.mentor_id) || "N/A";
         const internData = internMap.get(assignment.intern_id);
-        const programId = internData?.programId || assignment.program_id || "N/A";
+        const programId =
+          internData?.programId || assignment.program_id || "N/A";
         const internName = internData?.name || "N/A";
 
         // Create unique key: mentor_id + program_id
@@ -107,13 +109,17 @@ const MentorManagement = () => {
   }, [fetchData]);
 
   const handleUnassignGroup = async (mentorId, programId, interns) => {
-    if (globalThis.confirm(`Bạn có chắc chắn muốn hủy phân công cho Nhóm ${programId} (${interns.length} thực tập sinh)?`)) {
+    if (
+      globalThis.confirm(
+        `Bạn có chắc chắn muốn hủy phân công cho Nhóm ${programId} (${interns.length} thực tập sinh)?`
+      )
+    ) {
       try {
         // Unassign all interns in the group
         const unassignPromises = interns.map((intern) =>
           unassignMentor(intern.intern_id, mentorId)
         );
-        
+
         await Promise.all(unassignPromises);
         toast.success("Đã hủy phân công thành công.");
         fetchData(); // Refetch data to update the list
@@ -126,7 +132,7 @@ const MentorManagement = () => {
   return (
     <div className="mentor-management-container">
       <div className="page-header">
-        <h1 className="page-title">Quản lý Mentor</h1>
+        <h1 className="page-title">Quản lý dự án</h1>
         <button
           className="btn btn-primary"
           onClick={() => setShowAddModal(true)}
@@ -169,11 +175,11 @@ const MentorManagement = () => {
                 {assignment.interns && assignment.interns.length > 0 ? (
                   <>
                     {assignment.interns.map((intern, idx) => (
-                      <div key={intern.intern_id}>
-                        {intern.name}
-                      </div>
+                      <div key={intern.intern_id}>{intern.name}</div>
                     ))}
-                    <div style={{ marginTop: 4, fontSize: "0.9em", color: "#666" }}>
+                    <div
+                      style={{ marginTop: 4, fontSize: "0.9em", color: "#666" }}
+                    >
                       ({assignment.interns.length} thực tập sinh)
                     </div>
                   </>
@@ -184,7 +190,11 @@ const MentorManagement = () => {
               <td>
                 <button
                   onClick={() =>
-                    handleUnassignGroup(assignment.mentor_id, assignment.programId, assignment.interns || [])
+                    handleUnassignGroup(
+                      assignment.mentor_id,
+                      assignment.programId,
+                      assignment.interns || []
+                    )
                   }
                   className="delete-button"
                 >
@@ -233,19 +243,19 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
 
         // Lấy mentors từ users có role MENTOR
         setAvailableMentors(allMentorsRes.content || []);
-        
+
         // Nhóm các intern theo program_id
         const internships = allInternshipsRes.data || [];
         const groupMap = new Map();
-        
+
         console.log("Sample intern data:", internships[0]);
-        
+
         internships.forEach((intern) => {
           // Dữ liệu từ API có program_id trực tiếp trong object, không phải nested
           const programId = intern.program_id;
           // Hiển thị "Nhóm {program_id}" thay vì tên chương trình
           const programTitle = `Nhóm ${programId}`;
-          
+
           if (programId) {
             if (!groupMap.has(programId)) {
               groupMap.set(programId, {
@@ -255,22 +265,22 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
                 hasAssignedIntern: false,
               });
             }
-            
+
             const group = groupMap.get(programId);
             group.interns.push(intern);
-            
+
             // Kiểm tra xem có intern nào trong nhóm đã được phân công chưa
             if (assignedInternIds.has(intern.intern_id)) {
               group.hasAssignedIntern = true;
             }
           }
         });
-        
+
         // Chỉ hiển thị các nhóm chưa có intern nào được phân công
         const groups = Array.from(groupMap.values())
-          .filter(group => !group.hasAssignedIntern)
+          .filter((group) => !group.hasAssignedIntern)
           .sort((a, b) => a.programId - b.programId);
-        
+
         console.log("Available groups:", groups);
         setAvailableGroups(groups);
       } catch (error) {
@@ -283,11 +293,11 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     console.log("handleSubmit called!");
     console.log("selectedMentor:", selectedMentor);
     console.log("selectedGroup:", selectedGroup);
-    
+
     if (!selectedMentor || !selectedGroup) {
       console.log("Validation failed - missing mentor or group");
       toast.error("Vui lòng chọn mentor và nhóm.");
@@ -298,7 +308,7 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
     const selectedGroupData = availableGroups.find(
       (g) => g.programId === Number(selectedGroup)
     );
-    
+
     if (!selectedGroupData || selectedGroupData.interns.length === 0) {
       toast.error("Nhóm không hợp lệ hoặc không có thành viên.");
       return;
@@ -314,14 +324,14 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
           internId: intern.intern_id,
         })
       );
-      
+
       const results = await Promise.all(assignmentPromises);
-      
+
       console.log("Assignment results:", results);
-      
+
       // Kiểm tra xem có lỗi nào không
       const failedAssignments = results.filter((r) => !r.success);
-      
+
       if (failedAssignments.length === 0) {
         toast.success(
           `Phân công thành công cho ${selectedGroupData.interns.length} thực tập sinh!`
@@ -330,7 +340,9 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
         onClose();
       } else if (failedAssignments.length < results.length) {
         toast.warning(
-          `Phân công thành công cho ${results.length - failedAssignments.length}/${results.length} thực tập sinh.`
+          `Phân công thành công cho ${
+            results.length - failedAssignments.length
+          }/${results.length} thực tập sinh.`
         );
         onAssignmentCreated();
         onClose();
@@ -341,7 +353,10 @@ function AssignMentorModal({ onClose, onAssignmentCreated }) {
       console.error("Failed to assign mentor:", error);
       console.error("Error response:", error?.response);
       console.error("Error data:", error?.response?.data);
-      const errorMsg = error?.response?.data?.message || error?.message || "Phân công thất bại.";
+      const errorMsg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Phân công thất bại.";
       toast.error(errorMsg);
     }
   };
