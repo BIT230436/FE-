@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { DatePicker } from "antd";
 import { ToastContainer, toast } from "react-toastify";
+
 import "react-toastify/dist/ReactToastify.css";
 
 import InternSelectionModal from "../../components/common/InternSelectionModal";
@@ -204,7 +206,8 @@ function CreateAllowanceModal({ onClose, onCreate }) {
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [allowanceType, setAllowanceType] = useState("Ăn trưa");
   const [amount, setAmount] = useState("");
-  const [applyDate, setApplyDate] = useState("");
+  const [applyDate, setApplyDate] = useState(null);
+
   const [note, setNote] = useState("");
   const [showInternModal, setShowInternModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -215,6 +218,7 @@ function CreateAllowanceModal({ onClose, onCreate }) {
     if (!allowanceType) errors.type = "Vui lòng chọn loại phụ cấp";
     if (!amount || amount <= 0) errors.amount = "Số tiền phải là số dương";
     if (!applyDate) errors.date = "Vui lòng chọn ngày áp dụng";
+
     return errors;
   };
 
@@ -232,7 +236,8 @@ function CreateAllowanceModal({ onClose, onCreate }) {
       internId: selectedIntern?.intern_id || selectedIntern?.id,
       allowanceType: allowanceType,  // Backend expects "allowType"
       amount: parseFloat(amount),
-      date: applyDate,           // Backend expects "date"
+      date: applyDate ? applyDate.format("YYYY-MM-DD") : "",           // Backend expects "date"
+
       note: note || "",          // Optional
     });
   };
@@ -312,15 +317,16 @@ function CreateAllowanceModal({ onClose, onCreate }) {
             </div>
             <div className="form-group">
               <label htmlFor="apply-date">Ngày áp dụng *</label>
-              <input
+              <DatePicker
                 id="apply-date"
-                type="date"
-                className={`form-input ${
-                  validationErrors.date ? "input-error" : ""
-                }`}
+                format="YYYY-MM-DD"
                 value={applyDate}
-                onChange={(e) => setApplyDate(e.target.value)}
+                onChange={(value) => setApplyDate(value)}
+                className="app-date-picker"
+                status={validationErrors.date ? "error" : undefined}
+                showToday={false}
               />
+
               {validationErrors.date && (
                 <div className="error-message">{validationErrors.date}</div>
               )}
