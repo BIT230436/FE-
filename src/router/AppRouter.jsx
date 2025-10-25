@@ -9,7 +9,8 @@ import Dashboard from "../pages/dashboard/Index";
 import InternshipList from "../pages/internships/InternshipList";
 import Users from "../pages/admin/Users";
 import Permissions from "../pages/admin/Permissions";
-import MentorManagement from "../pages/mentor/MentorManagement";
+import MentorManagement from "../pages/hr/MentorManagement";
+import ProjectManagement from "../pages/mentor/ProjectManagement";
 import OAuthCallback from "../pages/auth/OAuthCallback";
 import MyContract from "../pages/students/MyContract";
 import AllowanceHistory from "../pages/internships/AllowanceHistory";
@@ -91,6 +92,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <MentorManagement />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/mentor/projects"
+              element={
+                <AccessGuard requiredRoles={["MENTOR", "ADMIN"]}>
+                  <ProjectManagement />
                 </AccessGuard>
               }
             />

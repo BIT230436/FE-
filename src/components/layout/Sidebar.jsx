@@ -80,6 +80,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     },
     {
       label: "Quản lý dự án",
+      path: "/mentor/projects",
+      icon: "📁",
+      requiredRoles: ["MENTOR", "ADMIN"],
+    },
+    {
+      label: "Quản lý dự án",
       path: "/admin/mentors",
       icon: "👨‍🏫",
       requiredRoles: ["HR"],

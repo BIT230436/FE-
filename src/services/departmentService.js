@@ -9,7 +9,7 @@ function getCurrentUserId() {
   return user.id;
 }
 
-// ✅ Lấy danh sách department theo program
+// ✅ Lấy danh sách department theo 1 chương trình (programId)
 export const getDepartmentsByProgram = async (programId) => {
   try {
     const response = await api.get(`/departments/program/${programId}`);
@@ -17,10 +17,10 @@ export const getDepartmentsByProgram = async (programId) => {
 
     return rows.map((d) => ({
       id: d.id,
-      departmentName: d.nameDepartment, // ✅ BE field: nameDepartment
+      departmentName: d.nameDepartment, // field trong BE
       capacity: d.capacity,
       programId: d.programId,
-      hrName: d.hrName || "Không rõ", // ✅ BE field: hrName
+      hrName: d.hrName || "Không rõ",
     }));
   } catch (error) {
     console.error("Error fetching departments:", error);
@@ -28,20 +28,9 @@ export const getDepartmentsByProgram = async (programId) => {
   }
 };
 
-// ✅ Tạo 1 department
+// ✅ Tạo 1 department mới
 export const createDepartment = async (programId, departmentData) => {
   const userId = getCurrentUserId();
-
-  console.log("=== DEBUG SERVICE CREATE ===");
-  console.log("User ID:", userId);
-  console.log("Program ID:", programId);
-  console.log(
-    "Request URL:",
-    `/departments/program/${programId}/user/${userId}`
-  );
-  console.log("Request Body:", departmentData);
-  console.log("============================");
-
   const response = await api.post(
     `/departments/program/${programId}/user/${userId}`,
     departmentData
@@ -59,4 +48,61 @@ export const updateDepartment = async (id, departmentData) => {
 export const deleteDepartment = async (id) => {
   const response = await api.delete(`/departments/${id}`);
   return response.data;
+};
+
+// ✅ Lấy danh sách mentor trong 1 department
+export const getMentorsByDepartment = async (departmentId) => {
+  try {
+    const response = await api.get(`/departments/${departmentId}/mentors`);
+    const mentors = response.data || [];
+    
+    
+    return mentors.map(m => ({
+      id: m.mentorId,          
+      name: m.mentorName,       
+      fullName: m.mentorName,    
+      departmentId: m.departmentId,
+      departmentName: m.departmentName
+    }));
+  } catch (error) {
+    console.error("Error fetching mentors:", error);
+    return [];
+  }
+};
+
+// ✅ Thêm mentor vào department
+export const addMentorToDepartment = async (departmentId, mentorId) => {
+  try {
+    const response = await api.post(
+      `/departments/${departmentId}/mentors/${mentorId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error adding mentor to department:", error);
+    throw error;
+  }
+};
+
+// ✅ Cập nhật mentor sang department khác
+export const updateMentorDepartment = async (mentorId, newDepartmentId) => {
+  try {
+    const response = await api.put(
+      `/departments/mentors/${mentorId}/department/${newDepartmentId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating mentor department:", error);
+    throw error;
+  }
+};
+
+// ✅ Xóa mentor khỏi department
+export const removeMentorFromDepartment = async (mentorId) => {
+  try {
+    const response = await api.delete(`/departments/mentors/${mentorId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error removing mentor from department:", error);
+    throw error;
+  }
 };
