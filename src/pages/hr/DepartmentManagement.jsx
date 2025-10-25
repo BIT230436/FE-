@@ -1,3 +1,4 @@
+DepartmentModal; // src/pages/hr/DepartmentManagement.jsx
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { ToastContainer, toast } from "react-toastify";
@@ -13,7 +14,12 @@ import {
   updateMentorDepartment,
   removeMentorFromDepartment,
 } from "../../services/departmentService";
+// ⚠️ Đảm bảo bạn có hàm này. Nếu tên khác, hãy sửa lại đúng service của bạn.
+import { getMentors } from "../../services/mentorService";
 
+import "./DepartmentManagement.css";
+
+// ===================== DepartmentManagement (PAGE) =====================
 export default function DepartmentManagement() {
   const { programId } = useParams();
   const navigate = useNavigate();
@@ -38,7 +44,8 @@ export default function DepartmentManagement() {
     } else {
       loadDepartmentsAndMentors(programId);
     }
-  }, [programId, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [programId]);
 
   async function loadDepartmentsAndMentors(progId) {
     try {
@@ -48,7 +55,6 @@ export default function DepartmentManagement() {
       const mentorPromises = depts.map((dept) =>
         getMentorsByDepartment(dept.id)
       );
-
       const mentorsData = await Promise.all(mentorPromises);
 
       const combined = depts.map((dept, i) => ({
@@ -74,7 +80,7 @@ export default function DepartmentManagement() {
     try {
       const payload = {
         nameDepartment: data.name,
-        capacity: data.capacity || null,
+        capacity: data.capacity ?? null,
       };
 
       await createDepartment(programId, payload);
@@ -93,7 +99,7 @@ export default function DepartmentManagement() {
       const payload = {
         nameDepartment: data.name,
         description: data.description,
-        capacity: data.capacity || null,
+        capacity: data.capacity ?? null,
       };
 
       await updateDepartment(id, payload);
@@ -163,13 +169,14 @@ export default function DepartmentManagement() {
   };
 
   const filteredDepartments = departments.filter((dept) =>
-    dept.departmentName?.toLowerCase().includes(filterText.toLowerCase())
+    (dept.departmentName || "").toLowerCase().includes(filterText.toLowerCase())
   );
 
-  if (loading)
+  if (loading) {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>Đang tải...</div>
     );
+  }
 
   return (
     <div className="page-container">
@@ -194,11 +201,11 @@ export default function DepartmentManagement() {
         </button>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div style={{ padding: 16 }}>
+      <div className="card">
+        <div className="card-padding">
           <input
             type="text"
-            className="form-input"
+            className="search-input"
             placeholder="🔍 Tìm kiếm theo tên phòng ban..."
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
@@ -214,7 +221,7 @@ export default function DepartmentManagement() {
               : "Chưa có phòng ban nào trong chương trình này."}
           </div>
         ) : (
-          <table className="table">
+          <table className="dept-table">
             <thead>
               <tr>
                 <th>STT</th>
@@ -222,7 +229,7 @@ export default function DepartmentManagement() {
                 <th>Mentor</th>
                 <th>Sức chứa</th>
                 <th>Người tạo</th>
-                <th style={{ textAlign: "center" }}>Hành động</th>
+                <th>Hành động</th>
               </tr>
             </thead>
             <tbody>
@@ -231,37 +238,11 @@ export default function DepartmentManagement() {
                   <td>{index + 1}</td>
                   <td>
                     <strong>{dept.departmentName}</strong>
-                    <div style={{ marginTop: 4 }}>
-                      <button
-                        className="btn btn-warning btn-xs"
-                        onClick={() => setEditingDepartment(dept)}
-                      >
-                        ✏️ Sửa
-                      </button>
-                      <button
-                        className="btn btn-danger btn-xs"
-                        style={{ marginLeft: 4 }}
-                        onClick={() => handleDeleteDepartment(dept.id)}
-                      >
-                        🗑️ Xóa
-                      </button>
-                    </div>
                   </td>
                   <td>
-                    {dept.mentors.length > 0 ? (
+                    {dept.mentors?.length > 0 ? (
                       dept.mentors.map((m) => (
-                        <div
-                          key={m.id}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            marginBottom: 4,
-                            background: "#f9f9f9",
-                            padding: "4px 8px",
-                            borderRadius: 4,
-                          }}
-                        >
+                        <div key={m.id} className="mentor-item">
                           <span>👨‍🏫 {m.name || m.fullName}</span>
                           <div>
                             <button
@@ -289,20 +270,30 @@ export default function DepartmentManagement() {
                       <em style={{ color: "#999" }}>(Chưa có mentor)</em>
                     )}
                     <button
-                      className="btn btn-primary btn-xs"
-                      style={{ marginTop: 8, width: "100%" }}
+                      className="btn btn-primary mentor-button"
                       onClick={() => {
                         setSelectedDepartmentId(dept.id);
                         setShowAddMentorModal(true);
                       }}
                     >
-                      ➕ Thêm mentor
+                      Thêm mentor
                     </button>
                   </td>
                   <td>{dept.capacity ?? "—"}</td>
                   <td>{dept.hrName || "Không rõ"}</td>
-                  <td style={{ textAlign: "center" }}>
-                    <span style={{ color: "#999" }}>—</span>
+                  <td>
+                    <button
+                      className="btn btn-warning btn-sm"
+                      onClick={() => setEditingDepartment(dept)}
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleDeleteDepartment(dept.id)}
+                    >
+                      Xóa
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -355,10 +346,10 @@ export default function DepartmentManagement() {
   );
 }
 
-// Modal: Tạo / Cập nhật Department
+// ===================== DepartmentModal =====================
 function DepartmentModal({ department, onClose, onSave }) {
   const [name, setName] = useState(department?.departmentName || "");
-  const [capacity, setCapacity] = useState(department?.capacity || "");
+  const [capacity, setCapacity] = useState(department?.capacity ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -370,7 +361,7 @@ function DepartmentModal({ department, onClose, onSave }) {
       setIsSubmitting(true);
       await onSave({
         name: name.trim(),
-        capacity: capacity ? parseInt(capacity) : null,
+        capacity: capacity ? parseInt(capacity, 10) : null,
       });
     } catch (error) {
       console.error("Submit error:", error);
@@ -383,7 +374,7 @@ function DepartmentModal({ department, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">
-          {department ? "✏️ Sửa phòng ban" : "➕ Tạo phòng ban mới"}
+          {department ? " Sửa phòng ban" : " Tạo phòng ban mới"}
         </h2>
 
         <form onSubmit={handleSubmit}>
@@ -423,7 +414,7 @@ function DepartmentModal({ department, onClose, onSave }) {
               className="btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Đang xử lý..." : "💾 Lưu"}
+              {isSubmitting ? "Đang xử lý..." : " Lưu"}
             </button>
           </div>
         </form>
@@ -431,28 +422,56 @@ function DepartmentModal({ department, onClose, onSave }) {
     </div>
   );
 }
-
 DepartmentModal.propTypes = {
   department: PropTypes.object,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
 };
 
-// Modal: Thêm mentor vào department
+// ===================== AddMentorModal =====================
 function AddMentorModal({ departmentId, onClose, onAdd }) {
   const [mentorId, setMentorId] = useState("");
+  const [availableMentors, setAvailableMentors] = useState([]);
+  const [loadingMentors, setLoadingMentors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Lấy danh sách mentor khi modal mở
+  useEffect(() => {
+    async function fetchMentors() {
+      setLoadingMentors(true);
+      try {
+        const response = await getMentors();
+        // Handle nếu API trả về mảng hoặc object có content
+        const mentors = Array.isArray(response)
+          ? response
+          : response.content || [];
+        setAvailableMentors(
+          mentors.map((m) => ({
+            id: m.id,
+            name: m.name,
+            fullName: m.fullName || m.name,
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to fetch mentors:", error);
+        toast.error("Không thể tải danh sách mentor.");
+      } finally {
+        setLoadingMentors(false);
+      }
+    }
+    fetchMentors();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!mentorId.trim()) {
-      return toast.error("Vui lòng nhập ID mentor.");
+    if (!mentorId) {
+      return toast.error("Vui lòng chọn một mentor.");
     }
 
     try {
       setIsSubmitting(true);
-      await onAdd(departmentId, mentorId.trim());
+      await onAdd(departmentId, mentorId);
     } catch (error) {
       console.error("Add mentor error:", error);
     } finally {
@@ -463,21 +482,30 @@ function AddMentorModal({ departmentId, onClose, onAdd }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">➕ Thêm mentor vào phòng ban</h2>
+        <h2 className="modal-title">Thêm mentor vào phòng ban</h2>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>ID Mentor *</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Nhập ID của mentor"
-              value={mentorId}
-              onChange={(e) => setMentorId(e.target.value)}
-              disabled={isSubmitting}
-            />
+            <label>Chọn Mentor *</label>
+            {loadingMentors ? (
+              <div className="loading-text">Đang tải danh sách mentor...</div>
+            ) : (
+              <select
+                className="form-input"
+                value={mentorId}
+                onChange={(e) => setMentorId(e.target.value)}
+                disabled={isSubmitting}
+              >
+                <option value="">-- Chọn mentor --</option>
+                {availableMentors.map((mentor) => (
+                  <option key={mentor.id} value={mentor.id}>
+                    {mentor.fullName || mentor.name}
+                  </option>
+                ))}
+              </select>
+            )}
             <small style={{ color: "#666", fontSize: "0.85rem" }}>
-              Lưu ý: Nhập ID mentor từ hệ thống
+              Chọn mentor từ danh sách những người có role MENTOR
             </small>
           </div>
 
@@ -495,7 +523,7 @@ function AddMentorModal({ departmentId, onClose, onAdd }) {
               className="btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Đang xử lý..." : "➕ Thêm"}
+              {isSubmitting ? "Đang xử lý..." : "Thêm"}
             </button>
           </div>
         </form>
@@ -503,7 +531,6 @@ function AddMentorModal({ departmentId, onClose, onAdd }) {
     </div>
   );
 }
-
 AddMentorModal.propTypes = {
   departmentId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
     .isRequired,
@@ -511,7 +538,7 @@ AddMentorModal.propTypes = {
   onAdd: PropTypes.func.isRequired,
 };
 
-// Modal: Chuyển mentor sang department khác
+// ===================== MoveMentorModal =====================
 function MoveMentorModal({ mentor, departments, onClose, onMove }) {
   const [newDepartmentId, setNewDepartmentId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -538,14 +565,7 @@ function MoveMentorModal({ mentor, departments, onClose, onMove }) {
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">🔄 Chuyển mentor sang phòng ban khác</h2>
 
-        <div
-          style={{
-            marginBottom: 16,
-            padding: 12,
-            background: "#f0f7ff",
-            borderRadius: 8,
-          }}
-        >
+        <div className="mentor-info">
           <strong>Mentor:</strong> {mentor.name || mentor.fullName}
         </div>
 
@@ -561,7 +581,7 @@ function MoveMentorModal({ mentor, departments, onClose, onMove }) {
               <option value="">-- Chọn phòng ban --</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>
-                  {dept.departmentName} ({dept.mentors.length} mentor)
+                  {dept.departmentName} ({dept.mentors?.length || 0} mentor)
                 </option>
               ))}
             </select>
@@ -573,7 +593,6 @@ function MoveMentorModal({ mentor, departments, onClose, onMove }) {
               className="btn-outline"
               onClick={onClose}
               disabled={isSubmitting}
-              h
             >
               Hủy
             </button>
@@ -590,7 +609,6 @@ function MoveMentorModal({ mentor, departments, onClose, onMove }) {
     </div>
   );
 }
-
 MoveMentorModal.propTypes = {
   mentor: PropTypes.object.isRequired,
   departments: PropTypes.array.isRequired,

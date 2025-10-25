@@ -50,6 +50,17 @@ export const deleteDepartment = async (id) => {
   return response.data;
 };
 
+// ✅ Xóa mentor khỏi department
+export const removeMentorFromDepartment = async (mentorId) => {
+  try {
+    const response = await api.delete(`/departments/mentors/${mentorId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error removing mentor from department:", error);
+    throw error;
+  }
+};
+
 // ✅ Lấy danh sách mentor trong 1 department
 export const getMentorsByDepartment = async (departmentId) => {
   try {
@@ -92,17 +103,6 @@ export const updateMentorDepartment = async (mentorId, newDepartmentId) => {
     return response.data;
   } catch (error) {
     console.error("Error updating mentor department:", error);
-    throw error;
-  }
-};
-
-// ✅ Xóa mentor khỏi department
-export const removeMentorFromDepartment = async (mentorId) => {
-  try {
-    const response = await api.delete(`/departments/mentors/${mentorId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error removing mentor from department:", error);
     throw error;
   }
 };
