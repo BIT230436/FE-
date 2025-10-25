@@ -6,6 +6,7 @@ import { DatePicker } from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuthStore } from "../../store/authStore";
+import "./InternshipProgramList.css";
 
 import {
   getAllPrograms,
