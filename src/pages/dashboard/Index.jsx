@@ -4,13 +4,23 @@ import { useAuthStore } from "../../store/authStore";
 import "./dashboard.css";
 import { getUsers } from "../../services/adminService";
 import { getInternships } from "../../services/internshipService";
+import { getContractTotal } from "../../services/documentService";
+import { getUserRoleStats } from "../../services/adminService";
+import { getInternStatusStats } from "../../services/internshipService";
+
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+
   const [userCount, setUserCount] = useState(null);
   const [profileCount, setProfileCount] = useState(null);
+  const [contractCount, setContractCount] = useState(null);
+  const [roleStats, setRoleStats] = useState([]);
+  const [internStats, setInternStats] = useState([]);
+
 
 
   useEffect(() => {
@@ -64,6 +74,62 @@ export default function Dashboard() {
     };
   }, []);
 
+  // Tổng số hợp đồng
+  useEffect(() => {
+    let mounted = true;
+    async function fetchContractCount() {
+      try {
+        const total = await getContractTotal();
+        if (mounted) setContractCount(total);
+      } catch (err) {
+        console.error("Failed to load contract count", err);
+        if (mounted) setContractCount(0);
+      }
+    }
+    fetchContractCount();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Thống kê số lượng user theo role
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchRoleStats() {
+      try {
+        const data = await getUserRoleStats();
+        if (mounted) setRoleStats(data);
+      } catch (err) {
+        console.error("Failed to load user role stats", err);
+      }
+    }
+
+    fetchRoleStats();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+  
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchInternStats() {
+      try {
+        const data = await getInternStatusStats();
+        if (mounted) setInternStats(data);
+      } catch (err) {
+        console.error("Failed to load intern status stats", err);
+      }
+    }
+
+    fetchInternStats();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+
   // Chỉ USER mới không được xem Dashboard
   if (user?.role === "USER") {
     return (
@@ -75,20 +141,15 @@ export default function Dashboard() {
 
   // số liệu, dùng ký tự unicode
   const stats = [
-    {
-      label: "Thực tập sinh",
-      value: 10,
-      icon: "🎓",
-      bg: "#eaf3ff",
-    },
+    
     {
       label: "Hợp đồng",
-      value: 12,
+      value: contractCount ?? "loading...",
       icon: "📑",
       bg: "#eafbe7",
     },
     {
-      label: "Hồ sơ",
+      label: "Thực tập sinh",
       value: profileCount ?? "loading...",
       icon: "📄",
       bg: "#ffeaea",
@@ -170,6 +231,66 @@ export default function Dashboard() {
           ))}
         </ul>
       </div>
+      <div className="chart-row"> 
+        {/* Biểu đồ tròn thống kê role */}
+        <div className="chart-box">
+          <h2 style={{ fontSize: 18, marginBottom: 12, color: "#2b7cff" }}>
+            Thống kê người dùng theo vai trò
+          </h2>
+
+          <PieChart width={400} height={300}>
+            <Pie
+              data={roleStats}
+              dataKey="count"
+              nameKey="role"
+              cx="50%"
+              cy="50%"
+              outerRadius={100}
+              label
+            >
+              {roleStats.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={["#0088FE", "#00C49F", "#FFBB28", "#FF8042" ,"#f620aeff"][index % 5]}
+                />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </div>
+
+        {/* Biểu đồ tròn thực tập sinh */}
+        <div className="chart-box">
+          <h2 style={{ fontSize: 18, marginBottom: 12, color: "#2b7cff" }}>
+            Thống kê trạng thái thực tập sinh
+          </h2>
+
+          <PieChart width={400} height={300}>
+            <Pie
+              data={internStats}
+              dataKey="count"
+              nameKey="status"
+              cx="50%"
+              cy="50%"
+              outerRadius={100}
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+            >
+              {internStats.map((entry, index) => (
+                <Cell
+                  key={`cell-intern-${index}`}
+                  fill={["#00C49F", "#FF8042", "#8884D8"][index % 3]}
+                />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </div>
+      </div>
+      
+
+
 
       <div
         style={{

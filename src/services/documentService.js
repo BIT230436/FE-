@@ -120,7 +120,6 @@ export async function acceptDocument(documentId, userId) {
   return response.data;
 }
 
-
 export async function getAllContracts() {
   const response = await api.get("/documents/contracts");
   const rows = response.data || [];
@@ -136,4 +135,10 @@ export async function getAllContracts() {
     uploaded_at: r.uploaded_at,
     hr_name: r.hr_name,
   }));
+}
+
+export async function getContractTotal() {
+  const response = await api.get("/documents");
+  // response.data.total là tổng số hợp đồng
+  return response.data?.total ?? 0;
 }

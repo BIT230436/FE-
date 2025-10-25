@@ -53,3 +53,9 @@ export async function approveUser(id) {
   const { data } = await api.put(`/admin/approve/${id}`);
   return data;
 }
+
+// Thống kê số lượng user theo role
+export async function getUserRoleStats() {
+  const { data } = await api.get("/admin/stats/roles");
+  return data.data || [];
+}

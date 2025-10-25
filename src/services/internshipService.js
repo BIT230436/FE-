@@ -33,7 +33,14 @@ export async function deleteInternship(id) {
   return data;
 }
 
+// Lấy thống kê thực tập sinh
 export async function getInternshipStats() {
   const { data } = await api.get("/internships/stats");
   return data;
+}
+
+// Lấy thống kê thực tập sinh theo trạng thái
+export async function getInternStatusStats() {
+  const { data } = await api.get("/intern-profiles/stats/status");
+  return data.data || [];
 }
