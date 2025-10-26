@@ -1,422 +1,394 @@
-import React, { useEffect, useState, useCallback } from "react";
-import PropTypes from "prop-types";
+// src/components/HR/HRProjectManagement.js
+import React, { useState, useEffect } from "react";
 import {
-  getMentorAssignments,
-  unassignMentor,
-  assignMentor,
-} from "../../services/mentorService";
-import { getInternships } from "../../services/internshipService";
-import { getUsers } from "../../services/adminService";
-import { toast } from "react-toastify";
+  getAllProjects,
+  addInternToProject,
+} from "../../services/projectService";
+import InternSelectionModal from "../../components/common/InternSelectionModal";
 import "./MentorManagement.css";
 
-const MentorManagement = () => {
-  const [assignments, setAssignments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [debouncedSearchText, setDebouncedSearchText] = useState("");
+export default function HRProjectManagement() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
-  // Debounce search text
+  // Load projects khi component mount
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchText(searchText);
-    }, 500);
+    loadProjects();
+  }, []);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchText]);
-
-  const fetchData = useCallback(async () => {
+  // Lấy danh sách tất cả projects
+  const loadProjects = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Fetch all necessary data in parallel
-      const [mentorsRes, assignmentsResponse, internshipsRes] =
-        await Promise.all([
-          getUsers({ role: "MENTOR", size: 1000 }),
-          getMentorAssignments({}).catch((err) => {
-            console.error("Failed to fetch assignments:", err);
-            return { data: [] }; // Return empty data on error
-          }),
-          getInternships({ size: 1000 }),
-        ]);
-
-      const mentors = mentorsRes.content || [];
-
-      // ✅ FIX: Extract data array from response object
-      const allAssignments = assignmentsResponse?.data || [];
-
-      const internships = internshipsRes.data || [];
-
-      // Create a map for quick lookup
-      const mentorMap = new Map(mentors.map((m) => [m.id, m.fullName]));
-      const internMap = new Map(
-        internships.map((i) => [
-          i.intern_id,
-          { name: i.student, programId: i.program_id },
-        ])
+      const data = await getAllProjects();
+      setProjects(data);
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Không thể tải danh sách project"
       );
-
-      // Group assignments by mentor_id and program_id
-      const groupedMap = new Map();
-
-      allAssignments.forEach((assignment) => {
-        const mentorName = mentorMap.get(assignment.mentor_id) || "N/A";
-        const internData = internMap.get(assignment.intern_id);
-        const programId =
-          internData?.programId || assignment.program_id || "N/A";
-        const internName = internData?.name || "N/A";
-
-        // Create unique key: mentor_id + program_id
-        const key = `${assignment.mentor_id}-${programId}`;
-
-        if (!groupedMap.has(key)) {
-          groupedMap.set(key, {
-            mentor_id: assignment.mentor_id,
-            mentorName: mentorName,
-            programId: programId,
-            interns: [],
-          });
-        }
-
-        groupedMap.get(key).interns.push({
-          intern_id: assignment.intern_id,
-          name: internName,
-        });
-      });
-
-      // Convert to array and filter by search text
-      let finalAssignments = Array.from(groupedMap.values());
-
-      if (debouncedSearchText) {
-        finalAssignments = finalAssignments.filter((a) =>
-          a.mentorName.toLowerCase().includes(debouncedSearchText.toLowerCase())
-        );
-      }
-
-      setAssignments(finalAssignments);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      toast.error("Không thể tải dữ liệu.");
+      console.error("Error loading projects:", err);
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearchText]);
+  };
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  // Mở modal chọn intern
+  const handleAddIntern = (project) => {
+    setSelectedProject(project);
+    setShowModal(true);
+    setSuccessMessage("");
+    setError(null);
+  };
 
-  const handleUnassignGroup = async (mentorId, programId, interns) => {
-    if (
-      globalThis.confirm(
-        `Bạn có chắc chắn muốn hủy phân công cho Nhóm ${programId} (${interns.length} thực tập sinh)?`
-      )
-    ) {
-      try {
-        // Unassign all interns in the group
-        const unassignPromises = interns.map((intern) =>
-          unassignMentor(intern.intern_id, mentorId)
-        );
+  // Xử lý thêm intern vào project
+  const handleSelectIntern = async (intern) => {
+    if (!selectedProject) return;
 
-        await Promise.all(unassignPromises);
-        toast.success("Đã hủy phân công thành công.");
-        fetchData(); // Refetch data to update the list
-      } catch (error) {
-        toast.error("Hủy phân công thất bại.");
+    setLoading(true);
+    setError(null);
+    setSuccessMessage("");
+
+    try {
+      // Lấy internId từ object
+      const internId =
+        intern?.intern_id || intern?.internProfileId || intern?.id;
+
+      console.log("=== DEBUG ADD INTERN ===");
+      console.log("Selected Project:", selectedProject);
+      console.log("Selected Intern:", intern);
+      console.log("Intern ID:", internId);
+      console.log("Project ID:", selectedProject.id);
+      console.log("=======================");
+
+      if (!internId) {
+        setError("Không tìm thấy ID thực tập sinh!");
+        setLoading(false);
+        return;
       }
+
+      await addInternToProject(selectedProject.id, internId);
+
+      setSuccessMessage(
+        `Đã thêm ${intern.student} vào project ${selectedProject.title}`
+      );
+      setShowModal(false);
+
+      // Reload projects để cập nhật danh sách
+      await loadProjects();
+
+      // Clear success message sau 3 giây
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+    } catch (err) {
+      console.error("Error adding intern:", err);
+      setError(
+        err.response?.data?.message || "Không thể thêm intern vào project"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Filter projects
+  const filteredProjects = projects.filter((project) => {
+    const matchSearch =
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (filterStatus === "all") return matchSearch;
+    if (filterStatus === "full")
+      return matchSearch && project.internNames?.length >= project.capacity;
+    if (filterStatus === "available")
+      return matchSearch && project.internNames?.length < project.capacity;
+
+    return matchSearch;
+  });
+
+  // Get status info
+  const getStatusInfo = (project) => {
+    const current = project.internNames?.length || 0;
+    const total = project.capacity || 0;
+    const isFull = current >= total;
+
+    return {
+      current,
+      total,
+      isFull,
+      percentage: total > 0 ? (current / total) * 100 : 0,
+    };
+  };
+
   return (
-    <div className="mentor-management-container">
-      <div className="page-header">
-        <h1 className="page-title">Quản lý dự án</h1>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowAddModal(true)}
-        >
-          Phân công Mentor
-        </button>
-      </div>
-
-      {/* Filters & Search */}
-      <div className="card" style={{ marginBottom: 16, padding: 16 }}>
-        <div className="form-group">
-          <label htmlFor="mentor-search" className="form-label">
-            Search by Name
-          </label>
-          <input
-            id="mentor-search"
-            className="form-input"
-            placeholder="Enter name"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
+    <div className="hr-project-management">
+      <div className="hr-project-container">
+        {/* Header */}
+        <div className="hr-project-header">
+          <div>
+            <h1>Quản lý Dự án</h1>
+            <p className="header-subtitle">
+              Quản lý và phân công thực tập sinh vào các dự án
+            </p>
+          </div>
+          <button
+            className="btn-refresh"
+            onClick={loadProjects}
+            disabled={loading}
+          >
+            🔄 Làm mới
+          </button>
         </div>
+
+        {/* Filters */}
+        <div className="hr-project-filters">
+          <div className="filter-search">
+            <input
+              type="text"
+              placeholder="🔍 Tìm kiếm dự án..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <div className="filter-buttons">
+            <button
+              className={`filter-btn ${filterStatus === "all" ? "active" : ""}`}
+              onClick={() => setFilterStatus("all")}
+            >
+              Tất cả ({projects.length})
+            </button>
+            <button
+              className={`filter-btn ${
+                filterStatus === "available" ? "active" : ""
+              }`}
+              onClick={() => setFilterStatus("available")}
+            >
+              Còn chỗ (
+              {
+                projects.filter(
+                  (p) => (p.internNames?.length || 0) < p.capacity
+                ).length
+              }
+              )
+            </button>
+            <button
+              className={`filter-btn ${
+                filterStatus === "full" ? "active" : ""
+              }`}
+              onClick={() => setFilterStatus("full")}
+            >
+              Đã đủ (
+              {
+                projects.filter(
+                  (p) => (p.internNames?.length || 0) >= p.capacity
+                ).length
+              }
+              )
+            </button>
+          </div>
+        </div>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="alert alert-success">
+            <span className="alert-icon">✓</span>
+            {successMessage}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="alert alert-error">
+            <span className="alert-icon">✗</span>
+            {error}
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading && !showModal ? (
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Đang tải dữ liệu...</p>
+          </div>
+        ) : (
+          <>
+            {/* Projects Grid */}
+            <div className="hr-project-grid">
+              {filteredProjects.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon">📂</div>
+                  <h3>Không tìm thấy dự án nào</h3>
+                  <p>Thử thay đổi bộ lọc hoặc tìm kiếm</p>
+                </div>
+              ) : (
+                filteredProjects.map((project) => {
+                  const status = getStatusInfo(project);
+                  return (
+                    <div key={project.id} className="hr-project-card">
+                      {/* Card Header */}
+                      <div className="card-header">
+                        <h3>{project.title}</h3>
+                        {status.isFull && (
+                          <span className="badge-full">Đã đủ</span>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      <p className="card-description">
+                        {project.description || "Chưa có mô tả"}
+                      </p>
+
+                      {/* Progress Bar */}
+                      <div className="progress-section">
+                        <div className="progress-header">
+                          <span className="progress-label">
+                            Số lượng thực tập sinh
+                          </span>
+                          <span className="progress-count">
+                            {status.current}/{status.total}
+                          </span>
+                        </div>
+                        <div className="progress-bar">
+                          <div
+                            className={`progress-fill ${
+                              status.isFull ? "full" : ""
+                            }`}
+                            style={{
+                              width: `${Math.min(status.percentage, 100)}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Mentor Info */}
+                      {project.mentorName && (
+                        <div className="card-info-item">
+                          <span className="info-icon">👨‍🏫</span>
+                          <span className="info-text">
+                            <strong>Mentor:</strong> {project.mentorName}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Intern List */}
+                      {project.internNames &&
+                        project.internNames.length > 0 && (
+                          <div className="intern-section">
+                            <div className="intern-header">
+                              <span className="intern-icon">👥</span>
+                              <span className="intern-label">
+                                Thực tập sinh:
+                              </span>
+                            </div>
+                            <div className="intern-tags">
+                              {project.internNames
+                                .slice(0, 5)
+                                .map((name, index) => (
+                                  <span key={index} className="intern-tag">
+                                    {name}
+                                  </span>
+                                ))}
+                              {project.internNames.length > 5 && (
+                                <div className="intern-tag-wrapper">
+                                  <span className="intern-tag more">
+                                    +{project.internNames.length - 5} khác
+                                  </span>
+                                  <div className="intern-tooltip">
+                                    <div className="tooltip-header">
+                                      Tất cả thực tập sinh (
+                                      {project.internNames.length})
+                                    </div>
+                                    <div className="tooltip-list">
+                                      {project.internNames.map(
+                                        (name, index) => (
+                                          <div
+                                            key={index}
+                                            className="tooltip-item"
+                                          >
+                                            <span className="tooltip-number">
+                                              {index + 1}.
+                                            </span>
+                                            <span className="tooltip-name">
+                                              {name}
+                                            </span>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Action Button */}
+                      <button
+                        className={`btn-add-intern ${
+                          status.isFull ? "disabled" : ""
+                        }`}
+                        onClick={() => handleAddIntern(project)}
+                        disabled={status.isFull || loading}
+                      >
+                        {status.isFull
+                          ? "✓ Đã đủ số lượng"
+                          : "+ Thêm thực tập sinh"}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Stats Summary */}
+            <div className="stats-summary">
+              <div className="stat-card">
+                <div className="stat-icon">📊</div>
+                <div className="stat-content">
+                  <div className="stat-label">Tổng dự án</div>
+                  <div className="stat-value">{projects.length}</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">👥</div>
+                <div className="stat-content">
+                  <div className="stat-label">Tổng thực tập sinh</div>
+                  <div className="stat-value">
+                    {projects.reduce(
+                      (sum, p) => sum + (p.internNames?.length || 0),
+                      0
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">🎯</div>
+                <div className="stat-content">
+                  <div className="stat-label">Tổng capacity</div>
+                  <div className="stat-value">
+                    {projects.reduce((sum, p) => sum + (p.capacity || 0), 0)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      <table className="mentor-table">
-        <thead>
-          <tr>
-            <th>Mentor</th>
-            <th>Nhóm</th>
-            <th>Tên Thực tập sinh</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {assignments.map((assignment) => (
-            <tr key={`${assignment.mentor_id}-${assignment.programId}`}>
-              <td>{assignment.mentorName}</td>
-              <td>Nhóm {assignment.programId}</td>
-              <td>
-                {assignment.interns && assignment.interns.length > 0 ? (
-                  <>
-                    {assignment.interns.map((intern, idx) => (
-                      <div key={intern.intern_id}>{intern.name}</div>
-                    ))}
-                    <div
-                      style={{ marginTop: 4, fontSize: "0.9em", color: "#666" }}
-                    >
-                      ({assignment.interns.length} thực tập sinh)
-                    </div>
-                  </>
-                ) : (
-                  <span>Không có thực tập sinh</span>
-                )}
-              </td>
-              <td>
-                <button
-                  onClick={() =>
-                    handleUnassignGroup(
-                      assignment.mentor_id,
-                      assignment.programId,
-                      assignment.interns || []
-                    )
-                  }
-                  className="delete-button"
-                >
-                  Xóa
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {showAddModal && (
-        <AssignMentorModal
-          onClose={() => setShowAddModal(false)}
-          onAssignmentCreated={fetchData} // Refetch data after a new assignment is created
+      {/* Intern Selection Modal */}
+      {showModal && (
+        <InternSelectionModal
+          onClose={() => setShowModal(false)}
+          onSelect={handleSelectIntern}
         />
       )}
     </div>
   );
-};
-
-export default MentorManagement;
-
-// --- AssignMentorModal Component ---
-function AssignMentorModal({ onClose, onAssignmentCreated }) {
-  const [availableMentors, setAvailableMentors] = useState([]);
-  const [availableGroups, setAvailableGroups] = useState([]);
-  const [selectedMentor, setSelectedMentor] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState("");
-
-  useEffect(() => {
-    // Fetch available mentors and groups when the modal opens
-    const loadInitialData = async () => {
-      try {
-        const [allMentorsRes, allInternshipsRes, allAssignmentsRes] =
-          await Promise.all([
-            getUsers({ role: "MENTOR", size: 1000 }),
-            getInternships({ size: 1000 }),
-            getMentorAssignments({}).catch(() => ({ data: [] })),
-          ]);
-
-        // ✅ FIX: Extract data from response
-        const assignedInternIds = new Set(
-          (allAssignmentsRes?.data || []).map((a) => a.intern_id)
-        );
-
-        // Lấy mentors từ users có role MENTOR
-        setAvailableMentors(allMentorsRes.content || []);
-
-        // Nhóm các intern theo program_id
-        const internships = allInternshipsRes.data || [];
-        const groupMap = new Map();
-
-        console.log("Sample intern data:", internships[0]);
-
-        internships.forEach((intern) => {
-          // Dữ liệu từ API có program_id trực tiếp trong object, không phải nested
-          const programId = intern.program_id;
-          // Hiển thị "Nhóm {program_id}" thay vì tên chương trình
-          const programTitle = `Nhóm ${programId}`;
-
-          if (programId) {
-            if (!groupMap.has(programId)) {
-              groupMap.set(programId, {
-                programId: programId,
-                programTitle: programTitle,
-                interns: [],
-                hasAssignedIntern: false,
-              });
-            }
-
-            const group = groupMap.get(programId);
-            group.interns.push(intern);
-
-            // Kiểm tra xem có intern nào trong nhóm đã được phân công chưa
-            if (assignedInternIds.has(intern.intern_id)) {
-              group.hasAssignedIntern = true;
-            }
-          }
-        });
-
-        // Chỉ hiển thị các nhóm chưa có intern nào được phân công
-        const groups = Array.from(groupMap.values())
-          .filter((group) => !group.hasAssignedIntern)
-          .sort((a, b) => a.programId - b.programId);
-
-        console.log("Available groups:", groups);
-        setAvailableGroups(groups);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        toast.error("Không thể tải danh sách mentor hoặc nhóm.");
-      }
-    };
-    loadInitialData();
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    console.log("handleSubmit called!");
-    console.log("selectedMentor:", selectedMentor);
-    console.log("selectedGroup:", selectedGroup);
-
-    if (!selectedMentor || !selectedGroup) {
-      console.log("Validation failed - missing mentor or group");
-      toast.error("Vui lòng chọn mentor và nhóm.");
-      return;
-    }
-
-    // Tìm nhóm được chọn
-    const selectedGroupData = availableGroups.find(
-      (g) => g.programId === Number(selectedGroup)
-    );
-
-    if (!selectedGroupData || selectedGroupData.interns.length === 0) {
-      toast.error("Nhóm không hợp lệ hoặc không có thành viên.");
-      return;
-    }
-
-    console.log("Assigning mentor to group:", selectedGroupData);
-
-    try {
-      // Phân công mentor cho tất cả intern trong nhóm
-      const assignmentPromises = selectedGroupData.interns.map((intern) =>
-        assignMentor({
-          mentorId: Number(selectedMentor),
-          internId: intern.intern_id,
-        })
-      );
-
-      const results = await Promise.all(assignmentPromises);
-
-      console.log("Assignment results:", results);
-
-      // Kiểm tra xem có lỗi nào không
-      const failedAssignments = results.filter((r) => !r.success);
-
-      if (failedAssignments.length === 0) {
-        toast.success(
-          `Phân công thành công cho ${selectedGroupData.interns.length} thực tập sinh!`
-        );
-        onAssignmentCreated();
-        onClose();
-      } else if (failedAssignments.length < results.length) {
-        toast.warning(
-          `Phân công thành công cho ${
-            results.length - failedAssignments.length
-          }/${results.length} thực tập sinh.`
-        );
-        onAssignmentCreated();
-        onClose();
-      } else {
-        toast.error("Phân công thất bại cho tất cả thực tập sinh.");
-      }
-    } catch (error) {
-      console.error("Failed to assign mentor:", error);
-      console.error("Error response:", error?.response);
-      console.error("Error data:", error?.response?.data);
-      const errorMsg =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Phân công thất bại.";
-      toast.error(errorMsg);
-    }
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-box">
-        <h2 className="modal-title">Phân công Mentor</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="mentor-select">Chọn Mentor</label>
-            <select
-              id="mentor-select"
-              className="form-select"
-              value={selectedMentor}
-              onChange={(e) => setSelectedMentor(e.target.value)}
-            >
-              <option value="" disabled>
-                -- Chọn một mentor --
-              </option>
-              {availableMentors.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.fullName} ({m.email})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="group-select">Chọn Nhóm</label>
-            <select
-              id="group-select"
-              className="form-select"
-              value={selectedGroup}
-              onChange={(e) => setSelectedGroup(e.target.value)}
-            >
-              <option value="" disabled>
-                -- Chọn một nhóm --
-              </option>
-              {availableGroups.map((group) => (
-                <option key={group.programId} value={group.programId}>
-                  {group.programTitle} ({group.interns.length} thành viên)
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-actions">
-            <button type="button" className="btn-outline" onClick={onClose}>
-              Hủy
-            </button>
-            <button type="submit" className="btn-primary">
-              Lưu
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
 }
-
-AssignMentorModal.propTypes = {
-  onClose: PropTypes.func.isRequired,
-  onAssignmentCreated: PropTypes.func.isRequired,
-};

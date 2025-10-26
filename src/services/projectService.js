@@ -1,98 +1,53 @@
+// src/services/projectService.js
 import api from "./apiClient";
+import { useAuthStore } from "../store/authStore";
 
-// Get all projects for current mentor
-export async function getMentorProjects(filters = {}) {
-  const params = new URLSearchParams();
-
-  if (filters.status) params.append("status", filters.status);
-  if (filters.page !== undefined) params.append("page", filters.page);
-  if (filters.size) params.append("size", filters.size);
-  if (filters.search) params.append("search", filters.search);
-
-  const { data } = await api.get(`/projects/mentor?${params.toString()}`);
-  return data;
+function getCurrentUserId() {
+  const { user } = useAuthStore.getState();
+  if (!user || !user.id)
+    throw new Error("Không tìm thấy user. Hãy đăng nhập lại!");
+  return user.id;
 }
 
-// Get project by ID
-export async function getProjectById(projectId) {
-  const { data } = await api.get(`/projects/${projectId}`);
-  return data;
-}
+// ✅ Lấy tất cả project
+export const getAllProjects = async () => {
+  const res = await api.get(`/projects`);
+  return res.data;
+};
 
-// Create new project
-export async function createProject(projectData) {
-  const { data } = await api.post("/projects", projectData);
-  return data;
-}
+// ✅ Lấy project theo mentor hiện tại
+export const getProjectsByCurrentMentor = async () => {
+  const userId = getCurrentUserId();
+  const res = await api.get(`/projects/mentor/${userId}`);
+  return res.data;
+};
 
-// Update project
-export async function updateProject(projectId, projectData) {
-  const { data } = await api.put(`/projects/${projectId}`, projectData);
-  return data;
-}
+// ✅ Tạo project
+export const createProject = async (projectData) => {
+  const userId = getCurrentUserId();
+  const res = await api.post(`/projects/${userId}`, projectData);
+  return res.data;
+};
 
-// Delete project
-export async function deleteProject(projectId) {
-  const { data } = await api.delete(`/projects/${projectId}`);
-  return data;
-}
+// ✅ Cập nhật project
+export const updateProject = async (projectId, projectData) => {
+  const userId = getCurrentUserId();
+  const res = await api.put(`/projects/${projectId}/${userId}`, projectData);
+  return res.data;
+};
 
-// Get project tasks
-export async function getProjectTasks(projectId, filters = {}) {
-  const params = new URLSearchParams();
+// ✅ Xóa project
+export const deleteProject = async (projectId) => {
+  const userId = getCurrentUserId();
+  const res = await api.delete(`/projects/${projectId}/${userId}`);
+  return res.data;
+};
 
-  if (filters.status) params.append("status", filters.status);
-  if (filters.assignedTo) params.append("assignedTo", filters.assignedTo);
-  if (filters.priority) params.append("priority", filters.priority);
-
-  const { data } = await api.get(`/projects/${projectId}/tasks?${params.toString()}`);
-  return data;
-}
-
-// Create project task
-export async function createProjectTask(projectId, taskData) {
-  const { data } = await api.post(`/projects/${projectId}/tasks`, taskData);
-  return data;
-}
-
-// Update project task
-export async function updateProjectTask(projectId, taskId, taskData) {
-  const { data } = await api.put(`/projects/${projectId}/tasks/${taskId}`, taskData);
-  return data;
-}
-
-// Delete project task
-export async function deleteProjectTask(projectId, taskId) {
-  const { data } = await api.delete(`/projects/${projectId}/tasks/${taskId}`);
-  return data;
-}
-
-// Get project team members
-export async function getProjectTeam(projectId) {
-  const { data } = await api.get(`/projects/${projectId}/team`);
-  return data;
-}
-
-// Add team member to project
-export async function addTeamMember(projectId, memberData) {
-  const { data } = await api.post(`/projects/${projectId}/team`, memberData);
-  return data;
-}
-
-// Remove team member from project
-export async function removeTeamMember(projectId, memberId) {
-  const { data } = await api.delete(`/projects/${projectId}/team/${memberId}`);
-  return data;
-}
-
-// Update task status
-export async function updateTaskStatus(projectId, taskId, status) {
-  const { data } = await api.patch(`/projects/${projectId}/tasks/${taskId}/status`, { status });
-  return data;
-}
-
-// Get project statistics
-export async function getProjectStats(projectId) {
-  const { data } = await api.get(`/projects/${projectId}/stats`);
-  return data;
-}
+// ✅ Thêm intern vào project
+export const addInternToProject = async (projectId, internId) => {
+  const userId = getCurrentUserId();
+  const res = await api.post(
+    `/projects/${projectId}/add-intern/${userId}/${internId}`
+  );
+  return res.data;
+};
