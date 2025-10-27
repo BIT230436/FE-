@@ -709,6 +709,13 @@ function EditInternshipModal({ data, onClose, onSave }) {
   );
   const [validationErrors, setValidationErrors] = useState({});
 
+  const handleDateChange = (setter, field) => (date) => {
+    setter(date);
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   const validate = (d) => {
     const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
