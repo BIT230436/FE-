@@ -14,12 +14,12 @@ import {
   updateMentorDepartment,
   removeMentorFromDepartment,
 } from "../../services/departmentService";
-// ⚠️ Đảm bảo bạn có hàm này. Nếu tên khác, hãy sửa lại đúng service của bạn.
+
 import { getMentors } from "../../services/mentorService";
+import MentorSelectionModal from "../../components/common/MentorSelectionModal";
 
 import "./DepartmentManagement.css";
 
-// ===================== DepartmentManagement (PAGE) =====================
 export default function DepartmentManagement() {
   const { programId } = useParams();
   const navigate = useNavigate();
@@ -320,13 +320,16 @@ export default function DepartmentManagement() {
 
       {/* Modal thêm mentor */}
       {showAddMentorModal && (
-        <AddMentorModal
-          departmentId={selectedDepartmentId}
+        <MentorSelectionModal
           onClose={() => {
             setShowAddMentorModal(false);
             setSelectedDepartmentId(null);
           }}
-          onAdd={handleAddMentor}
+          onSelect={(mentor) => {
+            handleAddMentor(selectedDepartmentId, mentor.id);
+            setShowAddMentorModal(false);
+            setSelectedDepartmentId(null);
+          }}
         />
       )}
 
@@ -445,11 +448,12 @@ function AddMentorModal({ departmentId, onClose, onAdd }) {
         const mentors = Array.isArray(response)
           ? response
           : response.content || [];
+
         setAvailableMentors(
           mentors.map((m) => ({
             id: m.id,
-            name: m.name,
-            fullName: m.fullName || m.name,
+            name: m.name || m.fullName || "Unknown",
+            email: m.email || "N/A",
           }))
         );
       } catch (error) {
@@ -471,6 +475,7 @@ function AddMentorModal({ departmentId, onClose, onAdd }) {
 
     try {
       setIsSubmitting(true);
+      // mentorId đã là ID của mentor được chọn
       await onAdd(departmentId, mentorId);
     } catch (error) {
       console.error("Add mentor error:", error);
@@ -499,14 +504,11 @@ function AddMentorModal({ departmentId, onClose, onAdd }) {
                 <option value="">-- Chọn mentor --</option>
                 {availableMentors.map((mentor) => (
                   <option key={mentor.id} value={mentor.id}>
-                    {mentor.fullName || mentor.name}
+                    {mentor.name} - {mentor.email}
                   </option>
                 ))}
               </select>
             )}
-            <small style={{ color: "#666", fontSize: "0.85rem" }}>
-              Chọn mentor từ danh sách những người có role MENTOR
-            </small>
           </div>
 
           <div className="form-actions">
@@ -531,14 +533,9 @@ function AddMentorModal({ departmentId, onClose, onAdd }) {
     </div>
   );
 }
-AddMentorModal.propTypes = {
-  departmentId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-    .isRequired,
-  onClose: PropTypes.func.isRequired,
-  onAdd: PropTypes.func.isRequired,
-};
 
-// ===================== MoveMentorModal =====================
+
+
 function MoveMentorModal({ mentor, departments, onClose, onMove }) {
   const [newDepartmentId, setNewDepartmentId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

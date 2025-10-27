@@ -1,13 +1,13 @@
 import api from "./apiClient";
 
-// Get list of available mentors
 export async function getMentors(filters = {}) {
   const params = new URLSearchParams();
 
   if (filters.q) params.append("q", filters.q);
-  if (filters.status) params.append("status", filters.status);
-  if (filters.page !== undefined) params.append("page", filters.page);
-  if (filters.size) params.append("size", filters.size);
+
+  if (filters.department) params.append("department", filters.department);
+  if (filters.available !== undefined)
+    params.append("available", filters.available);
 
   const { data } = await api.get(`/mentors?${params.toString()}`);
   return data;

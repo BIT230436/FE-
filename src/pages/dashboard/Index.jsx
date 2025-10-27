@@ -231,7 +231,7 @@ export default function Dashboard() {
           ))}
         </ul>
       </div>
-      <div className="chart-row"> 
+      <div className="chart-row">
         {/* Biểu đồ tròn thống kê role */}
         <div className="chart-box">
           <h2 style={{ fontSize: 18, marginBottom: 12, color: "#2b7cff" }}>
@@ -251,7 +251,11 @@ export default function Dashboard() {
               {roleStats.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={["#0088FE", "#00C49F", "#FFBB28", "#FF8042" ,"#f620aeff"][index % 5]}
+                  fill={
+                    ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#f620aeff"][
+                      index % 5
+                    ]
+                  }
                 />
               ))}
             </Pie>
@@ -274,7 +278,9 @@ export default function Dashboard() {
               cx="50%"
               cy="50%"
               outerRadius={100}
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+              label={({ name, percent }) =>
+                `${name}: ${(percent * 100).toFixed(1)}%`
+              }
             >
               {internStats.map((entry, index) => (
                 <Cell
@@ -288,9 +294,6 @@ export default function Dashboard() {
           </PieChart>
         </div>
       </div>
-      
-
-
 
       <div
         style={{
@@ -299,9 +302,7 @@ export default function Dashboard() {
           backgroundColor: "#f0f0f0",
           borderRadius: "4px",
         }}
-      >
-        <strong>Debug info:</strong> User role = {user?.role || "undefined"}
-      </div>
+      ></div>
 
       {user?.role === "ADMIN" && (
         <div style={{ marginTop: "20px" }}>
