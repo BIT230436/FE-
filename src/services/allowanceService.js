@@ -164,8 +164,8 @@ export const getMonthlyReport = (month) => {
  * Lấy lịch sử phụ cấp của thực tập sinh hiện tại
  * @returns {Promise<object>}
  */
-export const getMyAllowanceHistory = () => {
-  return api.get(`${API_URL}/my-history`).then(response => {
+export const getMyAllowanceHistory = (email) => {
+  return api.post(`${API_URL}/my-history`, { email }).then(response => {
     return response.data;
   });
 };

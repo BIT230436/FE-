@@ -243,12 +243,55 @@ body {
 /* Dark mode, scoped only to the clear filters button */
 @media (prefers-color-scheme: dark) {
   .clear-filters-btn {
-    background: #232a34;
-    color: #eaf3ff;
-    border-color: #3a3d42;
+    background: #f4f4f4;
+    color: #303031;
+    border-color: #f5f5f5;
   }
   .clear-filters-btn:hover {
-    background: #2b3442;
+    background: #ffffff;
+  }
+
+  /* Dark mode styling for pagination buttons */
+  .pagination .btn {
+    background: #ffffff;
+    color: #2f2f2f;
+    border: 1px solid #fdfeff;
+  }
+  .pagination .btn:hover:not(:disabled) {
+    background: #1c79ea;
+    color: black;
+  }
+  .pagination .btn:disabled {
+    background: #fdfeff;
+    color: #4a5568;
+    cursor: not-allowed;
+  }
+}
+/* Light mode, scoped only to the clear filters button */
+@media (prefers-color-scheme: light) {
+  .clear-filters-btn {
+    background: #f4f4f4;
+    color: #303031;
+    border-color: #f5f5f5;
+  }
+  .clear-filters-btn:hover {
+    background: #ffffff;
+  }
+
+  /* Light mode styling for pagination buttons */
+  .pagination .btn {
+    background: #ffffff;
+    color: #2f2f2f;
+    border: 1px solid #fdfeff;
+  }
+  .pagination .btn:hover:not(:disabled) {
+    background: #1c79ea;
+    color: black;
+  }
+  .pagination .btn:disabled {
+    background: #fdfeff;
+    color: #4a5568;
+    cursor: not-allowed;
   }
 }
 

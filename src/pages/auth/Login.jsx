@@ -84,6 +84,7 @@ export default function Login() {
         <form onSubmit={onLogin}>
           <input
             value={email}
+            google-btn
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             disabled={loading}
@@ -114,10 +115,10 @@ export default function Login() {
 
         <button
           onClick={loginWithGoogle}
-          className="btn btn-outline google-btn"
+          className="btn btn-outline "
           disabled={loading}
         >
-          <FcGoogle/>
+          <FcGoogle />
           <span>Đăng nhập với Google</span>
         </button>
 
