@@ -44,3 +44,9 @@ export async function getInternStatusStats() {
   const { data } = await api.get("/intern-profiles/stats/status");
   return data.data || [];
 }
+
+export async function getInternPrograms() {
+  const { data } = await api.get("/intern-profiles/programs");
+  return data;
+}
+
