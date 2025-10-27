@@ -12,6 +12,7 @@ export default function MyContract() {
   const [loading, setLoading] = useState(true);
   const [contract, setContract] = useState(null);
   const [confirming, setConfirming] = useState(false);
+  const [notFound, setNotFound] = useState(false); // ✅ Thêm state để track 404
 
   const user = useAuthStore((state) => state.user);
   const internId = user?.internId || user?.id;
@@ -19,43 +20,82 @@ export default function MyContract() {
   const load = async () => {
     try {
       setLoading(true);
+      setNotFound(false); // Reset trạng thái 404
 
       if (!internId) {
-        toast.error("Không tìm thấy ID thực tập sinh.");
+        console.log("❌ Không tìm thấy ID thực tập sinh");
         return;
       }
 
       const res = await getDocUrlsByIntern(internId);
-      console.log("📄 Dữ liệu hợp đồng:", res);
-      setContract(res || null);
+      console.log("📄 Raw API response:", res);
+      console.log("📄 Type of response:", typeof res);
+      console.log("📄 Is Array:", Array.isArray(res));
+
+      // ✅ FIX: Xử lý nhiều trường hợp response
+      let contractData = null;
+
+      if (Array.isArray(res)) {
+        // Nếu API trả về array, lấy phần tử đầu tiên
+        contractData = res[0] || null;
+        console.log("📄 Extracted from array:", contractData);
+      } else if (res && typeof res === "object") {
+        // Nếu là object, kiểm tra có data/contract field không
+        contractData = res.data || res.contract || res;
+        console.log("📄 Extracted from object:", contractData);
+      }
+
+      console.log("📄 Final contract data:", contractData);
+      setContract(contractData);
+
+      // ✅ Nếu không có contract data (200 nhưng rỗng) → coi như chưa có hợp đồng
+      if (!contractData) {
+        setNotFound(true);
+        console.log("ℹ️ Intern chưa có hợp đồng (200 - empty data)");
+      }
     } catch (e) {
       console.error("❌ Lỗi tải hợp đồng:", e);
-      const msg = e?.response?.data || e.message || "Không thể tải hợp đồng.";
-      toast.error(msg);
+      console.error("❌ Error response:", e?.response);
+
+      // ✅ Kiểm tra nếu là lỗi 404
+      if (e?.response?.status === 404) {
+        setNotFound(true);
+        console.log("ℹ️ Intern chưa có hợp đồng (404)");
+        return;
+      }
+
+      // ✅ Các lỗi khác cũng set notFound (CORS, Network, 500...)
+      setNotFound(true);
+      console.error(
+        "❌ Lỗi khi tải hợp đồng:",
+        e?.response?.status || e.message
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log("🔍 User data:", user);
+    console.log("🔍 Intern ID:", internId);
     if (internId) load();
   }, [internId]);
 
   const handleConfirmContract = async () => {
-    // ✅ Thay đổi: Kiểm tra document_id hoặc id
-    const documentId = contract?.document_id || contract?.id;
+    // ✅ Kiểm tra nhiều field có thể có
+    const documentId =
+      contract?.document_id || contract?.id || contract?.documentId;
 
     if (!documentId) {
       toast.error("Không tìm thấy mã hợp đồng để xác nhận.");
+      console.log("❌ Contract object:", contract);
       return;
     }
 
     try {
       setConfirming(true);
 
-      // ✅ Thay đổi: Gọi acceptDocument với đúng tham số
       const result = await acceptDocument(documentId, user.id);
-
       console.log("✅ API response:", result);
 
       toast.success("✅ Hợp đồng đã được xác nhận thành công.");
@@ -66,7 +106,7 @@ export default function MyContract() {
         status: "ACCEPTED",
       }));
     } catch (e) {
-      console.error(e);
+      console.error("❌ Accept error:", e);
       const msg =
         e?.response?.data?.message ||
         e?.response?.data ||
@@ -87,14 +127,34 @@ export default function MyContract() {
       <div className="card" style={{ padding: 16 }}>
         {loading && <div className="loading">Đang tải dữ liệu…</div>}
 
-        {!loading && !contract && (
+        {/* ✅ Hiển thị giao diện đặc biệt cho 404 */}
+        {!loading && notFound && (
+          <div style={{ textAlign: "center", padding: "32px 16px" }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>📄</div>
+            <h3 style={{ marginBottom: 8, color: "#666" }}>
+              Thực tập sinh chưa có hợp đồng thực tập
+            </h3>
+            <p style={{ color: "#999", marginBottom: 24 }}>
+              Vui lòng liên hệ với phòng nhân sự để được hỗ trợ.
+            </p>
+            <button className="btn btn-primary" onClick={load}>
+              🔄 Kiểm tra lại
+            </button>
+          </div>
+        )}
+
+        {!loading && !contract && !notFound && (
           <div className="empty">⚠️ Không tìm thấy hợp đồng.</div>
         )}
 
         {!loading && contract && (
           <div style={{ fontSize: 14 }}>
             <div style={{ marginBottom: 8 }}>
-              <strong>Người phụ trách:</strong> {contract.name_hr || "Không rõ"}
+              <strong>Người phụ trách:</strong>{" "}
+              {contract.name_hr ||
+                contract.hr_name ||
+                contract.hrName ||
+                "Không rõ"}
             </div>
             <div style={{ marginBottom: 8 }}>
               <strong>Trạng thái:</strong>{" "}
@@ -102,15 +162,17 @@ export default function MyContract() {
             </div>
             <div style={{ marginBottom: 8 }}>
               <strong>Ngày tải:</strong>{" "}
-              {contract.uploaded_at
-                ? new Date(contract.uploaded_at).toLocaleString()
+              {contract.uploaded_at || contract.uploadedAt
+                ? new Date(
+                    contract.uploaded_at || contract.uploadedAt
+                  ).toLocaleString("vi-VN")
                 : "-"}
             </div>
             <div style={{ marginBottom: 12 }}>
               <strong>File hợp đồng:</strong>{" "}
-              {contract.file_url ? (
+              {contract.file_url || contract.fileUrl ? (
                 <a
-                  href={contract.file_url}
+                  href={contract.file_url || contract.fileUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="btn-link"
@@ -153,14 +215,15 @@ export default function MyContract() {
           </div>
         )}
 
-        <div style={{ marginTop: 16 }}>
-          <button className="btn btn-outline" onClick={load}>
-            🔄 Làm mới
-          </button>
-        </div>
+        {!loading && !notFound && (
+          <div style={{ marginTop: 16 }}>
+            <button className="btn btn-outline" onClick={load}>
+              🔄 Làm mới
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* ✅ Hiển thị thông báo nổi */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
