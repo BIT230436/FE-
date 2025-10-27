@@ -28,15 +28,11 @@ export default function MyContract() {
       }
 
       const res = await getDocUrlsByIntern(internId);
-      console.log("📄 Raw API response:", res);
-      console.log("📄 Type of response:", typeof res);
-      console.log("📄 Is Array:", Array.isArray(res));
-
-      // ✅ FIX: Xử lý nhiều trường hợp response
+     
       let contractData = null;
 
       if (Array.isArray(res)) {
-        // Nếu API trả về array, lấy phần tử đầu tiên
+
         contractData = res[0] || null;
         console.log("📄 Extracted from array:", contractData);
       } else if (res && typeof res === "object") {

@@ -124,7 +124,6 @@ export async function getAllContracts() {
   const response = await api.get("/documents/contracts");
   const rows = response.data || [];
 
-  // Trả về đúng key như API để component dùng trực tiếp
   return rows.map((r) => ({
     intern_id: r.intern_id,
     intern_name: r.intern_name,
@@ -139,6 +138,5 @@ export async function getAllContracts() {
 
 export async function getContractTotal() {
   const response = await api.get("/documents");
-  // response.data.total là tổng số hợp đồng
   return response.data?.total ?? 0;
 }
