@@ -509,9 +509,6 @@ function AddMentorModal({ departmentId, onClose, onAdd }) {
                 ))}
               </select>
             )}
-            <small style={{ color: "#666", fontSize: "0.85rem" }}>
-              Chọn mentor từ danh sách những người có role MENTOR
-            </small>
           </div>
 
           <div className="form-actions">
