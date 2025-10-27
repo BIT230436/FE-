@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { DatePicker } from "antd";
 import { ToastContainer, toast } from "react-toastify";
-
 import "react-toastify/dist/ReactToastify.css";
 
 import InternSelectionModal from "../../components/common/InternSelectionModal";
@@ -10,7 +9,6 @@ import {
   createAllowance,
   getAllowances,
   deleteAllowance,
-  approveAllowance,
 } from "../../services/allowanceService";
 
 function formatDate(dateString) {
@@ -60,7 +58,7 @@ export default function AllowanceManagement() {
 
       if (response.success) {
         toast.success(response.message || "Thêm phụ cấp thành công! 🎉");
-        await loadAllowances(); // Tải lại danh sách
+        await loadAllowances();
         setShowCreateModal(false);
       } else {
         toast.error(response.message || "Thêm phụ cấp thất bại!");
@@ -89,23 +87,6 @@ export default function AllowanceManagement() {
     }
   };
 
-  const handleApproveAllowance = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn duyệt phụ cấp này?")) {
-      return;
-    }
-
-    try {
-      const response = await approveAllowance(id);
-      if (response.success) {
-        toast.success("Duyệt phụ cấp thành công!");
-        await loadAllowances();
-      }
-    } catch (error) {
-      console.error("Failed to approve allowance:", error);
-      toast.error(error.response?.data?.message || "Duyệt phụ cấp thất bại!");
-    }
-  };
-
   return (
     <div className="page-container">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -128,7 +109,7 @@ export default function AllowanceManagement() {
               <th className="table-th">Loại phụ cấp</th>
               <th className="table-th">Số tiền</th>
               <th className="table-th">Ngày áp dụng</th>
-              <th className="table-th">Trạng thái</th>
+              <th className="table-th">Ngày thanh toán</th>
               <th className="table-th">Thao tác</th>
             </tr>
           </thead>
@@ -158,32 +139,19 @@ export default function AllowanceManagement() {
                   <td className="table-td">
                     {item.paidAt ? (
                       <span style={{ color: 'green', fontWeight: 'bold' }}>
-                        ✓ Đã duyệt
+                        {formatDate(item.paidAt)}
                       </span>
                     ) : (
-                      <span style={{ color: 'orange', fontWeight: 'bold' }}>
-                        ⏳ Chờ duyệt
-                      </span>
+                      <span style={{ color: 'gray' }}>-</span>
                     )}
                   </td>
                   <td className="table-td">
-                    {!item.paidAt && (
-                      <>
-                        <button
-                          className="btn btn-success btn-sm"
-                          onClick={() => handleApproveAllowance(item.allowanceId)}
-                          style={{ marginRight: '5px' }}
-                        >
-                          Duyệt
-                        </button>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDeleteAllowance(item.allowanceId)}
-                        >
-                          Xóa
-                        </button>
-                      </>
-                    )}
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleDeleteAllowance(item.allowanceId)}
+                    >
+                      Xóa
+                    </button>
                   </td>
                 </tr>
               ))
@@ -207,7 +175,6 @@ function CreateAllowanceModal({ onClose, onCreate }) {
   const [allowanceType, setAllowanceType] = useState("Ăn trưa");
   const [amount, setAmount] = useState("");
   const [applyDate, setApplyDate] = useState(null);
-
   const [note, setNote] = useState("");
   const [showInternModal, setShowInternModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -218,7 +185,6 @@ function CreateAllowanceModal({ onClose, onCreate }) {
     if (!allowanceType) errors.type = "Vui lòng chọn loại phụ cấp";
     if (!amount || amount <= 0) errors.amount = "Số tiền phải là số dương";
     if (!applyDate) errors.date = "Vui lòng chọn ngày áp dụng";
-
     return errors;
   };
 
@@ -231,14 +197,12 @@ function CreateAllowanceModal({ onClose, onCreate }) {
       return;
     }
 
-    // ✅ FIX: Sử dụng đúng field names mà Backend expect
     onCreate({
       internId: selectedIntern?.intern_id || selectedIntern?.id,
-      allowanceType: allowanceType,  // Backend expects "allowType"
+      allowanceType: allowanceType,
       amount: parseFloat(amount),
-      date: applyDate ? applyDate.format("YYYY-MM-DD") : "",           // Backend expects "date"
-
-      note: note || "",          // Optional
+      date: applyDate ? applyDate.format("YYYY-MM-DD") : "",
+      note: note || "",
     });
   };
 
@@ -326,7 +290,6 @@ function CreateAllowanceModal({ onClose, onCreate }) {
                 status={validationErrors.date ? "error" : undefined}
                 showToday={false}
               />
-
               {validationErrors.date && (
                 <div className="error-message">{validationErrors.date}</div>
               )}
