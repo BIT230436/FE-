@@ -51,3 +51,31 @@ export const addInternToProject = async (projectId, internId) => {
   );
   return res.data;
 };
+
+
+
+// ✅ HR chuyển intern sang project khác
+export const transferInternToAnotherProject = async (internId, newProjectId) => {
+  const userId = getCurrentUserId();
+  const res = await api.put(
+    `/projects/transfer-intern`,
+    null, // body rỗng, vì BE dùng @RequestParam
+    {
+      params: { internId, newProjectId, userId },
+    }
+  );
+  return res.data;
+};
+
+// ✅ HR xóa intern khỏi project
+export const removeInternFromProject = async (internId) => {
+  const userId = getCurrentUserId();
+  const res = await api.put(
+    `/projects/remove-intern`,
+    null,
+    {
+      params: { internId, userId },
+    }
+  );
+  return res.data;
+};

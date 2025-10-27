@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   getDocUrlsByIntern,
-  acceptDocument, // ✅ Thay đổi: import acceptDocument thay vì confirmContract
+  acceptDocument,
 } from "../../services/documentService";
 import { useAuthStore } from "../../store/authStore";
 import { toast, ToastContainer } from "react-toastify";
