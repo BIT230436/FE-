@@ -5,12 +5,17 @@ import {
   addInternToProject,
   transferInternToAnotherProject,
   removeInternFromProject,
+  filterProjects,
 } from "../../services/projectService";
+import { getAllPrograms } from "../../services/programService";
+import { getDepartmentsByProgram } from "../../services/departmentService";
 import InternSelectionModal from "../../components/common/InternSelectionModal";
 import "./MentorManagement.css";
 
 export default function HRProjectManagement() {
   const [projects, setProjects] = useState([]);
+  const [programs, setPrograms] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -18,13 +23,56 @@ export default function HRProjectManagement() {
   const [successMessage, setSuccessMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [selectedProgramId, setSelectedProgramId] = useState("");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [showInternMenu, setShowInternMenu] = useState(null);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferData, setTransferData] = useState(null);
 
   useEffect(() => {
     loadProjects();
+    loadPrograms();
   }, []);
+
+  // Load departments when program changes
+  useEffect(() => {
+    if (selectedProgramId) {
+      loadDepartments(selectedProgramId);
+      // Load projects filtered by program
+      loadProjectsByFilter(selectedProgramId, selectedDepartmentId);
+    } else {
+      setDepartments([]);
+      setSelectedDepartmentId("");
+      // Load all projects when no program selected
+      loadProjects();
+    }
+  }, [selectedProgramId]);
+
+  // Load projects when department changes
+  useEffect(() => {
+    if (selectedProgramId) {
+      loadProjectsByFilter(selectedProgramId, selectedDepartmentId);
+    }
+  }, [selectedDepartmentId]);
+
+  const loadPrograms = async () => {
+    try {
+      const data = await getAllPrograms();
+      setPrograms(data);
+    } catch (err) {
+      console.error("Error loading programs:", err);
+    }
+  };
+
+  const loadDepartments = async (programId) => {
+    try {
+      const data = await getDepartmentsByProgram(programId);
+      setDepartments(data);
+    } catch (err) {
+      console.error("Error loading departments:", err);
+      setDepartments([]);
+    }
+  };
 
   const loadProjects = async () => {
     setLoading(true);
@@ -37,6 +85,22 @@ export default function HRProjectManagement() {
         err.response?.data?.message || "Không thể tải danh sách project"
       );
       console.error("Error loading projects:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadProjectsByFilter = async (programId, departmentId = null) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await filterProjects(programId, departmentId);
+      setProjects(data);
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Không thể tải danh sách project"
+      );
+      console.error("Error filtering projects:", err);
     } finally {
       setLoading(false);
     }
@@ -107,13 +171,12 @@ export default function HRProjectManagement() {
       await removeInternFromProject(internId);
       isSuccess = true;
     } catch (err) {
-      // Kiểm tra xem có phải lỗi encoding không (nhưng API vẫn thành công)
       if (
         err.code === "ERR_NETWORK" ||
         err.code === "ERR_INCOMPLETE_CHUNKED_ENCODING"
       ) {
         console.log("Network error but API might succeed:", err.code);
-        isSuccess = true; // Coi như thành công
+        isSuccess = true;
       } else if (err.response?.status === 200 || err.response?.status === 204) {
         isSuccess = true;
       } else {
@@ -122,7 +185,6 @@ export default function HRProjectManagement() {
       }
     }
 
-    // Reload để xác nhận kết quả
     await loadProjects();
 
     if (isSuccess) {
@@ -154,13 +216,12 @@ export default function HRProjectManagement() {
       await transferInternToAnotherProject(transferData.internId, newProjectId);
       isSuccess = true;
     } catch (err) {
-      // Kiểm tra xem có phải lỗi encoding không (nhưng API vẫn thành công)
       if (
         err.code === "ERR_NETWORK" ||
         err.code === "ERR_INCOMPLETE_CHUNKED_ENCODING"
       ) {
         console.log("Network error but API might succeed:", err.code);
-        isSuccess = true; // Coi như thành công
+        isSuccess = true;
       } else if (err.response?.status === 200 || err.response?.status === 204) {
         isSuccess = true;
       } else {
@@ -169,7 +230,6 @@ export default function HRProjectManagement() {
       }
     }
 
-    // Reload để xác nhận kết quả
     await loadProjects();
 
     if (isSuccess) {
@@ -201,13 +261,14 @@ export default function HRProjectManagement() {
       project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    if (filterStatus === "all") return matchSearch;
-    if (filterStatus === "full")
-      return matchSearch && project.internNames?.length >= project.capacity;
-    if (filterStatus === "available")
-      return matchSearch && project.internNames?.length < project.capacity;
+    const matchStatus =
+      filterStatus === "all" ||
+      (filterStatus === "full" &&
+        project.internNames?.length >= project.capacity) ||
+      (filterStatus === "available" &&
+        project.internNames?.length < project.capacity);
 
-    return matchSearch;
+    return matchSearch && matchStatus;
   });
 
   const getStatusInfo = (project) => {
@@ -235,7 +296,13 @@ export default function HRProjectManagement() {
           </div>
           <button
             className="btn-refresh"
-            onClick={loadProjects}
+            onClick={() => {
+              setSelectedProgramId("");
+              setSelectedDepartmentId("");
+              setSearchTerm("");
+              setFilterStatus("all");
+              loadProjects();
+            }}
             disabled={loading}
           >
             🔄 Làm mới
@@ -252,6 +319,36 @@ export default function HRProjectManagement() {
               className="search-input"
             />
           </div>
+
+          <div className="filter-dropdowns">
+            <select
+              className="filter-select"
+              value={selectedProgramId}
+              onChange={(e) => setSelectedProgramId(e.target.value)}
+            >
+              <option value="">📋 Tất cả Program</option>
+              {programs.map((program) => (
+                <option key={program.id} value={program.id}>
+                  {program.programName}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="filter-select"
+              value={selectedDepartmentId}
+              onChange={(e) => setSelectedDepartmentId(e.target.value)}
+              disabled={!selectedProgramId}
+            >
+              <option value="">🏢 Tất cả Department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.departmentName}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="filter-buttons">
             <button
               className={`filter-btn ${filterStatus === "all" ? "active" : ""}`}
@@ -494,7 +591,7 @@ export default function HRProjectManagement() {
                 <div className="stat-icon">📊</div>
                 <div className="stat-content">
                   <div className="stat-label">Tổng dự án</div>
-                  <div className="stat-value">{projects.length}</div>
+                  <div className="stat-value">{filteredProjects.length}</div>
                 </div>
               </div>
               <div className="stat-card">
@@ -502,7 +599,7 @@ export default function HRProjectManagement() {
                 <div className="stat-content">
                   <div className="stat-label">Tổng thực tập sinh</div>
                   <div className="stat-value">
-                    {projects.reduce(
+                    {filteredProjects.reduce(
                       (sum, p) => sum + (p.internNames?.length || 0),
                       0
                     )}
@@ -514,7 +611,10 @@ export default function HRProjectManagement() {
                 <div className="stat-content">
                   <div className="stat-label">Tổng capacity</div>
                   <div className="stat-value">
-                    {projects.reduce((sum, p) => sum + (p.capacity || 0), 0)}
+                    {filteredProjects.reduce(
+                      (sum, p) => sum + (p.capacity || 0),
+                      0
+                    )}
                   </div>
                 </div>
               </div>
