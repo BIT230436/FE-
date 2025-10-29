@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
-import "./Sidebar.css"; // CSS
-import { TbLogout2 } from "react-icons/tb";
+import "./Sidebar.css";
+import { TbLogout2, TbStar } from "react-icons/tb";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
+  const location = useLocation();
+  const { pathname } = location;
 
   const handleNavigate = (path) => navigate(path);
   const handleLogout = () => {
@@ -31,14 +33,19 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       label: "Lịch thực tập",
       path: "/intern-schedule",
       icon: "🗓️",
-      requiredRoles: ["INTERN"], // Ai có thể xem
+      requiredRoles: ["INTERN"],
     },
     {
-      // ✅ Thêm mới
       label: "Công việc của tôi",
       path: "/my-tasks",
       icon: "📋",
-      requiredRoles: ["INTERN"], // chỉ thực tập sinh mới thấy
+      requiredRoles: ["INTERN"],
+    },
+    {
+      label: "Đánh giá thực tập sinh",
+      path: "/mentor/evaluation",
+      icon: <TbStar style={{ fontSize: "18px" }} />,
+      requiredRoles: ["MENTOR"],
     },
     {
       label: "Quản lý người dùng",
@@ -92,6 +99,13 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["MENTOR", "ADMIN"],
     },
     {
+      label: "Quản lý Mentor",
+      label: "Giao nhiệm vụ",
+      path: "/mentor/tasks",
+      icon: "📝",
+      requiredRoles: ["MENTOR", "ADMIN"],
+    },
+    {
       label: "Quản lý dự án",
       path: "/admin/mentors",
       icon: "👨‍🏫",
@@ -111,7 +125,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     },
   ];
 
-  // --- Lọc menu theo role / quyền ---
+  // --- Lọc menu theo quyền / vai trò ---
   const visibleItems = menuItems.filter((item) => {
     if (item.requiredPermissions?.length) {
       return item.requiredPermissions.some((p) => userPermissions.includes(p));
@@ -122,10 +136,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     return true;
   });
 
-  const location = useLocation();
-  const { pathname } = location;
-
-  // Tìm menu cha của submenu item đang active
+  // --- Quản lý submenu ---
   const getActiveSubmenuParent = () => {
     for (const item of menuItems) {
       if (item.submenuItems?.some((sub) => sub.path === pathname)) {
@@ -142,21 +153,20 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     if (activeParent) {
       setOpenSubmenu(activeParent);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   const toggleSubmenu = (label) => {
     setOpenSubmenu(openSubmenu === label ? null : label);
   };
 
-  // --- Hiển thị avatar ---
+  // --- Avatar ---
   const initial = user?.fullName
     ? user.fullName.trim().charAt(0).toUpperCase()
     : "?";
 
   return (
     <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-      {/* Nút bật/tắt menu */}
+      {/* Nút bật/tắt */}
       <button
         className="sidebar-toggle"
         onClick={() => setCollapsed(!collapsed)}
@@ -164,10 +174,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         {collapsed ? "☰" : "⟪"}
       </button>
 
-      {/* Header chữ Menu */}
+      {/* Header */}
       <div className="sidebar-header">{!collapsed && "Menu"}</div>
 
-      {/* Thông tin User */}
+      {/* Thông tin người dùng */}
       <div
         className={`sidebar-user ${collapsed ? "collapsed" : ""}`}
         onClick={() => handleNavigate("/profile")}
@@ -178,7 +188,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         ) : (
           <div className="sidebar-avatar-initial">{initial}</div>
         )}
-
         {!collapsed && (
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">
