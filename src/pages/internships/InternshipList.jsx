@@ -8,6 +8,7 @@ import {
   getInternships,
   createInternship,
   updateInternship,
+  getInternPrograms, // ✅ Thêm import
 } from "../../services/internshipService";
 import { getUsers } from "../../services/adminService";
 
@@ -20,14 +21,25 @@ export default function InternshipList() {
   const [searchText, setSearchText] = useState("");
   const [schoolFilter, setSchoolFilter] = useState("");
   const [majorFilter, setMajorFilter] = useState("");
+  const [programs, setPrograms] = useState([]); // ✅ State cho danh sách programs
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
 
   useEffect(() => {
     loadInternships();
+    loadPrograms(); // ✅ Load programs khi component mount
   }, []);
+
+  // ✅ Hàm load danh sách programs
+  async function loadPrograms() {
+    try {
+      const response = await getInternPrograms();
+      setPrograms(response.data || []);
+    } catch (error) {
+      console.error("Error loading programs:", error);
+    }
+  }
 
   async function loadInternships() {
     setLoading(true);
@@ -36,7 +48,7 @@ export default function InternshipList() {
         q: "",
         status: "",
         page: 0,
-        size: 1000, // lấy rộng để phân trang phía client
+        size: 1000,
       });
       setInternships(response.data || []);
     } catch (error) {
@@ -47,7 +59,6 @@ export default function InternshipList() {
     }
   }
 
-  // Derived filters
   const schools = [
     ...new Set(internships.map((it) => it.school).filter(Boolean)),
   ];
@@ -65,12 +76,10 @@ export default function InternshipList() {
     return matchesSearch && matchesSchool && matchesMajor;
   });
 
-  // Reset về trang 1 khi filter/search thay đổi
   useEffect(() => {
     setCurrentPage(1);
   }, [searchText, schoolFilter, majorFilter]);
 
-  // Pagination calc
   const totalItems = filteredInternships.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
@@ -114,7 +123,6 @@ export default function InternshipList() {
         </button>
       </div>
 
-      {/* Filters & Search */}
       <div className="card" style={{ marginBottom: 16 }}>
         <div
           className="form-row"
@@ -206,8 +214,7 @@ export default function InternshipList() {
             ) : (
               pageItems.map((internship, index) => (
                 <tr key={internship.intern_id}>
-                  <td className="table-td">{startIndex + index + 1}</td>{" "}
-                  {/* ✅ STT */}
+                  <td className="table-td">{startIndex + index + 1}</td>
                   <td className="table-td">{internship.title}</td>
                   <td className="table-td">{internship.student}</td>
                   <td className="table-td">{internship.studentEmail}</td>
@@ -252,7 +259,6 @@ export default function InternshipList() {
           </tbody>
         </table>
 
-        {/* Pagination */}
         <div className="pagination">
           <div className="pagination-info">
             Hiển thị {totalItems === 0 ? 0 : startIndex + 1}–
@@ -300,6 +306,7 @@ export default function InternshipList() {
         <CreateInternshipModal
           onClose={() => setShowCreate(false)}
           existingInternships={internships}
+          programs={programs} // ✅ Truyền danh sách programs
           onCreate={async (data) => {
             try {
               const payload = {
@@ -309,9 +316,14 @@ export default function InternshipList() {
                 school: data.school,
                 major: data.major,
                 status: data.status,
-                startDate: data.startDate,
-                endDate: data.endDate,
+                startDate: data.startDate
+                  ? dayjs(data.startDate).format("YYYY-MM-DD")
+                  : null,
+                endDate: data.endDate
+                  ? dayjs(data.endDate).format("YYYY-MM-DD")
+                  : null,
               };
+
               await createInternship(payload);
               toast.success("Tạo thực tập sinh thành công! 🎉");
               setShowCreate(false);
@@ -335,6 +347,7 @@ export default function InternshipList() {
       {editing && (
         <EditInternshipModal
           data={editing}
+          programs={programs} // ✅ Truyền danh sách programs
           onClose={() => setEditing(null)}
           onSave={async (updated) => {
             try {
@@ -363,10 +376,12 @@ export default function InternshipList() {
   );
 }
 
+// ✅ CreateInternshipModal với dropdown programs
 function CreateInternshipModal({
   onClose,
   onCreate,
   existingInternships = [],
+  programs = [], // ✅ Nhận danh sách programs
 }) {
   const [title, setTitle] = useState("");
   const [student, setStudent] = useState("");
@@ -376,6 +391,7 @@ function CreateInternshipModal({
   const [status, setStatus] = useState("active");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [showCustomTitle, setShowCustomTitle] = useState(false); // ✅ Toggle giữa dropdown và input
 
   const [validationErrors, setValidationErrors] = useState({});
   const [showSelectIntern, setShowSelectIntern] = useState(false);
@@ -471,22 +487,33 @@ function CreateInternshipModal({
 
         <form onSubmit={onSubmit}>
           <div className="form-row cols-2-1">
+            {/* ✅ Vị trí với dropdown hoặc input tùy chọn */}
             <div className="form-group">
               <label className="form-label" htmlFor="title">
                 Vị trí <span style={{ color: "red" }}>*</span>
               </label>
-              <input
+              <select
                 id="title"
-                className={`form-input ${
-                  validationErrors.title ? "input-error" : ""
-                }`}
+                className={`form-select ${validationErrors.title ? "input-error" : ""}`}
                 value={title}
                 onChange={handleInputChange(setTitle, "title")}
-              />
+              >
+                <option value="">Chọn vị trí</option>
+                {programs.map((program) => (
+                  <option key={program} value={program}>
+                    {program}
+                  </option>
+                ))}
+              </select>
+              {validationErrors.title && (
+                <div className="error-message">{validationErrors.title}</div>
+              )}
+
               {validationErrors.title && (
                 <div className="error-message">{validationErrors.title}</div>
               )}
             </div>
+
             <div className="form-group">
               <label className="form-label" htmlFor="studentEmail">
                 Email <span style={{ color: "red" }}>*</span>
@@ -694,7 +721,8 @@ function ViewInternshipModal({ data, onClose }) {
   );
 }
 
-function EditInternshipModal({ data, onClose, onSave }) {
+// ✅ EditInternshipModal với dropdown programs
+function EditInternshipModal({ data, onClose, onSave, programs = [] }) {
   const [title, setTitle] = useState(data.title || "");
   const [student, setStudent] = useState(data.student || "");
   const [studentEmail, setStudentEmail] = useState(data.studentEmail || "");
@@ -707,6 +735,9 @@ function EditInternshipModal({ data, onClose, onSave }) {
   const [endDate, setEndDate] = useState(
     data.endDate ? dayjs(data.endDate) : null
   );
+  const [showCustomTitle, setShowCustomTitle] = useState(
+    !programs.includes(data.title)
+  ); // ✅ Nếu title không có trong list -> cho phép nhập tự do
   const [validationErrors, setValidationErrors] = useState({});
 
   const handleDateChange = (setter, field) => (date) => {
@@ -756,9 +787,10 @@ function EditInternshipModal({ data, onClose, onSave }) {
       school: school.trim() || undefined,
       major: major.trim() || undefined,
       status,
-      startDate,
-      endDate,
+      startDate: startDate ? dayjs(startDate).format("YYYY-MM-DD") : null,
+      endDate: endDate ? dayjs(endDate).format("YYYY-MM-DD") : null,
     });
+
   };
 
   const handleInputChange = (setter, field) => (e) => {
@@ -773,21 +805,32 @@ function EditInternshipModal({ data, onClose, onSave }) {
         <h2 className="modal-title">Sửa thông tin thực tập</h2>
         <form onSubmit={onSubmit}>
           <div className="form-row cols-2-1">
+            {/* ✅ Vị trí với dropdown hoặc input tùy chọn */}
             <div className="form-group">
               <label className="form-label">
                 Vị trí <span style={{ color: "red" }}>*</span>
               </label>
-              <input
-                className={`form-input ${
-                  validationErrors.title ? "input-error" : ""
-                }`}
+              <select
+                className={`form-select ${validationErrors.title ? "input-error" : ""}`}
                 value={title}
                 onChange={handleInputChange(setTitle, "title")}
-              />
+              >
+                <option value="">-- Chọn vị trí --</option>
+                {programs.map((program) => (
+                  <option key={program} value={program}>
+                    {program}
+                  </option>
+                ))}
+              </select>
+              {validationErrors.title && (
+                <div className="error-message">{validationErrors.title}</div>
+              )}
+
               {validationErrors.title && (
                 <div className="error-message">{validationErrors.title}</div>
               )}
             </div>
+
             <div className="form-group">
               <label className="form-label">
                 Email <span style={{ color: "red" }}>*</span>
@@ -931,7 +974,6 @@ function SelectInternModal({ onClose, onSelect, existingInternships = [] }) {
     }
   }
 
-  // Lấy danh sách email đã có trong internships
   const existingEmails = new Set(
     existingInternships
       .map((intern) => intern.studentEmail?.toLowerCase())
@@ -939,12 +981,10 @@ function SelectInternModal({ onClose, onSelect, existingInternships = [] }) {
   );
 
   const filteredUsers = users.filter((user) => {
-    // Loại bỏ những user đã có trong danh sách thực tập
     if (existingEmails.has(user.email?.toLowerCase())) {
       return false;
     }
 
-    // Filter theo search text
     if (!searchText) return true;
     const search = searchText.toLowerCase();
     return (
