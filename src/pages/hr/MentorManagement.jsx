@@ -136,7 +136,13 @@ export default function HRProjectManagement() {
         `Đã thêm ${intern.student} vào project ${selectedProject.title}`
       );
       setShowModal(false);
-      await loadProjects();
+      
+      // Use the filtered load function instead of loadProjects
+      if (selectedProgramId) {
+        await loadProjectsByFilter(selectedProgramId, selectedDepartmentId);
+      } else {
+        await loadProjects();
+      }
 
       setTimeout(() => {
         setSuccessMessage("");
@@ -185,7 +191,12 @@ export default function HRProjectManagement() {
       }
     }
 
-    await loadProjects();
+    // Reload projects while maintaining filters
+    if (selectedProgramId) {
+      await loadProjectsByFilter(selectedProgramId, selectedDepartmentId);
+    } else {
+      await loadProjects();
+    }
 
     if (isSuccess) {
       setSuccessMessage(`Đã xóa ${internName} khỏi project`);
@@ -230,7 +241,12 @@ export default function HRProjectManagement() {
       }
     }
 
-    await loadProjects();
+    // Reload projects while maintaining filters
+    if (selectedProgramId) {
+      await loadProjectsByFilter(selectedProgramId, selectedDepartmentId);
+    } else {
+      await loadProjects();
+    }
 
     if (isSuccess) {
       const newProject = projects.find((p) => p.id === newProjectId);
