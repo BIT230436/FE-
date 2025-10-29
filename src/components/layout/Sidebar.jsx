@@ -99,9 +99,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["MENTOR", "ADMIN"],
     },
     {
-<<<<<<< HEAD
       label: "Quản lý Mentor",
-=======
       label: "Giao nhiệm vụ",
       path: "/mentor/tasks",
       icon: "📝",
@@ -109,7 +107,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     },
     {
       label: "Quản lý dự án",
->>>>>>> e775492bc1d1cf894b512f2a14377286dd59a520
       path: "/admin/mentors",
       icon: "👨‍🏫",
       requiredRoles: ["HR"],
@@ -170,7 +167,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   return (
     <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       {/* Nút bật/tắt */}
-      <button className="sidebar-toggle" onClick={() => setCollapsed(!collapsed)}>
+      <button
+        className="sidebar-toggle"
+        onClick={() => setCollapsed(!collapsed)}
+      >
         {collapsed ? "☰" : "⟪"}
       </button>
 
@@ -190,7 +190,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         )}
         {!collapsed && (
           <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{user?.fullName || "Người dùng"}</div>
+            <div className="sidebar-user-name">
+              {user?.fullName || "Người dùng"}
+            </div>
             <div className="sidebar-user-role">{user?.role || "Admin"}</div>
           </div>
         )}
