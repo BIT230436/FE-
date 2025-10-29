@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { DatePicker } from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./AllowanceManagement.css";
 
 import InternSelectionModal from "../../components/common/InternSelectionModal";
 import {
@@ -161,10 +162,14 @@ export default function AllowanceManagement() {
       </div>
 
       {showCreateModal && (
-        <CreateAllowanceModal
-          onClose={() => setShowCreateModal(false)}
-          onCreate={handleCreateAllowance}
-        />
+        <div className="create-allowance-modal-overlay">
+          <div className="create-allowance-modal">
+            <CreateAllowanceModal
+              onClose={() => setShowCreateModal(false)}
+              onCreate={handleCreateAllowance}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
@@ -319,14 +324,18 @@ function CreateAllowanceModal({ onClose, onCreate }) {
         </form>
       </div>
       {showInternModal && (
-        <InternSelectionModal
-          onClose={() => setShowInternModal(false)}
-          onSelect={(intern) => {
-            console.log("Selected intern:", intern);
-            setSelectedIntern(intern);
-            setShowInternModal(false);
-          }}
-        />
+        <div className="intern-selection-modal-overlay">
+          <div className="intern-selection-modal">
+            <InternSelectionModal
+              onClose={() => setShowInternModal(false)}
+              onSelect={(intern) => {
+                console.log("Selected intern:", intern);
+                setSelectedIntern(intern);
+                setShowInternModal(false);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

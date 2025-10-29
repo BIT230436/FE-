@@ -134,24 +134,56 @@ body {
   background: #28a745;
 }
 
-.table .btn-info {
-  background: var(--info);
-  color: #fff;
-  padding: 5px 12px;
-  font-size: 18px;
+/* Button styles for action buttons in table */
+.table .btn-success,
+.table .btn-warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px;
+  margin: 4px 4px;
+  transition: all 0.2s ease;
 }
-.btn-info:hover {
-  background: #007aff;
+
+.table .btn-success {
+  background: var(--success);
+  color: #fff;
+  border: 1px solid #28a745;
+}
+
+.table .btn-success:hover {
+  background: #28a745;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .table .btn-warning {
   background: var(--warning);
   color: #222;
-  padding: 5px 15px;
-  font-size: 17px;
+  border: 1px solid #e6b800;
 }
-.btn-warning:hover {
-  background: #ffe066;
+
+.table .btn-warning:hover {
+  background: #e6b800;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure buttons in table cells have consistent spacing */
+.table-td {
+  vertical-align: middle;
+}
+
+/* Remove inline margins and use flex for better alignment */
+.table-td > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .btn-outline-danger {
