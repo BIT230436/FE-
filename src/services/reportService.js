@@ -2,11 +2,10 @@
 import api from "./apiClient";
 import { useAuthStore } from "../store/authStore";
 
-// 🔹 Hàm tiện ích lấy userId hiện tại
 function getCurrentUserId() {
   const { user } = useAuthStore.getState();
   if (!user || !user.id)
-    throw new Error("Không tìm thấy user. Hãy đăng nhập lại!");
+    throw new Error("Không tìm thấy user. Vui lòng đăng nhập lại!");
   return user.id;
 }
 
@@ -15,6 +14,7 @@ export async function createMentorEvaluation(request) {
     const userId = getCurrentUserId();
     const payload = { ...request, userId };
     const response = await api.post(`/reports/mentor`, payload);
+    console.log("✅ Created Evaluation:", response.data);
     return response.data;
   } catch (error) {
     handleError(error);
@@ -24,8 +24,9 @@ export async function createMentorEvaluation(request) {
 export async function updateMentorEvaluation(evaluationId, request) {
   try {
     const userId = getCurrentUserId();
-    const payload = { ...request, userId }; // thêm userId vào body
+    const payload = { ...request, userId };
     const response = await api.put(`/reports/mentor/${evaluationId}`, payload);
+    console.log("📝 Updated Evaluation:", response.data);
     return response.data;
   } catch (error) {
     handleError(error);
@@ -38,6 +39,17 @@ export async function deleteMentorEvaluation(evaluationId) {
     await api.delete(`/reports/mentor/${evaluationId}`, {
       params: { userId },
     });
+    console.log("🗑️ Deleted Evaluation:", evaluationId);
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function getEvaluationsByIntern(internId) {
+  try {
+    const response = await api.get(`/reports/intern/${internId}/evaluations`);
+    console.log("📄 Fetched Evaluations:", response.data);
+    return response.data;
   } catch (error) {
     handleError(error);
   }
