@@ -9,7 +9,6 @@ function getCurrentUserId() {
   return user.id;
 }
 
-// ✅ Lấy danh sách department theo 1 chương trình (programId)
 export const getDepartmentsByProgram = async (programId) => {
   try {
     const response = await api.get(`/departments/program/${programId}`);
@@ -17,7 +16,7 @@ export const getDepartmentsByProgram = async (programId) => {
 
     return rows.map((d) => ({
       id: d.id,
-      departmentName: d.nameDepartment, // field trong BE
+      departmentName: d.nameDepartment,
       capacity: d.capacity,
       programId: d.programId,
       hrName: d.hrName || "Không rõ",
