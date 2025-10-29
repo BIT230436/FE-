@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import "../mentor/mentorAssignmentModal.css";
-import { getInterns } from "../../services/internService";
 import {
-  getMentors,
   assignMentor,
   unassignMentor,
   getInternMentorAssignment,

@@ -11,6 +11,7 @@ import Users from "../pages/admin/Users";
 import Permissions from "../pages/admin/Permissions";
 import MentorManagement from "../pages/hr/MentorManagement";
 import ProjectManagement from "../pages/mentor/ProjectManagement";
+import TaskManagement from "../pages/mentor/TaskManagement";
 import OAuthCallback from "../pages/auth/OAuthCallback";
 import MyContract from "../pages/students/MyContract";
 import AllowanceHistory from "../pages/internships/AllowanceHistory";
@@ -117,6 +118,14 @@ export default function AppRouter() {
               }
             />
 
+            <Route
+              path="/mentor/tasks"
+              element={
+                <AccessGuard requiredRoles={["MENTOR", "ADMIN"]}>
+                  <TaskManagement />
+                </AccessGuard>
+              }
+            />
             <Route
               path="/admin/permissions"
               element={
