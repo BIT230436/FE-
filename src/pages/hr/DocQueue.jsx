@@ -135,14 +135,14 @@ export default function DocQueue() {
                 <td className="table-td">
                   <button
                     onClick={() => handleReview(d, "APPROVE")}
-                    className="btn btn-success"
+                    className="btn btn-duyet"
                     style={{ marginRight: 8 }}
                   >
                     Duyệt
                   </button>
                   <button
                     onClick={() => handleReview(d, "REJECT")}
-                    className="btn btn-outline-danger"
+                    className="btn btn-tuchoi"
                   >
                     Từ chối
                   </button>

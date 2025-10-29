@@ -1,8 +1,8 @@
 /* Chủ đề quản lý thực tập sinh - cải tiến giao diện */
 :root {
   --primary: #2b7cff;
-  --success: #34c759;
-  --danger: #ff3b30;
+  --duyet: #34c759;
+  --tuchoi: #ff3b30;
   --warning: #ffd60a;
   --info: #5ac8fa;
   --bg-light: #f4f8fb;
@@ -112,13 +112,13 @@ body {
   flex-shrink: 0;
 }
 
-.btn-success {
+.btn-duyet {
   background: var(--success);
   color: #fff;
   padding: 5px 12px;
   font-size: 13px;
 }
-.btn-success:hover {
+.btn-duyet:hover {
   background: #28a745;
 }
 
@@ -142,14 +142,14 @@ body {
   background: #ffe066;
 }
 
-.btn-outline-danger {
+.btn-tuchoi {
   background: #fff;
   color: var(--danger);
   border: 1px solid #ffd6d6;
   padding: 5px 12px;
   font-size: 13px;
 }
-.btn-outline-danger:hover {
+.btn-tuchoi:hover {
   background: #ffeaea;
 }
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Search,
   Users,
   BookOpen,
   Copy,
@@ -10,7 +9,13 @@ import {
   Edit,
   Save,
   X,
+  Star,
+  Award,
+  Calendar,
+  MessageSquare,
 } from "lucide-react";
+
+import "./EvaluationForm.css";
 
 import { getAllPrograms } from "../../services/programService";
 import { getDepartmentsByProgram } from "../../services/departmentService";
@@ -277,30 +282,46 @@ export default function MentorReviewInterns() {
     setEditingEvaluation(null);
   };
 
+  const getScoreClass = (score) => {
+    if (score >= 8) return "excellent";
+    if (score >= 6) return "good";
+    if (score >= 4) return "average";
+    return "poor";
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-blue-600" />
-            Mentor Review - Đánh Giá Thực Tập Sinh
-          </h1>
+    <div className="evaluation-page">
+      <div className="container">
+        {/* Header Section */}
+        <div className="header-card">
+          <div className="header-title">
+            <div className="header-icon">
+              <Award />
+            </div>
+            <div className="header-text">
+              <h1>Đánh Giá Thực Tập Sinh</h1>
+              <p>Quản lý và theo dõi tiến độ của thực tập sinh</p>
+            </div>
+          </div>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              {error}
+            <div className="error-message">
+              <X />
+              <span>{error}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chương trình <span className="text-red-500">*</span>
+          {/* Filter Section */}
+          <div className="filter-grid">
+            <div className="form-group">
+              <label className="form-label">
+                <BookOpen />
+                Chương trình <span className="required">*</span>
               </label>
               <select
                 value={selectedProgramId}
                 onChange={handleProgramChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="form-select"
                 disabled={loading}
               >
                 <option value="">-- Chọn chương trình --</option>
@@ -312,14 +333,15 @@ export default function MentorReviewInterns() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="form-group">
+              <label className="form-label">
+                <Users />
                 Phòng ban (Tùy chọn)
               </label>
               <select
                 value={selectedDepartmentId}
                 onChange={handleDepartmentChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="form-select"
                 disabled={loading || !selectedProgramId}
               >
                 <option value="">-- Tất cả phòng ban --</option>
@@ -331,138 +353,154 @@ export default function MentorReviewInterns() {
               </select>
             </div>
           </div>
+        </div>
 
-          {loading && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
+        {/* Loading State */}
+        {loading && (
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p className="loading-text">Đang tải dữ liệu...</p>
+          </div>
+        )}
+
+        {/* Interns Grid */}
+        {!loading && selectedProgramId && (
+          <div className="interns-card">
+            <div className="section-header">
+              <h2 className="section-title">
+                <Users />
+                Danh sách thực tập sinh
+                <span className="count-badge">{interns.length}</span>
+              </h2>
             </div>
-          )}
 
-          {!loading && selectedProgramId && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  Danh sách thực tập sinh ({interns.length})
-                </h2>
+            {interns.length === 0 ? (
+              <div className="empty-state">
+                <Users />
+                <p>Không có thực tập sinh nào</p>
+                <small>Vui lòng chọn chương trình khác</small>
               </div>
+            ) : (
+              <div className="interns-grid">
+                {interns.map((intern) => (
+                  <div
+                    key={`${intern.id}-${intern.projectId}`}
+                    className={`intern-card ${
+                      selectedIntern?.id === intern.id ? "selected" : ""
+                    }`}
+                    onClick={() => handleSelectIntern(intern)}
+                  >
+                    {selectedIntern?.id === intern.id && (
+                      <div className="selected-badge">
+                        <Check />
+                      </div>
+                    )}
 
-              {interns.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600">
-                    Không có thực tập sinh nào trong chương trình này
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {interns.map((intern) => (
-                    <div
-                      key={`${intern.id}-${intern.projectId}`}
-                      className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                        selectedIntern?.id === intern.id
-                          ? "border-blue-500 bg-blue-50 shadow-md"
-                          : "border-gray-200 hover:border-blue-300 hover:shadow-sm"
-                      }`}
-                      onClick={() => handleSelectIntern(intern)}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 mb-1">
-                            {intern.fullName}
-                          </h3>
-                          <p className="text-xs text-gray-500 flex items-center gap-1">
-                            ID: {intern.id}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCopyInternId(intern.id);
-                              }}
-                              className="ml-1 p-1 hover:bg-gray-200 rounded"
-                              title="Copy ID"
-                            >
-                              {copiedInternId === intern.id ? (
-                                <Check className="w-3 h-3 text-green-600" />
-                              ) : (
-                                <Copy className="w-3 h-3 text-gray-600" />
-                              )}
-                            </button>
-                          </p>
+                    <div className="intern-header">
+                      <div>
+                        <h3 className="intern-name">{intern.fullName}</h3>
+                        <div className="intern-id">
+                          <span>ID: {intern.id}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopyInternId(intern.id);
+                            }}
+                            className={`copy-btn ${
+                              copiedInternId === intern.id ? "copied" : ""
+                            }`}
+                            title="Copy ID"
+                          >
+                            {copiedInternId === intern.id ? (
+                              <Check />
+                            ) : (
+                              <Copy />
+                            )}
+                          </button>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-start gap-2">
-                          <span className="text-gray-500 min-w-fit">
-                            Dự án:
-                          </span>
-                          <span className="text-gray-900 font-medium">
+                    <div className="intern-info">
+                      <div className="info-row">
+                        <BookOpen style={{ color: "#667eea" }} />
+                        <div>
+                          <span className="info-label">Dự án</span>
+                          <span className="info-value">
                             {intern.projectTitle}
                           </span>
                         </div>
-                        <div className="flex items-start gap-2">
-                          <span className="text-gray-500 min-w-fit">
-                            Mentor:
-                          </span>
-                          <span className="text-gray-700">
+                      </div>
+                      <div className="info-row">
+                        <Star style={{ color: "#f59e0b" }} />
+                        <div>
+                          <span className="info-label">Mentor</span>
+                          <span className="info-value">
                             {intern.mentorName || "Chưa có"}
                           </span>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
+        {/* Evaluation Section */}
         {selectedIntern && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
-                Đánh giá cho: {selectedIntern.fullName}
-              </h2>
+          <div className="evaluation-section">
+            <div className="evaluation-header">
+              <div className="evaluation-title-group">
+                <div className="evaluation-icon">
+                  <Award />
+                </div>
+                <div className="evaluation-title-text">
+                  <h2>{selectedIntern.fullName}</h2>
+                  <p>Quản lý đánh giá và theo dõi tiến độ</p>
+                </div>
+              </div>
               {!showForm && (
-                <button
-                  onClick={handleNewEvaluation}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
+                <button onClick={handleNewEvaluation} className="btn-primary">
+                  <Plus />
                   Tạo đánh giá mới
                 </button>
               )}
             </div>
 
+            {/* Evaluation Form */}
             {showForm && (
-              <div className="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-semibold mb-4">
+              <div className="evaluation-form">
+                <h3 className="form-title">
+                  <Edit />
                   {editingEvaluation
                     ? "Chỉnh sửa đánh giá"
                     : "Tạo đánh giá mới"}
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Chu kỳ <span className="text-red-500">*</span>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">
+                      <Calendar />
+                      Chu kỳ <span className="required">*</span>
                     </label>
                     <select
                       value={formData.cycle}
                       onChange={(e) =>
                         setFormData({ ...formData, cycle: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="form-select"
                     >
-                      <option value="weekly">Weekly</option>
-                      <option value="monthly">Monthly</option>
+                      <option value="weekly">Hàng tuần</option>
+                      <option value="monthly">Hàng tháng</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Kỳ số <span className="text-red-500">*</span>
+                  <div className="form-group">
+                    <label className="form-label">
+                      <Star />
+                      Kỳ số <span className="required">*</span>
                     </label>
                     <input
                       type="number"
@@ -471,13 +509,14 @@ export default function MentorReviewInterns() {
                       onChange={(e) =>
                         setFormData({ ...formData, periodNo: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="form-input"
                     />
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="form-group">
+                  <label className="form-label">
+                    <MessageSquare />
                     Nhận xét chung
                   </label>
                   <textarea
@@ -485,33 +524,30 @@ export default function MentorReviewInterns() {
                     onChange={(e) =>
                       setFormData({ ...formData, comment: e.target.value })
                     }
-                    rows="3"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="form-textarea"
                     placeholder="Nhận xét tổng quan về thực tập sinh..."
                   />
                 </div>
 
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Tiêu chí đánh giá <span className="text-red-500">*</span>
+                <div>
+                  <div className="criteria-header">
+                    <label className="criteria-label">
+                      <Award />
+                      Tiêu chí đánh giá <span className="required">*</span>
                     </label>
                     <button
                       type="button"
                       onClick={handleAddCriteria}
-                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                      className="btn-add"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus />
                       Thêm tiêu chí
                     </button>
                   </div>
 
-                  {formData.scores.map((score, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-12 gap-3 mb-3 p-3 bg-white rounded-lg border border-gray-200"
-                    >
-                      <div className="col-span-4">
+                  <div className="criteria-list">
+                    {formData.scores.map((score, index) => (
+                      <div key={index} className="criteria-item">
                         <input
                           type="text"
                           placeholder="Tên tiêu chí"
@@ -523,10 +559,7 @@ export default function MentorReviewInterns() {
                               e.target.value
                             )
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                         />
-                      </div>
-                      <div className="col-span-2">
                         <input
                           type="number"
                           placeholder="Điểm"
@@ -537,10 +570,7 @@ export default function MentorReviewInterns() {
                           onChange={(e) =>
                             handleScoreChange(index, "score", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                         />
-                      </div>
-                      <div className="col-span-5">
                         <input
                           type="text"
                           placeholder="Nhận xét"
@@ -548,118 +578,118 @@ export default function MentorReviewInterns() {
                           onChange={(e) =>
                             handleScoreChange(index, "comment", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                         />
-                      </div>
-                      <div className="col-span-1 flex items-center">
                         {formData.scores.length > 1 && (
                           <button
                             type="button"
                             onClick={() => handleRemoveCriteria(index)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded"
+                            className="btn-remove"
+                            title="Xóa tiêu chí"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 />
                           </button>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="form-actions">
                   <button
                     type="button"
                     onClick={handleSubmitEvaluation}
                     disabled={loading}
-                    className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                    className="btn-success"
                   >
-                    <Save className="w-4 h-4" />
-                    {editingEvaluation ? "Cập nhật" : "Lưu đánh giá"}
+                    <Save />
+                    {editingEvaluation ? "Cập nhật đánh giá" : "Lưu đánh giá"}
                   </button>
                   <button
                     type="button"
                     onClick={handleCancelForm}
-                    className="flex items-center gap-2 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="btn-cancel"
                   >
-                    <X className="w-4 h-4" />
+                    <X />
                     Hủy
                   </button>
                 </div>
               </div>
             )}
 
+            {/* Evaluation History */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Lịch sử đánh giá</h3>
+              <h3 className="history-title">
+                <Calendar />
+                Lịch sử đánh giá
+              </h3>
               {evaluations.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  Chưa có đánh giá nào
-                </p>
+                <div className="empty-state">
+                  <Award />
+                  <p>Chưa có đánh giá nào</p>
+                  <small>Hãy tạo đánh giá đầu tiên cho thực tập sinh này</small>
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="history-list">
                   {evaluations.map((evaluation) => (
-                    <div
-                      key={evaluation.evaluationId}
-                      className="border border-gray-200 rounded-lg p-4"
-                    >
-                      <div className="flex items-start justify-between mb-3">
+                    <div key={evaluation.evaluationId} className="history-item">
+                      <div className="history-header">
                         <div>
-                          <div className="flex items-center gap-3 mb-1">
-                            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded">
+                          <div className="history-meta">
+                            <span className="cycle-badge">
                               {evaluation.cycle}
                             </span>
-                            <span className="text-sm text-gray-600">
+                            <span className="period-text">
                               Kỳ {evaluation.periodNo}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-500">
+                          <p className="history-date">
                             {new Date(evaluation.createdAt).toLocaleString(
                               "vi-VN"
                             )}
                           </p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="history-actions">
                           <button
                             onClick={() => handleEditEvaluation(evaluation)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            className="btn-icon edit"
                             title="Chỉnh sửa"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit />
                           </button>
                           <button
                             onClick={() =>
                               handleDeleteEvaluation(evaluation.evaluationId)
                             }
-                            className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                            className="btn-icon delete"
                             title="Xóa"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 />
                           </button>
                         </div>
                       </div>
 
                       {evaluation.comment && (
-                        <p className="text-gray-700 mb-3 italic">
+                        <p className="history-comment">
                           "{evaluation.comment}"
                         </p>
                       )}
 
-                      <div className="space-y-2">
+                      <div className="scores-list">
                         {evaluation.scores.map((score, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                          >
-                            <div className="flex-1">
-                              <span className="font-medium text-gray-900">
+                          <div key={idx} className="score-item">
+                            <div className="score-content">
+                              <span className="score-name">
                                 {score.criteriaName}
                               </span>
                               {score.comment && (
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {score.comment}
-                                </p>
+                                <p className="score-comment">{score.comment}</p>
                               )}
                             </div>
-                            <span className="ml-4 px-3 py-1 bg-green-100 text-green-700 font-semibold rounded">
+                            <span
+                              className={`score-value ${getScoreClass(
+                                score.score
+                              )}`}
+                            >
                               {score.score}
                             </span>
                           </div>
