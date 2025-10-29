@@ -16,6 +16,7 @@ import MyContract from "../pages/students/MyContract";
 import AllowanceHistory from "../pages/internships/AllowanceHistory";
 import InternSchedule from "../pages/internships/InternshipSchedule"; // ✅ Lịch thực tập
 import MyTasks from "../pages/internships/MyTasks"; // ✅ Công việc của tôi
+import EvaluationForm from "../pages/mentor/EvaluationForm"; // ✅ Đánh giá thực tập sinh
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -48,13 +49,13 @@ export default function AppRouter() {
       />
 
       <Routes>
-        {/* 🌐 Public */}
+        {/* 🌐 Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/oauth2/callback" element={<OAuthCallback />} />
         <Route path="/apply" element={<DocumentUpload />} />
 
-        {/* 🔒 Private */}
+        {/* 🔒 Private Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
@@ -105,6 +106,17 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+
+            {/* ✅ Đánh giá thực tập sinh */}
+            <Route
+              path="/mentor/evaluation"
+              element={
+                <AccessGuard requiredRoles={["MENTOR", "ADMIN"]}>
+                  <EvaluationForm />
+                </AccessGuard>
+              }
+            />
+
             <Route
               path="/admin/permissions"
               element={
@@ -197,7 +209,6 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
-            {/* ✅ Công việc của tôi */}
             <Route
               path="/my-tasks"
               element={
