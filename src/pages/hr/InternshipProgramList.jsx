@@ -247,19 +247,19 @@ export default function InternshipProgramList() {
                   <td className="table-td">{program.hrName || "Không rõ"}</td>
                   <td className="table-td action-buttons">
                     <button
-                      className="btn btn-info btn-sm"
+                      className="program-btn-info"
                       onClick={() => navigate(`/hr/departments/${program.id}`)}
                     >
                       Chi tiết P.Ban
                     </button>
                     <button
-                      className="btn btn-warning btn-sm"
+                      className="program-btn-warning"
                       onClick={() => setEditing(program)}
                     >
                       Sửa
                     </button>
                     <button
-                      className="btn btn-danger btn-sm"
+                      className="program-btn-danger"
                       onClick={() => handleDeleteProgram(program.id)}
                     >
                       Xóa

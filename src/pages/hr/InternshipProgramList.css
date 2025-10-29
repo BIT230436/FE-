@@ -132,6 +132,57 @@ body {
   background: #28a745;
 }
 
+/* 🔹 FIXED: Specific classes for program list action buttons */
+.program-btn-info {
+  background: var(--info);
+  color: #fff;
+  padding: 7px 14px;
+  font-size: 13px;
+  min-width: 109px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.18s;
+  white-space: nowrap;
+}
+.program-btn-info:hover {
+  background: #007aff;
+}
+
+.program-btn-warning {
+  background: var(--warning);
+  color: #222;
+  padding: 7px 14px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.18s;
+  white-space: nowrap t;
+}
+.program-btn-warning:hover {
+  background: #ffe066;
+}
+
+.program-btn-danger {
+  background: var(--danger);
+  color: #fff;
+  padding: 7px 14px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.18s;
+  white-space: nowrap;
+}
+.program-btn-danger:hover {
+  background: #e02020;
+}
+
+/* Keep old classes for backwards compatibility but with lower specificity */
 .table .btn-info {
   background: var(--info);
   color: #fff;
@@ -352,6 +403,7 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .text-truncate {
@@ -482,6 +534,12 @@ body {
     padding: 5px 12px;
     font-size: 12px;
   }
+  .program-btn-info,
+  .program-btn-warning,
+  .program-btn-danger {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
   .modal-box {
     width: 95vw;
     padding: 20px 16px;
@@ -495,6 +553,9 @@ body {
   }
   .form-actions .btn {
     width: 100%;
+  }
+  .action-buttons {
+    gap: 6px;
   }
 }
 
@@ -518,6 +579,12 @@ body {
     padding: 5px 10px;
     font-size: 12px;
   }
+  .program-btn-info,
+  .program-btn-warning,
+  .program-btn-danger {
+    padding: 5px 10px !important;
+    font-size: 11px !important;
+  }
   .modal-box {
     width: 100vw;
     padding: 16px 12px;
@@ -530,5 +597,13 @@ body {
   .form-select {
     font-size: 14px;
     padding: 8px 10px;
+  }
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .action-buttons button {
+    width: 100%;
   }
 }
