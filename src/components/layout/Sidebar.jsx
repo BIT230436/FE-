@@ -92,6 +92,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["MENTOR", "ADMIN"],
     },
     {
+      label: "Giao nhiệm vụ",
+      path: "/mentor/tasks",
+      icon: "📝",
+      requiredRoles: ["MENTOR", "ADMIN"],
+    },
+    {
       label: "Quản lý dự án",
       path: "/admin/mentors",
       icon: "👨‍🏫",
