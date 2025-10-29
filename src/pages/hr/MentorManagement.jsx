@@ -321,32 +321,42 @@ export default function HRProjectManagement() {
           </div>
 
           <div className="filter-dropdowns">
-            <select
-              className="filter-select"
-              value={selectedProgramId}
-              onChange={(e) => setSelectedProgramId(e.target.value)}
-            >
-              <option value="">📋 Tất cả Program</option>
-              {programs.map((program) => (
-                <option key={program.id} value={program.id}>
-                  {program.programName}
-                </option>
-              ))}
-            </select>
+            <div className="dropdown-container">
+              <div className={`dropdown ${selectedProgramId ? 'active' : ''}`}>
+                <select
+                  className="dropdown-select"
+                  value={selectedProgramId}
+                  onChange={(e) => setSelectedProgramId(e.target.value)}
+                >
+                  <option value="">📋 Tất cả Program</option>
+                  {programs.map((program) => (
+                    <option key={program.id} value={program.id}>
+                      {program.programName}
+                    </option>
+                  ))}
+                </select>
+                <span className="dropdown-arrow">▼</span>
+              </div>
+            </div>
 
-            <select
-              className="filter-select"
-              value={selectedDepartmentId}
-              onChange={(e) => setSelectedDepartmentId(e.target.value)}
-              disabled={!selectedProgramId}
-            >
-              <option value="">🏢 Tất cả Department</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.departmentName}
-                </option>
-              ))}
-            </select>
+            <div className="dropdown-container">
+              <div className={`dropdown ${!selectedProgramId ? 'disabled' : ''} ${selectedDepartmentId ? 'active' : ''}`}>
+                <select
+                  className="dropdown-select"
+                  value={selectedDepartmentId}
+                  onChange={(e) => setSelectedDepartmentId(e.target.value)}
+                  disabled={!selectedProgramId}
+                >
+                  <option value="">🏢 Tất cả Department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.departmentName}
+                    </option>
+                  ))}
+                </select>
+                <span className="dropdown-arrow">▼</span>
+              </div>
+            </div>
           </div>
 
           <div className="filter-buttons">
