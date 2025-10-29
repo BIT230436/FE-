@@ -18,6 +18,7 @@ import AllowanceHistory from "../pages/internships/AllowanceHistory";
 import InternSchedule from "../pages/internships/InternshipSchedule"; // ✅ Lịch thực tập
 import MyTasks from "../pages/internships/MyTasks"; // ✅ Công việc của tôi
 import EvaluationForm from "../pages/mentor/EvaluationForm"; // ✅ Đánh giá thực tập sinh
+import SupportRequests from "../pages/internships/SupportRequests";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -223,6 +224,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredRoles={["INTERN"]}>
                   <MyTasks />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/support-requests"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <SupportRequests />
                 </AccessGuard>
               }
             />

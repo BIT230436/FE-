@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import "./Sidebar.css";
-import { TbLogout2, TbStar } from "react-icons/tb";
+import { TbLogout2, TbStar, TbHelpOctagon } from "react-icons/tb";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
@@ -120,6 +120,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       label: "Phụ cấp của tôi",
       path: "/my-allowance-history",
       icon: "💰",
+      requiredRoles: ["INTERN"],
+    },
+    {
+      label: "Yêu cầu hỗ trợ",
+      path: "/support-requests",
+      icon: <TbHelpOctagon style={{ fontSize: "18px" }} />, // Sử dụng icon
       requiredRoles: ["INTERN"],
     },
   ];
