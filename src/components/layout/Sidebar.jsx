@@ -28,10 +28,17 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredPermissions: ["VIEW_INTERNSHIPS"],
     },
     {
-      label: " Lịch thực tập",
+      label: "Lịch thực tập",
       path: "/intern-schedule",
       icon: "🗓️",
       requiredRoles: ["INTERN"], // Ai có thể xem
+    },
+    {
+      // ✅ Thêm mới
+      label: "Công việc của tôi",
+      path: "/my-tasks",
+      icon: "📋",
+      requiredRoles: ["INTERN"], // chỉ thực tập sinh mới thấy
     },
     {
       label: "Quản lý người dùng",

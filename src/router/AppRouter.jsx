@@ -14,7 +14,8 @@ import ProjectManagement from "../pages/mentor/ProjectManagement";
 import OAuthCallback from "../pages/auth/OAuthCallback";
 import MyContract from "../pages/students/MyContract";
 import AllowanceHistory from "../pages/internships/AllowanceHistory";
-import InternSchedule from "../pages/internships/InternshipSchedule"; // ✅ Thêm dòng này
+import InternSchedule from "../pages/internships/InternshipSchedule"; // ✅ Lịch thực tập
+import MyTasks from "../pages/internships/MyTasks"; // ✅ Công việc của tôi
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -45,14 +46,15 @@ export default function AppRouter() {
         draggable
         pauseOnHover
       />
+
       <Routes>
-        {/* Public */}
+        {/* 🌐 Public */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/oauth2/callback" element={<OAuthCallback />} />
         <Route path="/apply" element={<DocumentUpload />} />
 
-        {/* Private */}
+        {/* 🔒 Private */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
@@ -78,7 +80,7 @@ export default function AppRouter() {
               }
             />
 
-            {/* ADMIN / HR */}
+            {/* 🧑‍💼 ADMIN / HR */}
             <Route
               path="/admin/users"
               element={
@@ -143,22 +145,14 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
-
-            {/* 🔴 XÓA ROUTE CŨ: path="/hr/departments" 
-                Nếu bạn đã loại bỏ chế độ quản lý chung, route này không cần thiết nữa.
-                Nếu bạn vẫn cần nó cho menu, hãy giữ lại nó, nhưng thêm route dynamic sau.
-            */}
-
-            {/* 🟢 THÊM ROUTE DYNAMIC CHO CHI TIẾT PHÒNG BAN THEO CHƯƠNG TRÌNH */}
             <Route
-              path="/hr/departments/:programId" // <-- Đã thêm tham số :programId
+              path="/hr/departments/:programId"
               element={
                 <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <DepartmentManagement />
                 </AccessGuard>
               }
             />
-
             <Route
               path="/hr/allowances"
               element={
@@ -168,7 +162,7 @@ export default function AppRouter() {
               }
             />
 
-            {/* USER */}
+            {/* 👤 USER */}
             <Route
               path="/upload-documents"
               element={
@@ -185,6 +179,8 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+
+            {/* 🧑‍🎓 INTERN (Thực tập sinh) */}
             <Route
               path="/my-contract"
               element={
@@ -201,10 +197,19 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+            {/* ✅ Công việc của tôi */}
+            <Route
+              path="/my-tasks"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <MyTasks />
+                </AccessGuard>
+              }
+            />
           </Route>
         </Route>
 
-        {/* Fallback */}
+        {/* 🚫 Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
