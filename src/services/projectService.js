@@ -79,3 +79,16 @@ export const removeInternFromProject = async (internId) => {
   );
   return res.data;
 };
+
+export const filterProjects = async (programId, departmentId = null) => {
+  const params = {};
+  if (!programId) {
+    throw new Error("programId is required");
+  }
+  params.programId = programId;
+  if (departmentId) {
+    params.departmentId = departmentId;
+  }
+  const res = await api.get(`/projects/filter`, { params });
+  return res.data;
+};
