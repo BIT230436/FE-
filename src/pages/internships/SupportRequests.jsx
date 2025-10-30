@@ -10,21 +10,19 @@ function RequestStatusBadge({ status }) {
   let config = {
     text: status || "Unknown",
     className: "status-default",
-    icon: "❓",
   };
   switch (status) {
     case "PENDING":
-      config = { text: "Chờ xử lý", className: "status-pending", icon: "⏳" };
+      config = { text: "Chờ xử lý", className: "status-pending"};
       break;
     case "COMPLETED":
       config = {
         text: "Complete",
         className: "status-completed",
-        icon: "✅",
       };
       break;
     case "REJECTED":
-      config = { text: "Bị từ chối", className: "status-rejected", icon: "❌" };
+      config = { text: "Bị từ chối", className: "status-rejected"};
       break;
   }
   return (
