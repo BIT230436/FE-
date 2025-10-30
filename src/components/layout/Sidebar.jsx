@@ -131,13 +131,13 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     {
       label: "Yêu cầu hỗ trợ",
       path: "/support-requests",
-      icon: <TbHelpOctagon style={{ fontSize: "18px" }} />, // Sử dụng icon
+      icon: "❓",
       requiredRoles: ["INTERN"],
     },
     {
       label: "Duyệt yêu cầu HT", // HT = Hỗ trợ
       path: "/hr/support-requests",
-      icon: <TbMessageQuestion style={{ fontSize: "18px" }} />,
+      icon: "📋",
       requiredRoles: ["HR"],
     },
     {

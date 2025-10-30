@@ -174,24 +174,6 @@ export default function SupportRequestReviewModal({
               >
                 {loading ? "Đang xử lý..." : " Xác Nhận"}
               </button>
-              {/* Nút đánh dấu đang xử lý (tùy chọn) */}
-              {request.status === "PENDING" && (
-                <button
-                  type="button"
-                  className="btn btn-info" // Màu xanh dương nhạt
-                  onClick={() => handleReview("PROCESSING")}
-                  disabled={loading}
-                  style={{ backgroundColor: "#17a2b8", borderColor: "#17a2b8" }}
-                  onMouseOver={(e) =>
-                    (e.target.style.backgroundColor = "#138496")
-                  }
-                  onMouseOut={(e) =>
-                    (e.target.style.backgroundColor = "#17a2b8")
-                  }
-                >
-                  {loading ? "..." : " Đang xử lý"}
-                </button>
-              )}
             </>
           )}
         </div>
