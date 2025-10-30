@@ -21,6 +21,7 @@ import EvaluationForm from "../pages/mentor/EvaluationForm"; // ✅ Đánh giá 
 import SupportRequests from "../pages/internships/SupportRequests";
 import Reports from "../pages/hr/ReportManagement";
 import ReportIntern from "../pages/internships/ReportIntern";
+import ReviewSupportRequests from "../pages/hr/ReviewSupportRequests";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -230,14 +231,6 @@ export default function AppRouter() {
               }
             />
             <Route
-              path="/support-requests"
-              element={
-                <AccessGuard requiredRoles={["INTERN"]}>
-                  <SupportRequests />
-                </AccessGuard>
-              }
-            />
-            <Route
               path="/reports"
               element={
                 <AccessGuard requiredRoles={["HR"]}>
@@ -245,11 +238,21 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+
             <Route
               path="/report-intern"
               element={
                 <AccessGuard requiredRoles={["INTERN"]}>
                   <ReportIntern />
+                </AccessGuard>
+              }
+            />
+
+            <Route
+              path="/hr/support-requests"
+              element={
+                <AccessGuard requiredRoles={["HR", "ADMIN"]}>
+                  <ReviewSupportRequests />
                 </AccessGuard>
               }
             />
