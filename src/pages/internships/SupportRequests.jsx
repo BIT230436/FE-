@@ -3,21 +3,9 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { getMySupportRequests } from "../../services/supportRequestService";
 import NewRequestModal from "../../components/common/NewRequestModal";
-import StatusBadge from "../../components/common/StatusBadge"; // Sử dụng lại StatusBadge nếu có
 import "./SupportRequests.css";
 
-// Helper để lấy text từ type value
-const getRequestTypeLabel = (typeValue) => {
-  const typeMap = {
-    CERTIFICATE: "Giấy chứng nhận",
-    DOCUMENT_SIGN: "Ký/Đóng dấu tài liệu",
-    INFO_UPDATE: "Cập nhật thông tin",
-    OTHER: "Yêu cầu khác",
-  };
-  return typeMap[typeValue] || typeValue;
-};
-
-// Component Status Badge nội bộ nếu chưa có
+// Component Status Badge
 function RequestStatusBadge({ status }) {
   let config = {
     text: status || "Unknown",
@@ -28,16 +16,9 @@ function RequestStatusBadge({ status }) {
     case "PENDING":
       config = { text: "Chờ xử lý", className: "status-pending", icon: "⏳" };
       break;
-    case "PROCESSING":
-      config = {
-        text: "Đang xử lý",
-        className: "status-processing",
-        icon: "🔄",
-      };
-      break;
     case "COMPLETED":
       config = {
-        text: "Hoàn thành",
+        text: "Complete",
         className: "status-completed",
         icon: "✅",
       };
@@ -53,19 +34,28 @@ function RequestStatusBadge({ status }) {
   );
 }
 
+// Helper để lấy label cho priority
+const getPriorityLabel = (priority) => {
+  const priorityMap = {
+    NORMAL: "Bình thường",
+    HIGH: "Cao",
+    URGENT: "Khẩn cấp",
+  };
+  return priorityMap[priority] || priority;
+};
+
 export default function SupportRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [filterStatus, setFilterStatus] = useState("ALL"); // 'ALL', 'PENDING', 'PROCESSING', 'COMPLETED', 'REJECTED'
+  const [filterStatus, setFilterStatus] = useState("ALL");
 
   const loadRequests = async () => {
     setLoading(true);
     setError("");
     try {
-      const filters = filterStatus !== "ALL" ? { status: filterStatus } : {};
-      const data = await getMySupportRequests(filters);
+      const data = await getMySupportRequests();
       setRequests(data);
     } catch (err) {
       setError(err.message || "Không thể tải danh sách yêu cầu.");
@@ -77,14 +67,18 @@ export default function SupportRequests() {
 
   useEffect(() => {
     loadRequests();
-  }, [filterStatus]); // Load lại khi filter thay đổi
+  }, []);
 
   const handleRequestCreated = () => {
-    loadRequests(); // Load lại danh sách sau khi tạo mới thành công
-    // Có thể thêm toast thông báo ở đây nếu NewRequestModal không tự làm
+    loadRequests();
+    toast.success("Tạo yêu cầu thành công!");
   };
 
-  const filteredRequests = requests; // API đã lọc rồi
+  // Filter trên client-side
+  const filteredRequests = requests.filter((req) => {
+    if (filterStatus === "ALL") return true;
+    return req.status === filterStatus;
+  });
 
   return (
     <div className="support-requests-container">
@@ -107,8 +101,7 @@ export default function SupportRequests() {
         >
           <option value="ALL">Tất cả</option>
           <option value="PENDING">Chờ xử lý</option>
-          <option value="PROCESSING">Đang xử lý</option>
-          <option value="COMPLETED">Hoàn thành</option>
+          <option value="COMPLETED">Đã xác nhận</option>
           <option value="REJECTED">Bị từ chối</option>
         </select>
       </div>
@@ -117,8 +110,9 @@ export default function SupportRequests() {
         <table className="request-table">
           <thead>
             <tr>
-              <th>Loại yêu cầu</th>
-              <th>Mô tả</th>
+              <th>Tiêu đề</th>
+              <th>Nội dung</th>
+              <th>Độ ưu tiên</th>
               <th>Ngày gửi</th>
               <th>Trạng thái</th>
               <th>Phản hồi</th>
@@ -128,45 +122,72 @@ export default function SupportRequests() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="6" className="loading">
+                <td colSpan="7" className="loading">
                   Đang tải danh sách...
                 </td>
               </tr>
             ) : filteredRequests.length === 0 ? (
               <tr>
-                <td colSpan="6" className="empty-requests">
-                  Bạn chưa có yêu cầu nào.
+                <td colSpan="7" className="empty-requests">
+                  {filterStatus === "ALL"
+                    ? "Bạn chưa có yêu cầu nào."
+                    : "Không có yêu cầu nào phù hợp."}
                 </td>
               </tr>
             ) : (
               filteredRequests.map((req) => (
                 <tr key={req.id}>
-                  <td>{getRequestTypeLabel(req.type)}</td>
-                  <td className="request-description">{req.description}</td>
+                  {/* Cột 1: Tiêu đề (subject) */}
+                  <td className="request-subject">
+                    <strong>{req.subject}</strong>
+                  </td>
+
+                  {/* Cột 2: Nội dung (message) */}
+                  <td className="request-description">
+                    {req.message?.length > 100
+                      ? req.message.substring(0, 100) + "..."
+                      : req.message}
+                  </td>
+
+                  {/* Cột 3: Độ ưu tiên (priority) */}
+                  <td>
+                    <span
+                      className={`priority-badge priority-${req.priority?.toLowerCase()}`}
+                    >
+                      {getPriorityLabel(req.priority)}
+                    </span>
+                  </td>
+
+                  {/* Cột 4: Ngày gửi */}
                   <td>
                     {req.createdAt
                       ? new Date(req.createdAt).toLocaleDateString("vi-VN")
                       : "-"}
                   </td>
+
+                  {/* Cột 5: Trạng thái */}
                   <td>
                     <RequestStatusBadge status={req.status} />
                   </td>
+
+                  {/* Cột 6: Phản hồi (hrResponse) */}
                   <td className="request-response">
-                    {req.response ? (
+                    {req.hrResponse ? (
                       <>
-                        <strong>HR:</strong> {req.response}
+                        <strong>HR:</strong> {req.hrResponse}
                       </>
-                    ) : req.status === "COMPLETED" ||
-                      req.status === "REJECTED" ? (
+                    ) : req.status === "COMPLETED" || req.status === "REJECTED" ? (
                       <i>Không có phản hồi.</i>
                     ) : (
                       <i>Chưa có phản hồi.</i>
                     )}
                   </td>
+
+                  {/* Cột 7: File đính kèm (attachmentFileId) */}
                   <td>
-                    {req.attachmentUrl ? (
+                    {req.attachmentFileId ? (
                       <a
-                        href={req.attachmentUrl}
+                        href={req.attachmentFileId}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="attachment-link"
