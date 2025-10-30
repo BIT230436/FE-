@@ -58,7 +58,7 @@ export async function updateTaskStatus(taskId, newStatus) {
 // 🎯 Lấy danh sách nhiệm vụ đã giao (cho mentor)
 export async function getAssignedTasks() {
   try {
-    const response = await api.get("/assigned");
+    const response = await api.get("/assign");
     return response.data;
   } catch (error) {
     console.error("Lỗi khi tải danh sách nhiệm vụ đã giao:", error);

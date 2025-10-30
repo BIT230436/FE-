@@ -238,3 +238,18 @@
   color: #1e3a8a;
   font-weight: bold;
 }
+
+/* Ngày không thuộc tháng hiện tại — hiển thị mờ */
+.calendar-day.other-month {
+  opacity: 0.45;
+  background: transparent;
+  cursor: default;
+}
+
+/* Nếu ngày của tháng trước/sau có sự kiện vẫn hiển thị nổi hơn một chút */
+.calendar-day.other-month.has-event {
+  opacity: 0.65;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1e3a8a;
+  font-weight: 600;
+}

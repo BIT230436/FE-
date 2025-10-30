@@ -37,7 +37,9 @@ export default function InternshipSchedule() {
     const current = new Date(date);
     const day = current.getDay(); // 0=CN,1=T2,...
     const monday = new Date(current);
-    monday.setDate(current.getDate() - ((day + 6) % 7)); // lùi về thứ 2 gần nhất
+    // Nếu là Chủ Nhật (0), lùi 6 ngày. Nếu là T2-T7 (1-6), lùi (day-1) ngày
+    const daysToMonday = day === 0 ? 6 : day - 1;
+    monday.setDate(current.getDate() - daysToMonday);
 
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(monday);
@@ -200,38 +202,57 @@ export default function InternshipSchedule() {
             ))}
           </div>
 
-          {/* ✅ Các ngày trong tháng */}
+          {/* ✅ Các ngày trong tháng (hiển thị cả ngày tháng trước/sau, mờ) */}
           <div className="calendar-grid">
-            {Array.from({ length: daysInMonth }, (_, i) => {
-              const day = i + 1;
-              const date = new Date(currentYear, currentMonth, day);
-              const hasEvent = schedule.some(
-                (s) =>
-                  new Date(s.date).getDate() === day &&
-                  new Date(s.date).getMonth() === currentMonth &&
-                  new Date(s.date).getFullYear() === currentYear
-              );
+            {(() => {
+              // compute offset so month starts on Monday column (0 = Monday, 6 = Sunday)
+              const firstOfMonth = new Date(currentYear, currentMonth, 1);
+              const rawFirstDay = firstOfMonth.getDay(); // 0=Sun,1=Mon...
+              const offset = rawFirstDay === 0 ? 6 : rawFirstDay - 1; // map to Mon..Sun index
 
-              const isToday =
-                date.toDateString() === new Date().toDateString();
+              const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
+              const totalCells = Math.ceil((offset + daysInMonth) / 7) * 7;
 
-              return (
-                <div
-                  key={day}
-                  className={`calendar-day ${
-                    hasEvent ? "has-event" : ""
-                  } ${isToday ? "today" : ""} ${
-                    selectedDate.getDate() === day &&
-                    selectedDate.getMonth() === currentMonth
-                      ? "selected-day"
-                      : ""
-                  }`}
-                  onClick={() => handleDayClick(date)}
-                >
-                  {day}
-                </div>
-              );
-            })}
+              return Array.from({ length: totalCells }, (_, idx) => {
+                let dateObj;
+                let isCurrentMonth = false;
+
+                if (idx < offset) {
+                  // previous month
+                  const day = prevMonthDays - offset + 1 + idx;
+                  dateObj = new Date(currentYear, currentMonth - 1, day);
+                  isCurrentMonth = false;
+                } else if (idx >= offset + daysInMonth) {
+                  // next month
+                  const day = idx - (offset + daysInMonth) + 1;
+                  dateObj = new Date(currentYear, currentMonth + 1, day);
+                  isCurrentMonth = false;
+                } else {
+                  // current month
+                  const day = idx - offset + 1;
+                  dateObj = new Date(currentYear, currentMonth, day);
+                  isCurrentMonth = true;
+                }
+
+                const hasEvent = schedule.some((s) => {
+                  const d = new Date(s.date);
+                  return d.toDateString() === dateObj.toDateString();
+                });
+
+                const isToday = dateObj.toDateString() === new Date().toDateString();
+                const isSelected = selectedDate.toDateString() === dateObj.toDateString();
+
+                return (
+                  <div
+                    key={idx}
+                    className={`calendar-day ${hasEvent ? "has-event" : ""} ${isToday ? "today" : ""} ${isSelected ? "selected-day" : ""} ${!isCurrentMonth ? "other-month" : ""}`}
+                    onClick={() => handleDayClick(dateObj)}
+                  >
+                    {dateObj.getDate()}
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </div>
