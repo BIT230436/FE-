@@ -190,9 +190,9 @@ const ProjectManagement = () => {
                         <div className="intern-list">
                           {project.internNames
                             .slice(0, 3)
-                            .map((name, index) => (
-                              <span key={index} className="intern-tag">
-                                {name}
+                            .map((intern, index) => (
+                              <span key={intern.id || index} className="intern-tag">
+                                {intern.fullName}
                               </span>
                             ))}
                           {project.internNames.length > 3 && (
