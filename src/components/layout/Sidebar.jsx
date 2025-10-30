@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import "./Sidebar.css";
-import { TbLogout2, TbStar, TbHelpOctagon } from "react-icons/tb";
+import {
+  TbLogout2,
+  TbStar,
+  TbHelpOctagon,
+  TbMessageQuestion,
+} from "react-icons/tb";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
@@ -96,13 +101,13 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       label: "Quản lý dự án",
       path: "/mentor/projects",
       icon: "📁",
-      requiredRoles: ["MENTOR", "ADMIN"],
+      requiredRoles: ["MENTOR"],
     },
     {
       label: "Giao nhiệm vụ",
       path: "/mentor/tasks",
       icon: "📝",
-      requiredRoles: ["MENTOR", "ADMIN"],
+      requiredRoles: ["MENTOR"],
     },
     {
       label: "Quản lý dự án",
@@ -127,6 +132,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       path: "/support-requests",
       icon: <TbHelpOctagon style={{ fontSize: "18px" }} />, // Sử dụng icon
       requiredRoles: ["INTERN"],
+    },
+    {
+      label: "Duyệt yêu cầu HT", // HT = Hỗ trợ
+      path: "/hr/support-requests",
+      icon: <TbMessageQuestion style={{ fontSize: "18px" }} />,
+      requiredRoles: ["HR"],
     },
   ];
 
