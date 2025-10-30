@@ -104,6 +104,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["MENTOR"],
     },
     {
+      label: "Quản lý Mentor",
       label: "Giao nhiệm vụ",
       path: "/mentor/tasks",
       icon: "📝",
@@ -111,6 +112,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     },
     {
       label: "Quản lý dự án",
+
       path: "/admin/mentors",
       icon: "👨‍🏫",
       requiredRoles: ["HR"],
