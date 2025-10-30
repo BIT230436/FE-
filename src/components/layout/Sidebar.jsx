@@ -128,6 +128,18 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: <TbHelpOctagon style={{ fontSize: "18px" }} />, // Sử dụng icon
       requiredRoles: ["INTERN"],
     },
+    {
+      label: "Báo cáo thực tập sinh",
+      path: "/reports",
+      icon: "📈",
+      requiredRoles: ["HR"],
+    },
+    {
+      label: "Báo cáo của tôi",
+      path: "/report-intern",
+      icon: "📝",
+      requiredRoles: ["INTERN"],
+    },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---
