@@ -21,7 +21,7 @@ const getRequestTypeLabel = (typeValue) => {
 };
 
 export default function ReviewSupportRequests() {
-  const [requests, setRequests] = useState([]);
+  const [requests, setRequests] = useState([]); // Initialize as empty array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [viewingRequest, setViewingRequest] = useState(null); // Request đang xem/duyệt
@@ -39,13 +39,24 @@ export default function ReviewSupportRequests() {
       const filters = {};
       if (filterStatus !== "ALL") filters.status = filterStatus;
       if (filterType !== "ALL") filters.type = filterType;
-      if (filterInternName) filters.internName = filterInternName; // Gửi tên lên backend để lọc
+      if (filterInternName) filters.internName = filterInternName;
 
       const data = await getAllSupportRequests(filters);
-      setRequests(data);
+      
+      // Ensure data is an array before setting it to state
+      if (Array.isArray(data)) {
+        setRequests(data);
+      } else {
+        console.error('Expected an array of requests but got:', data);
+        setRequests([]);
+        setError("Dữ liệu nhận được không đúng định dạng");
+        toast.error("Có lỗi xảy ra khi tải dữ liệu");
+      }
     } catch (err) {
+      console.error('Error loading support requests:', err);
       setError(err.message || "Không thể tải danh sách yêu cầu.");
       toast.error(err.message || "Không thể tải danh sách yêu cầu.");
+      setRequests([]); // Ensure requests is always an array
     } finally {
       setLoading(false);
     }
