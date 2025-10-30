@@ -78,11 +78,31 @@ export default function SupportRequests() {
     return req.status === filterStatus;
   });
 
+  // Prevent default link behavior
+  const handleLinkClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
-    <div className="support-requests-container">
+    <div 
+      className="support-requests-container"
+      onClick={(e) => {
+        // Prevent any click events from bubbling up to parent elements
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
       <div className="page-header">
         <h1 className="page-title">📬 Yêu cầu hỗ trợ của tôi</h1>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+        <button 
+          className="btn btn-primary" 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowModal(true);
+          }}
+        >
           + Tạo yêu cầu mới
         </button>
       </div>
@@ -134,7 +154,15 @@ export default function SupportRequests() {
               </tr>
             ) : (
               filteredRequests.map((req) => (
-                <tr key={req.id}>
+                <tr 
+                  key={req.id}
+                  onClick={(e) => {
+                    // Prevent row click from navigating
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  style={{ cursor: 'default' }}
+                >
                   {/* Cột 1: Tiêu đề (subject) */}
                   <td className="request-subject">
                     <strong>{req.subject}</strong>
@@ -189,6 +217,7 @@ export default function SupportRequests() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="attachment-link"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         Xem file
                       </a>

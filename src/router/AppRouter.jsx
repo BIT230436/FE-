@@ -231,6 +231,14 @@ export default function AppRouter() {
               }
             />
             <Route
+              path="/support-requests"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <SupportRequests />
+                </AccessGuard>
+              }
+            />
+            <Route
               path="/reports"
               element={
                 <AccessGuard requiredRoles={["HR"]}>
