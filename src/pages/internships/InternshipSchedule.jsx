@@ -13,6 +13,24 @@ export default function InternshipSchedule() {
 
   // Lấy thông tin user
   const getUserInfo = () => {
+    // Cách 1: Từ auth-storage (Zustand)
+    const authStorageStr = localStorage.getItem("auth-storage");
+    if (authStorageStr) {
+      try {
+        const authStorage = JSON.parse(authStorageStr);
+        if (authStorage.state && authStorage.state.user) {
+          const user = authStorage.state.user;
+          return {
+            userId: user.id || user.userId,
+            userName: user.fullName || user.fullname || user.name || "Thực tập sinh"
+          };
+        }
+      } catch (e) {
+        console.error("Error parsing auth-storage:", e);
+      }
+    }
+
+    // Cách 2: Từ localStorage "user"
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
@@ -25,6 +43,7 @@ export default function InternshipSchedule() {
         console.error("Error parsing user:", e);
       }
     }
+
     return { userId: null, userName: "Thực tập sinh" };
   };
 

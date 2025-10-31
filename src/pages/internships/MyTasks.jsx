@@ -16,7 +16,25 @@ export default function MyTasks() {
   const getUserId = () => {
     // ✅ Thử nhiều cách lấy userId
 
-    // Cách 1: Từ localStorage "user"
+    // Cách 1: Từ localStorage "auth-storage" (Zustand)
+    const authStorageStr = localStorage.getItem("auth-storage");
+    if (authStorageStr) {
+      try {
+        const authStorage = JSON.parse(authStorageStr);
+        console.log("Auth storage:", authStorage);
+
+        // Lấy từ state.user.id
+        if (authStorage.state && authStorage.state.user && authStorage.state.user.id) {
+          const userId = authStorage.state.user.id;
+          console.log("Found userId from auth-storage:", userId);
+          return userId;
+        }
+      } catch (e) {
+        console.error("Error parsing auth-storage:", e);
+      }
+    }
+
+    // Cách 2: Từ localStorage "user"
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
@@ -34,27 +52,11 @@ export default function MyTasks() {
       }
     }
 
-    // Cách 2: Từ localStorage "userId" trực tiếp
+    // Cách 3: Từ localStorage "userId" trực tiếp
     const userIdDirect = localStorage.getItem("userId");
     if (userIdDirect) {
       console.log("Found userId directly:", userIdDirect);
       return userIdDirect;
-    }
-
-    // Cách 3: Từ localStorage "currentUser"
-    const currentUserStr = localStorage.getItem("currentUser");
-    if (currentUserStr) {
-      try {
-        const currentUser = JSON.parse(currentUserStr);
-        console.log("Current user from localStorage:", currentUser);
-        const userId = currentUser.userId || currentUser.id || currentUser.user_id;
-        if (userId) {
-          console.log("Found userId from currentUser:", userId);
-          return userId;
-        }
-      } catch (e) {
-        console.error("Error parsing currentUser:", e);
-      }
     }
 
     // Cách 4: Log tất cả localStorage để debug
