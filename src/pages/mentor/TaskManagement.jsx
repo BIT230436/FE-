@@ -186,24 +186,43 @@ const TaskManagement = () => {
     return String(dateInput);
   };
 
-  const getStatusBadge = (status) => {
+  // ✅ Gộp cả kiểm tra Overdue vào đây, không đổi UI
+  const getStatusBadge = (task) => {
+    // Kiểm tra nếu task quá hạn
+    const due = new Date(task.duedate || task.dueDate);
+    const now = new Date();
+    let effectiveStatus = task.status;
+
+    if (
+      task.status !== "COMPLETED" &&
+      due instanceof Date &&
+      !isNaN(due.getTime()) &&
+      due < now
+    ) {
+      effectiveStatus = "OVERDUE";
+    }
+
+    // Map theo class CSS sẵn có
     const statusMap = {
       PENDING: { class: "status-pending", label: "Chờ xử lý" },
       NEW: { class: "status-pending", label: "NEW" },
       IN_PROGRESS: { class: "status-in-progress", label: "Đang thực hiện" },
       COMPLETED: { class: "status-completed", label: "Đã hoàn thành" },
-      OVERDUE: { class: "status-overdue", label: "Quá hạn" },
+      OVERDUE: { class: "status-overdue", label: "Overdue" }, // ✅ hiển thị tiếng Anh
     };
-    const statusInfo = statusMap[status] || {
+
+    const statusInfo = statusMap[effectiveStatus] || {
       class: "status-default",
-      label: status || "-",
+      label: effectiveStatus || "-",
     };
+
     return (
       <span className={`status-badge ${statusInfo.class}`}>
         {statusInfo.label}
       </span>
     );
   };
+
 
   // Handle modal open/close
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -390,7 +409,7 @@ const TaskManagement = () => {
                     </div>
                   </td>
                   <td>{formatDate(task.duedate)}</td>
-                  <td>{getStatusBadge(task.status)}</td>
+                  <td>{getStatusBadge(task)}</td>
                   <td>{formatDate(task.assignedAt)}</td>
                 </tr>
               ))}
