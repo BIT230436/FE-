@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { getMySchedule } from "../../services/scheduleService";
+import { toast } from "react-toastify";
 import "./InternshipSchedule.css";
 
 export default function InternshipSchedule() {
@@ -9,35 +11,79 @@ export default function InternshipSchedule() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  // Giả lập user
-  const currentUser = localStorage.getItem("userName") || "Nguyễn Văn A";
-
-  // 🧩 Dữ liệu giả lập (mock)
-  const mockSchedule = [
-    { id: 1, internName: "Nguyễn Văn A", department: "Phòng IT", date: "2025-10-20T09:00", task: "Tham gia họp nhóm" },
-    { id: 2, internName: "Nguyễn Văn A", department: "Phòng IT", date: "2025-10-22T14:00", task: "Làm báo cáo tiến độ" },
-    { id: 3, internName: "Nguyễn Văn A", department: "Phòng IT", date: "2025-10-24T10:00", task: "Sửa lỗi module đăng nhập" },
-    { id: 4, internName: "Nguyễn Văn A", department: "Phòng IT", date: "2025-10-25T16:00", task: "Thử nghiệm hệ thống" },
-  ];
-
-  // Lấy dữ liệu (mock)
-  useEffect(() => {
-    try {
-      const userSchedule = mockSchedule.filter((i) => i.internName === currentUser);
-      setSchedule(userSchedule);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  // Lấy thông tin user
+  const getUserInfo = () => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return {
+          userId: user.userId || user.id || user.user_id,
+          userName: user.fullname || user.name || "Thực tập sinh"
+        };
+      } catch (e) {
+        console.error("Error parsing user:", e);
+      }
     }
-  }, [currentUser]);
+    return { userId: null, userName: "Thực tập sinh" };
+  };
+
+  const { userId, userName } = getUserInfo();
+
+  // ✅ Lấy dữ liệu lịch từ API
+  useEffect(() => {
+    const loadSchedule = async () => {
+      if (!userId) {
+        toast.error("Vui lòng đăng nhập lại");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        console.log("Loading schedule for userId:", userId);
+        const response = await getMySchedule(userId);
+
+        console.log("Schedule response:", response);
+
+        if (response.success) {
+          // Chuyển đổi dữ liệu để phù hợp với component
+          const formattedSchedule = response.data.map(item => ({
+            id: item.id,
+            internName: item.internName || userName,
+            department: item.department || "Thực tập",
+            // Sử dụng startDate (created_at) làm ngày hiển thị chính
+            date: item.startDate,
+            task: item.task,
+            description: item.description,
+            priority: item.priority,
+            status: item.status,
+            startDate: item.startDate,
+            endDate: item.endDate
+          }));
+
+          setSchedule(formattedSchedule);
+          toast.success(`Đã tải ${formattedSchedule.length} công việc`);
+        } else {
+          toast.error(response.message || "Không thể tải lịch thực tập");
+          setSchedule([]);
+        }
+      } catch (err) {
+        console.error("Error loading schedule:", err);
+        setError(err.message);
+        toast.error("Không thể tải lịch thực tập");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSchedule();
+  }, [userId]);
 
   // Lấy danh sách ngày trong tuần (T2 → CN)
   const getWeekDates = (date) => {
     const current = new Date(date);
     const day = current.getDay(); // 0=CN,1=T2,...
     const monday = new Date(current);
-    // Nếu là Chủ Nhật (0), lùi 6 ngày. Nếu là T2-T7 (1-6), lùi (day-1) ngày
     const daysToMonday = day === 0 ? 6 : day - 1;
     monday.setDate(current.getDate() - daysToMonday);
 
@@ -71,7 +117,7 @@ export default function InternshipSchedule() {
 
   return (
     <div className="intern-schedule-container">
-      <h1 className="title">📅 Lịch thực tập của {currentUser}</h1>
+      <h1 className="title">📅 Lịch thực tập của {userName}</h1>
 
       <div className="schedule-layout">
         {/* === LỊCH TUẦN === */}
@@ -123,32 +169,48 @@ export default function InternshipSchedule() {
                 {hours.map((h) => (
                   <div key={h} className="hour-row">
                     {currentWeek.map((day, i) => {
-                      const hasTask = schedule.some((s) => {
-                        const d = new Date(s.date);
-                        return (
-                          d.getDate() === day.getDate() &&
-                          d.getMonth() === day.getMonth() &&
-                          d.getFullYear() === day.getFullYear() &&
-                          d.getHours() === h
-                        );
+                      // ✅ Tìm tasks trong khoảng startDate đến endDate
+                      const tasksForDay = schedule.filter((s) => {
+                        const startDate = new Date(s.startDate);
+                        const endDate = new Date(s.endDate);
+
+                        // Đặt time về 00:00:00 để so sánh chỉ theo ngày
+                        startDate.setHours(0, 0, 0, 0);
+                        endDate.setHours(23, 59, 59, 999);
+                        const currentDay = new Date(day);
+                        currentDay.setHours(0, 0, 0, 0);
+
+                        // Kiểm tra ngày hiện tại có nằm trong khoảng startDate -> endDate không
+                        return currentDay >= startDate && currentDay <= endDate;
                       });
 
-                      const task = schedule.find((s) => {
-                        const d = new Date(s.date);
-                        return (
-                          d.getDate() === day.getDate() &&
-                          d.getMonth() === day.getMonth() &&
-                          d.getFullYear() === day.getFullYear() &&
-                          d.getHours() === h
-                        );
-                      });
+                      // Hiển thị task đầu tiên ở 9h
+                      const hasTask = h === 9 && tasksForDay.length > 0;
+                      const task = hasTask ? tasksForDay[0] : null;
+
+                      // Tạo tooltip với tất cả tasks
+                      const tooltipText = tasksForDay.map(t =>
+                        `${t.task}\n${t.description || ''}\nTừ: ${new Date(t.startDate).toLocaleDateString('vi-VN')} → Đến: ${new Date(t.endDate).toLocaleDateString('vi-VN')}`
+                      ).join('\n\n---\n\n');
 
                       return (
                         <div
                           key={i}
                           className={`day-cell ${hasTask ? "has-task" : ""}`}
+                          title={tasksForDay.length > 0 ? tooltipText : ''}
                         >
-                          {hasTask ? task.task : ""}
+                          {hasTask ? (
+                            <div className="task-info">
+                              <div className="task-title">{task.task}</div>
+                              {tasksForDay.length > 1 && (
+                                <div className="task-count">+{tasksForDay.length - 1} khác</div>
+                              )}
+                              <div className="task-status">
+                                {task.status === "COMPLETED" ? "✅" :
+                                 task.status === "IN_PROGRESS" ? "🔄" : "⏳"}
+                              </div>
+                            </div>
+                          ) : ""}
                         </div>
                       );
                     })}
@@ -202,13 +264,12 @@ export default function InternshipSchedule() {
             ))}
           </div>
 
-          {/* ✅ Các ngày trong tháng (hiển thị cả ngày tháng trước/sau, mờ) */}
+          {/* ✅ Các ngày trong tháng */}
           <div className="calendar-grid">
             {(() => {
-              // compute offset so month starts on Monday column (0 = Monday, 6 = Sunday)
               const firstOfMonth = new Date(currentYear, currentMonth, 1);
-              const rawFirstDay = firstOfMonth.getDay(); // 0=Sun,1=Mon...
-              const offset = rawFirstDay === 0 ? 6 : rawFirstDay - 1; // map to Mon..Sun index
+              const rawFirstDay = firstOfMonth.getDay();
+              const offset = rawFirstDay === 0 ? 6 : rawFirstDay - 1;
 
               const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
               const totalCells = Math.ceil((offset + daysInMonth) / 7) * 7;
@@ -218,25 +279,32 @@ export default function InternshipSchedule() {
                 let isCurrentMonth = false;
 
                 if (idx < offset) {
-                  // previous month
                   const day = prevMonthDays - offset + 1 + idx;
                   dateObj = new Date(currentYear, currentMonth - 1, day);
                   isCurrentMonth = false;
                 } else if (idx >= offset + daysInMonth) {
-                  // next month
                   const day = idx - (offset + daysInMonth) + 1;
                   dateObj = new Date(currentYear, currentMonth + 1, day);
                   isCurrentMonth = false;
                 } else {
-                  // current month
                   const day = idx - offset + 1;
                   dateObj = new Date(currentYear, currentMonth, day);
                   isCurrentMonth = true;
                 }
 
+                // ✅ Kiểm tra có task trong khoảng startDate -> endDate không
                 const hasEvent = schedule.some((s) => {
-                  const d = new Date(s.date);
-                  return d.toDateString() === dateObj.toDateString();
+                  const startDate = new Date(s.startDate);
+                  const endDate = new Date(s.endDate);
+
+                  // Đặt time về 00:00:00
+                  startDate.setHours(0, 0, 0, 0);
+                  endDate.setHours(23, 59, 59, 999);
+                  const checkDate = new Date(dateObj);
+                  checkDate.setHours(0, 0, 0, 0);
+
+                  // Kiểm tra ngày có nằm trong range không
+                  return checkDate >= startDate && checkDate <= endDate;
                 });
 
                 const isToday = dateObj.toDateString() === new Date().toDateString();

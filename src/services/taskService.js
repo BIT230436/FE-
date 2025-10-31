@@ -1,7 +1,6 @@
 // src/services/taskService.js
 import axios from "axios";
 
-// ⚙️ Cấu hình API (sau này đổi baseURL là đủ)
 const API_BASE_URL = "http://localhost:8090/api/tasks";
 
 // Get authorization token from localStorage
@@ -31,10 +30,10 @@ api.interceptors.request.use(
   }
 );
 
-// Lấy danh sách công việc của thực tập sinh hiện tại
-export async function getMyTasks() {
+// ✅ Lấy danh sách công việc theo internId (không cần token)
+export async function getTasksByInternId(internId) {
   try {
-    const response = await api.get("/my");
+    const response = await axios.get(`${API_BASE_URL}/intern/${internId}`);
     return response.data;
   } catch (error) {
     console.error("Lỗi khi tải danh sách công việc:", error);
@@ -42,12 +41,12 @@ export async function getMyTasks() {
   }
 }
 
-// ✅ Cập nhật trạng thái công việc
+// ✅ Cập nhật trạng thái công việc (không cần token)
 export async function updateTaskStatus(taskId, newStatus) {
   try {
-    const response = await api.patch(`/${taskId}/status`, {
-      status: newStatus,
-    });
+    const response = await axios.put(
+      `${API_BASE_URL}/${taskId}/status?status=${newStatus}`
+    );
     return response.data;
   } catch (error) {
     console.error("Lỗi khi cập nhật trạng thái:", error);

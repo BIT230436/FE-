@@ -31,6 +31,27 @@ export default function Login() {
         return;
       }
       setAuth(response.user, response.token);
+      // ✅ Lưu userId - QUAN TRỌNG!
+        if (response.userId || response.id || response.user_id) {
+          const userId = response.userId || response.id || response.user_id;
+          localStorage.setItem("userId", userId);
+        }
+
+        // ✅ Lưu toàn bộ user object
+        const userObject = {
+          userId: response.userId || response.id || response.user_id,
+          email: response.email,
+          fullname: response.fullname || response.name,
+          role: response.role,
+          // ... các field khác
+        };
+
+        localStorage.setItem("user", JSON.stringify(userObject));
+
+        console.log("Saved to localStorage:", {
+          userId: localStorage.getItem("userId"),
+          user: localStorage.getItem("user")
+        });
       if (response.user.role === "USER") {
         navigate("/upload-documents");
       } else {
