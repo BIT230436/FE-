@@ -7,8 +7,8 @@ import { assignTask, getAssignedTasks } from "../../services/taskService";
 import "./TaskManagement.css";
 
 // import vi locale if you want month names in Vietnamese
-import 'dayjs/locale/vi';
-dayjs.locale('vi');
+import "dayjs/locale/vi";
+dayjs.locale("vi");
 
 const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
@@ -205,7 +205,7 @@ const TaskManagement = () => {
     // Map theo class CSS sẵn có
     const statusMap = {
       PENDING: { class: "status-pending", label: "Chờ xử lý" },
-      NEW: { class: "status-pending", label: "NEW" },
+      NEW: { class: "status-pending", label: "Chưa bắt đầu" },
       IN_PROGRESS: { class: "status-in-progress", label: "Đang thực hiện" },
       COMPLETED: { class: "status-completed", label: "Đã hoàn thành" },
       OVERDUE: { class: "status-overdue", label: "Overdue" }, // ✅ hiển thị tiếng Anh
@@ -222,7 +222,6 @@ const TaskManagement = () => {
       </span>
     );
   };
-
 
   // Handle modal open/close
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -248,11 +247,16 @@ const TaskManagement = () => {
     e.preventDefault();
     try {
       // Check for required fields before submitting
-      if (!formData.title || !formData.description || !formData.due_date || !formData.internId) {
+      if (
+        !formData.title ||
+        !formData.description ||
+        !formData.due_date ||
+        !formData.internId
+      ) {
         toast.error("Vui lòng điền đầy đủ thông tin");
         return; // Don't proceed further if validation fails
       }
-      
+
       await handleSubmit(e);
       // Only close the modal if submission was successful
       handleCloseTaskModal();
