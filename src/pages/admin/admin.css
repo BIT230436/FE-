@@ -173,12 +173,21 @@
 }
 
 /* Style for the role display text */
-.admin-role-display {
+.admin-role-display,
+.admin-status-display {
   display: inline-block;
-  padding: 8px 12px;
+  padding: 6px 12px;
   font-size: 14px;
   color: #333;
-  margin-left: 8px; /* Add some left margin to align with header */
+  margin-left: 8px;
+  min-width: 120px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e3eaf2;
+  border-radius: 4px;
+  height: 32px;
+  line-height: 20px;
+  box-sizing: border-box;
 }
 
 /* Style for the role select dropdown */

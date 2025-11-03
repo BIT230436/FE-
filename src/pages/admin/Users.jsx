@@ -229,25 +229,30 @@ export default function Users() {
                       )}
                     </Td>
                     <Td>
-                      <select
-                        value={u.status}
-                        disabled={savingId === u.id}
-                        onChange={(e) =>
-                          onUpdateUser(u.id, "status", e.target.value)
-                        }
-                        className="admin-select admin-select--sm"
-                      >
-                        {STATUSES.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
+                      {u.role === 'ADMIN' ? (
+                        <span className="admin-status-display">ACTIVE</span>
+                      ) : (
+                        <select
+                          value={u.status}
+                          disabled={savingId === u.id}
+                          onChange={(e) =>
+                            onUpdateUser(u.id, "status", e.target.value)
+                          }
+                          className="admin-select admin-select--sm"
+                        >
+                          {STATUSES.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </Td>
                     <Td>
                       <button
                         onClick={() => onDelete(u.id)}
                         className="btn-inline btn-inline--danger"
+                        disabled={u.role === 'ADMIN'}
                       >
                         Xoá
                       </button>
