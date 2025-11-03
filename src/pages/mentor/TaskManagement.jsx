@@ -247,10 +247,18 @@ const TaskManagement = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Check for required fields before submitting
+      if (!formData.title || !formData.description || !formData.due_date || !formData.internId) {
+        toast.error("Vui lòng điền đầy đủ thông tin");
+        return; // Don't proceed further if validation fails
+      }
+      
       await handleSubmit(e);
+      // Only close the modal if submission was successful
       handleCloseTaskModal();
     } catch (error) {
       console.error("Error submitting task:", error);
+      // Error message is already shown in handleSubmit
     }
   };
 
