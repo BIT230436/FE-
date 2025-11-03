@@ -161,12 +161,36 @@
   border-bottom: 2px solid #e3eaf2;
 }
 
+/* Role column specific styles */
 .admin-td {
   padding: 12px;
   font-size: 14px;
   border-bottom: 1px solid #e3eaf2;
   background: #fff;
   transition: background 0.2s;
+  vertical-align: middle;
+  text-align: left;
+}
+
+/* Style for the role display text */
+.admin-role-display {
+  display: inline-block;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #333;
+  margin-left: 8px; /* Add some left margin to align with header */
+}
+
+/* Style for the role select dropdown */
+.admin-select--sm {
+  margin-left: 8px; /* Match the left margin of the role display */
+  min-width: 120px; /* Ensure consistent width */
+  text-align: left;
+}
+
+/* Ensure the role column header aligns with the content */
+th:nth-child(4) {
+  padding-left: 20px; /* Match the left padding of the role content */
 }
 
 .admin-tr {

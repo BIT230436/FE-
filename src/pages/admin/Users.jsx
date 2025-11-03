@@ -8,7 +8,7 @@ import {
 } from "../../services/adminService";
 import "./admin.css";
 
-const ROLES = ["ADMIN", "HR", "MENTOR", "INTERN", "USER"];
+const ROLES = ["HR", "MENTOR", "INTERN", "USER"];
 const STATUSES = ["ACTIVE", "PENDING", "INACTIVE"];
 
 export default function Users() {
@@ -42,7 +42,7 @@ export default function Users() {
       setTotal(
         res.totalElements || res.total || res.content?.length || 0 // ✅ thêm fallback đúng
       );
-    console.log(res)
+      console.log(res);
     } catch (e) {
       setErr(e?.response?.data?.message || "Không tải được danh sách.");
     } finally {
@@ -53,7 +53,6 @@ export default function Users() {
   useEffect(() => {
     load();
   }, [q, filterRole, filterStatus, currentPage]); // 🔧 thêm currentPage
-
 
   // Reset về trang 1 khi filter/search thay đổi
   useEffect(() => {
@@ -99,7 +98,6 @@ export default function Users() {
   // Pagination calc (🔧 chỉnh lại)
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
-
 
   function getPageNumbers() {
     const pages = [];
@@ -171,8 +169,16 @@ export default function Users() {
               <Th style={{ width: 60 }}>STT</Th>
               <Th>Họ tên</Th>
               <Th>Email</Th>
-              <Th>Vai trò</Th>
-              <Th>Trạng thái</Th>
+              <Th>
+                <pre style={{ fontFamily: "Segoe UI", marginLeft: 15 }}>
+                  Vai trò
+                </pre>
+              </Th>
+              <Th>
+                <pre style={{ fontFamily: "Segoe UI", marginLeft: 15 }}>
+                  Trạng thái
+                </pre>
+              </Th>
               <Th style={{ width: 120 }}>Thao tác</Th>
             </tr>
           </thead>
@@ -184,61 +190,71 @@ export default function Users() {
                 </td>
               </tr>
             )}
-            {!loading && items.length === 0 && ( // 🔧 đổi pageItems → items
-              <tr>
-                <td colSpan={6} className="admin-empty">
-                  Không có dữ liệu.
-                </td>
-              </tr>
-            )}
             {!loading &&
-              items.map((u, index) => ( // 🔧 đổi pageItems → items
-                <tr key={u.id} className="admin-tr">
-                  <Td>{startIndex + index + 1}</Td>
-                  <Td>{u.fullName}</Td>
-                  <Td>{u.email}</Td>
-                  <Td>
-                    <select
-                      value={u.role}
-                      disabled={savingId === u.id}
-                      onChange={(e) =>
-                        onUpdateUser(u.id, "role", e.target.value)
-                      }
-                      className="admin-select admin-select--sm"
-                    >
-                      {ROLES.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                  </Td>
-                  <Td>
-                    <select
-                      value={u.status}
-                      disabled={savingId === u.id}
-                      onChange={(e) =>
-                        onUpdateUser(u.id, "status", e.target.value)
-                      }
-                      className="admin-select admin-select--sm"
-                    >
-                      {STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </Td>
-                  <Td>
-                    <button
-                      onClick={() => onDelete(u.id)}
-                      className="btn-inline btn-inline--danger"
-                    >
-                      Xoá
-                    </button>
-                  </Td>
+              items.length === 0 && ( // 🔧 đổi pageItems → items
+                <tr>
+                  <td colSpan={6} className="admin-empty">
+                    Không có dữ liệu.
+                  </td>
                 </tr>
-              ))}
+              )}
+            {!loading &&
+              items.map(
+                (
+                  u,
+                  index // 🔧 đổi pageItems → items
+                ) => (
+                  <tr key={u.id} className="admin-tr">
+                    <Td>{startIndex + index + 1}</Td>
+                    <Td>{u.fullName}</Td>
+                    <Td>{u.email}</Td>
+                    <Td>
+                      {u.role === "ADMIN" ? (
+                        <span className="admin-role-display">ADMIN</span>
+                      ) : (
+                        <select
+                          value={u.role}
+                          disabled={savingId === u.id}
+                          onChange={(e) =>
+                            onUpdateUser(u.id, "role", e.target.value)
+                          }
+                          className="admin-select admin-select--sm"
+                        >
+                          {ROLES.map((r) => (
+                            <option key={r} value={r}>
+                              {r}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </Td>
+                    <Td>
+                      <select
+                        value={u.status}
+                        disabled={savingId === u.id}
+                        onChange={(e) =>
+                          onUpdateUser(u.id, "status", e.target.value)
+                        }
+                        className="admin-select admin-select--sm"
+                      >
+                        {STATUSES.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </Td>
+                    <Td>
+                      <button
+                        onClick={() => onDelete(u.id)}
+                        className="btn-inline btn-inline--danger"
+                      >
+                        Xoá
+                      </button>
+                    </Td>
+                  </tr>
+                )
+              )}
           </tbody>
         </table>
 
@@ -246,7 +262,8 @@ export default function Users() {
         <div className="pagination">
           <div className="pagination-info">
             Hiển thị {items.length === 0 ? 0 : startIndex + 1}–
-            {startIndex + items.length} trên {total} {/* 🔧 đổi totalItems → total */}
+            {startIndex + items.length} trên {total}{" "}
+            {/* 🔧 đổi totalItems → total */}
           </div>
           <div className="pagination-controls">
             <button
@@ -329,7 +346,11 @@ function CreateUserModal({ onClose, onCreate }) {
     const passwordError = validatePassword(password);
 
     if (fullNameError || emailError || passwordError) {
-      setErrors({ fullName: fullNameError, email: emailError, password: passwordError });
+      setErrors({
+        fullName: fullNameError,
+        email: emailError,
+        password: passwordError,
+      });
       toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
@@ -347,7 +368,11 @@ function CreateUserModal({ onClose, onCreate }) {
     }
 
     if (emailError) {
-      setErrors({ fullName: fullNameError, email: emailError, password: passwordError });
+      setErrors({
+        fullName: fullNameError,
+        email: emailError,
+        password: passwordError,
+      });
       toast.error("Vui lòng kiểm tra lại thông tin");
       setSubmitting(false);
       return;
@@ -453,7 +478,12 @@ function CreateUserModal({ onClose, onCreate }) {
           </div>
 
           <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-outline" disabled={submitting}>
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-outline"
+              disabled={submitting}
+            >
               Hủy
             </button>
             <button type="submit" className="btn-primary" disabled={submitting}>
