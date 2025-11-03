@@ -1,7 +1,10 @@
 // src/pages/hr/ReviewSupportRequests.jsx
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { getAllSupportRequests, getSupportRequestsByStatus } from "../../services/supportRequestService";
+import {
+  getAllSupportRequests,
+  getSupportRequestsByStatus,
+} from "../../services/supportRequestService";
 import SupportRequestReviewModal from "../../components/hr/SupportRequestReviewModal";
 import "./ReviewSupportRequests.css";
 
@@ -13,7 +16,7 @@ function RequestStatusBadge({ status }) {
   };
   switch (status) {
     case "PENDING":
-      config = { text: "Chờ xử lý", className: "status-pending"};
+      config = { text: "Chờ xử lý", className: "status-pending" };
       break;
     case "COMPLETED":
       config = {
@@ -334,35 +337,29 @@ export default function ReviewSupportRequests() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="pagination">
-            <button
-              className="btn btn-sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 0}
-            >
-              ‹ Trước
-            </button>
-            <span className="page-info">
-              Trang {currentPage + 1} / {totalPages}
-            </span>
-            <button
-              className="btn btn-sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage >= totalPages - 1}
-            >
-              Sau ›
-            </button>
-            <select
-              className="page-size-select"
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(0);
-              }}
-            >
-              <option value={10}>10 / trang</option>
-              <option value={20}>20 / trang</option>
-              <option value={50}>50 / trang</option>
-            </select>
+            <div className="pagination-info">
+              Hiển thị {totalItems === 0 ? 0 : currentPage * pageSize + 1}–
+              {Math.min((currentPage + 1) * pageSize, totalItems)} trên {totalItems}
+            </div>
+            <div className="pagination-controls">
+              <button
+                className="btn btn-sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 0}
+              >
+                ‹ Trước
+              </button>
+              <span className="page-info">
+                Trang {currentPage + 1} / {totalPages}
+              </span>
+              <button
+                className="btn btn-sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages - 1}
+              >
+                Sau ›
+              </button>
+            </div>
           </div>
         )}
       </div>

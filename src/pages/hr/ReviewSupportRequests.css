@@ -19,6 +19,9 @@
   font-weight: 600;
   color: #343a40;
 }
+.page-info {
+  margin-top: 13px;
+}
 
 .filters-bar {
   display: flex;
