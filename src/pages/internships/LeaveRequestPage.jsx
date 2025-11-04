@@ -184,6 +184,7 @@ export default function LeaveRequestPage() {
                     <th className="table-th">Số ngày</th>
                     <th className="table-th">Lý do</th>
                     <th className="table-th">Trạng thái</th>
+                    <th className="table-th">Lý do từ chối/duyệt</th>
                     <th className="table-th">Ngày tạo</th>
                   </tr>
                 </thead>
@@ -204,6 +205,9 @@ export default function LeaveRequestPage() {
                       </td>
                       <td className="table-td">
                         {getStatusBadge(request.status)}
+                      </td>
+                      <td className="table-td">
+                        {request.approvalReason || request.rejectionReason || '-'}
                       </td>
                       <td className="table-td">
                         {dayjs(request.createdAt).format("DD/MM/YYYY HH:mm")}
