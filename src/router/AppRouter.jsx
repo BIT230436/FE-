@@ -23,6 +23,7 @@ import Reports from "../pages/hr/ReportManagement";
 import ReportIntern from "../pages/internships/ReportIntern";
 import ReviewSupportRequests from "../pages/hr/ReviewSupportRequests";
 import AttendancePage from "../pages/internships/AttendancePage";
+import LeaveRequestPage from "../pages/internships/LeaveRequestPage";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -270,6 +271,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredRoles={["INTERN"]}>
                   <AttendancePage />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/internship-leave-requests"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <LeaveRequestPage />
                 </AccessGuard>
               }
             />

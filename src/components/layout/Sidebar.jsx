@@ -158,6 +158,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "⏰",
       requiredRoles: ["INTERN"],
     },
+    {
+      label: "Xin nghỉ phép",
+      path: "/internship-leave-requests",
+      icon: "🛌",
+      requiredRoles: ["INTERN"],
+    },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---

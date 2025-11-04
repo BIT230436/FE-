@@ -76,6 +76,7 @@ body {
 
 .current-time {
   font-size: 64px;
+  color: #1a202c;
   font-weight: 700;
   letter-spacing: 2px;
   margin-bottom: 8px;
@@ -85,9 +86,26 @@ body {
 
 .current-date {
   font-size: 18px;
+  color: #1a202c;
   font-weight: 400;
   opacity: 0.95;
   text-transform: capitalize;
+  margin-bottom: 16px;
+}
+
+/* Status Badge ngay dưới date */
+.status-badge-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.status-badge-wrapper .badge {
+  padding: 8px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Status Section */

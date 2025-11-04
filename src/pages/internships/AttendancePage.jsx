@@ -135,13 +135,13 @@ export default function AttendancePage() {
           <div className="current-date">
             {currentTime.format("dddd, DD/MM/YYYY")}
           </div>
-        </div>
 
-        <div className="status-section">
-          <div className="status-label">Trạng thái làm việc:</div>
-          <span className={`badge ${getStatusBadgeClass()}`}>
-            {getWorkingStatus()}
-          </span>
+          {/* Status badge ngay dưới date */}
+          <div className="status-badge-wrapper">
+            <span className={`badge ${getStatusBadgeClass()}`}>
+              {getWorkingStatus()}
+            </span>
+          </div>
         </div>
 
         {/* Thông tin check-in/out hôm nay */}
