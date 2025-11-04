@@ -266,12 +266,13 @@ const AttendanceReport = () => {
         <h2>Báo cáo chuyên cần thực tập sinh</h2>
         
         <Card className="filter-card">
-          <Row gutter={[16, 16]} align="middle">
+          {/* Main Filters Row */}
+          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             <Col xs={24} md={8}>
               <div className="filter-item">
                 <label>Khoảng thời gian:</label>
                 <RangePicker 
-                  style={{ width: '100%' }}
+                  style={{ width: '100%',height : '40px' }}
                   format="DD/MM/YYYY"
                   value={filters.dateRange}
                   onChange={handleDateChange}
@@ -280,11 +281,11 @@ const AttendanceReport = () => {
               </div>
             </Col>
             
-            <Col xs={24} md={6}>
+            <Col xs={24} md={8}>
               <div className="filter-item">
                 <label>Phòng ban:</label>
                 <Select
-                  style={{ width: '100%' }}
+                  style={{ width: '100%',height : '40px' }}
                   placeholder="Tất cả phòng ban"
                   value={filters.group}
                   onChange={handleDepartmentChange}
@@ -304,11 +305,11 @@ const AttendanceReport = () => {
               </div>
             </Col>
             
-            <Col xs={24} md={6}>
+            <Col xs={24} md={8}>
               <div className="filter-item">
                 <label>Mentor:</label>
                 <Select
-                  style={{ width: '100%' }}
+                  style={{ width: '100%',height : '40px' }}
                   placeholder="Tất cả mentor"
                   value={filters.mentor}
                   onChange={handleMentorChange}
@@ -327,57 +328,55 @@ const AttendanceReport = () => {
                 </Select>
               </div>
             </Col>
-            <Col xs={24} md={6}>
-              <div className="filter-item" style={{ display: 'flex', gap: '10px' }}>
-                <Button 
-                  type="primary" 
-                  icon={<FilterOutlined />} 
-                  onClick={fetchAttendanceData}
-                  loading={loading}
-                >
-                  Lọc
-                </Button>
-                <Button 
-                  onClick={handleResetFilters}
-                  disabled={loading}
-                >
-                  Đặt lại
-                </Button>
-              </div>
-            </Col>
-            
-            <Col xs={24} md={8}>
-              <div className="filter-item">
-                <label>Tìm kiếm:</label>
+          </Row>
+
+          {/* Search and Action Buttons Row */}
+          <Row className="search-row" gutter={[16, 16]} align="middle">
+            <Col xs={24} md={16}>
+              <div className="filter-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ minWidth: '60px' }}>Tìm kiếm:</div>
                 <Input
-                  placeholder="Tên hoặc mã TTS"
+                  placeholder="Tìm kiếm theo tên hoặc mã TTS"
                   prefix={<SearchOutlined />}
+                  value={filters.searchText}
                   onChange={handleSearch}
                   onPressEnter={handleSearchSubmit}
                   allowClear
+                  style={{ flex: 1 }}
                 />
               </div>
             </Col>
-            
-            <Col xs={24} className="action-buttons">
-              <Button 
-                type="primary" 
-                icon={<FilterOutlined />} 
-                onClick={handleSearchSubmit}
-                className="filter-button"
-                loading={loading}
-              >
-                Lọc dữ liệu
-              </Button>
-              <Button 
-                type="default" 
-                icon={<FileExcelOutlined />} 
-                onClick={handleExport}
-                className="export-button"
-                loading={loading}
-              >
-                Xuất báo cáo
-              </Button>
+            <Col xs={24} md={8}>
+              <div className="filter-item" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', width: '100%' }}>
+                <Button 
+                  onClick={handleResetFilters}
+                  disabled={loading}
+                  type="primary"
+                  style={{ 
+                    backgroundColor: '#1890ff',
+                    borderColor: '#1890ff',
+                    color: '#fff',
+                    flex: 1,
+                    maxWidth: '120px'
+                  }}
+                >
+                  Đặt lại
+                </Button>
+                <Button 
+                  type="primary" 
+                  icon={<FileExcelOutlined />} 
+                  onClick={handleExport}
+                  loading={loading}
+                  style={{ 
+                    backgroundColor: '#52c41a',
+                    borderColor: '#52c41a',
+                    flex: 1,
+                    maxWidth: '150px'
+                  }}
+                >
+                  Xuất Excel
+                </Button>
+              </div>
             </Col>
           </Row>
         </Card>

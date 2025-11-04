@@ -20,7 +20,7 @@ function RequestStatusBadge({ status }) {
       break;
     case "COMPLETED":
       config = {
-        text: "Complete",
+        text: "Đã xác nhận",
         className: "status-completed",
       };
       break;
@@ -339,7 +339,8 @@ export default function ReviewSupportRequests() {
           <div className="pagination">
             <div className="pagination-info">
               Hiển thị {totalItems === 0 ? 0 : currentPage * pageSize + 1}–
-              {Math.min((currentPage + 1) * pageSize, totalItems)} trên {totalItems}
+              {Math.min((currentPage + 1) * pageSize, totalItems)} trên{" "}
+              {totalItems}
             </div>
             <div className="pagination-controls">
               <button
