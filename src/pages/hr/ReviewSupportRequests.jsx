@@ -1,87 +1,159 @@
 // src/pages/hr/ReviewSupportRequests.jsx
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { getAllSupportRequests } from "../../services/supportRequestService";
+import {
+  getAllSupportRequests,
+  getSupportRequestsByStatus,
+} from "../../services/supportRequestService";
 import SupportRequestReviewModal from "../../components/hr/SupportRequestReviewModal";
-import InternSelectionModal from "../../components/common/InternSelectionModal"; // Để lọc theo intern
-// Import CSS (đảm bảo đường dẫn đúng)
 import "./ReviewSupportRequests.css";
-// Tái sử dụng badge từ student component nếu phù hợp
-import RequestStatusBadge from "../internships/SupportRequests"; // Giả sử component badge nằm ở đây
 
-// Helper (Tái sử dụng)
-const getRequestTypeLabel = (typeValue) => {
-  const typeMap = {
-    CERTIFICATE: "Giấy chứng nhận",
-    DOCUMENT_SIGN: "Ký/Đóng dấu",
-    INFO_UPDATE: "Cập nhật thông tin",
-    OTHER: "Khác",
+// Component Status Badge - ĐÃ SỬA: Xóa PROCESSING, đổi RESOLVED thành COMPLETED
+function RequestStatusBadge({ status }) {
+  let config = {
+    text: status || "Unknown",
+    className: "status-default",
   };
-  return typeMap[typeValue] || typeValue;
+  switch (status) {
+    case "PENDING":
+      config = { text: "Chờ xử lý", className: "status-pending" };
+      break;
+    case "COMPLETED":
+      config = {
+        text: "Complete",
+        className: "status-completed",
+      };
+      break;
+    case "REJECTED":
+      config = { text: "Từ chối", className: "status-rejected" };
+      break;
+  }
+  return (
+    <span className={`status-badge ${config.className}`}>
+      <span className="icon">{config.icon}</span> {config.text}
+    </span>
+  );
+}
+
+// Helper để lấy label cho priority
+const getPriorityLabel = (priority) => {
+  const priorityMap = {
+    NORMAL: "Bình thường",
+    HIGH: "Cao",
+    URGENT: "Khẩn cấp",
+  };
+  return priorityMap[priority] || priority;
 };
 
 export default function ReviewSupportRequests() {
-  const [requests, setRequests] = useState([]); // Initialize as empty array
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [viewingRequest, setViewingRequest] = useState(null); // Request đang xem/duyệt
+  const [viewingRequest, setViewingRequest] = useState(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   // Filters state
   const [filterStatus, setFilterStatus] = useState("ALL");
-  const [filterType, setFilterType] = useState("ALL");
-  const [filterInternName, setFilterInternName] = useState(""); // Lưu tên intern đã chọn
+  const [filterPriority, setFilterPriority] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
 
   const loadRequests = async () => {
     setLoading(true);
     setError("");
     try {
-      // Build filters object based on state
-      const filters = {};
-      if (filterStatus !== "ALL") filters.status = filterStatus;
-      if (filterType !== "ALL") filters.type = filterType;
-      if (filterInternName) filters.internName = filterInternName;
+      let data;
 
-      const data = await getAllSupportRequests(filters);
-      
-      // Ensure data is an array before setting it to state
-      if (Array.isArray(data)) {
-        setRequests(data);
+      if (filterStatus !== "ALL") {
+        // Nếu filter theo status, dùng endpoint riêng (không có pagination)
+        const statusData = await getSupportRequestsByStatus(filterStatus);
+        data = {
+          content: statusData,
+          currentPage: 0,
+          totalPages: 1,
+          totalItems: statusData.length,
+        };
       } else {
-        console.error('Expected an array of requests but got:', data);
+        // Load tất cả với pagination
+        data = await getAllSupportRequests({
+          page: currentPage,
+          size: pageSize,
+          sortBy: sortBy,
+        });
+      }
+
+      if (data && data.content && Array.isArray(data.content)) {
+        setRequests(data.content);
+        setCurrentPage(data.currentPage || 0);
+        setTotalPages(data.totalPages || 0);
+        setTotalItems(data.totalItems || 0);
+      } else {
+        console.error("Expected data with content array but got:", data);
         setRequests([]);
         setError("Dữ liệu nhận được không đúng định dạng");
         toast.error("Có lỗi xảy ra khi tải dữ liệu");
       }
     } catch (err) {
-      console.error('Error loading support requests:', err);
+      console.error("Error loading support requests:", err);
       setError(err.message || "Không thể tải danh sách yêu cầu.");
       toast.error(err.message || "Không thể tải danh sách yêu cầu.");
-      setRequests([]); // Ensure requests is always an array
+      setRequests([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load requests on initial mount and when filters change
   useEffect(() => {
     loadRequests();
-  }, [filterStatus, filterType, filterInternName]);
+  }, [filterStatus, currentPage, pageSize, sortBy]);
 
   const handleReviewSuccess = () => {
-    loadRequests(); // Tải lại danh sách sau khi duyệt thành công
+    loadRequests();
+    toast.success("Xử lý yêu cầu thành công!");
   };
 
   const clearFilters = () => {
     setFilterStatus("ALL");
-    setFilterType("ALL");
-    setFilterInternName("");
+    setFilterPriority("ALL");
+    setSearchTerm("");
+    setCurrentPage(0);
+  };
+
+  // Client-side filtering cho priority và search
+  const filteredRequests = requests.filter((req) => {
+    // Filter by priority
+    if (filterPriority !== "ALL" && req.priority !== filterPriority) {
+      return false;
+    }
+
+    // Filter by search term (subject or message)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchSubject = req.subject?.toLowerCase().includes(searchLower);
+      const matchMessage = req.message?.toLowerCase().includes(searchLower);
+      if (!matchSubject && !matchMessage) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
   return (
     <div className="review-requests-container">
       <div className="page-header">
         <h1 className="page-title">Duyệt Yêu Cầu Hỗ Trợ</h1>
-        {/* Nút làm mới (tùy chọn) */}
         <button
           className="btn btn-secondary btn-sm"
           onClick={loadRequests}
@@ -96,46 +168,67 @@ export default function ReviewSupportRequests() {
       {/* Filter Bar */}
       <div className="filters-bar">
         <div className="filter-group">
-          <label htmlFor="internFilter">Lọc theo tên thực tập sinh:</label>
+          <label htmlFor="searchFilter">Tìm kiếm:</label>
           <input
-            id="internFilter"
+            id="searchFilter"
             type="text"
             className="filter-input"
-            placeholder="Nhập tên..."
-            value={filterInternName}
-            onChange={(e) => setFilterInternName(e.target.value)}
+            placeholder="Tìm trong tiêu đề hoặc nội dung..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="filter-group">
-          <label htmlFor="typeFilter">Loại yêu cầu:</label>
-          <select
-            id="typeFilter"
-            className="filter-select"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-          >
-            <option value="ALL">Tất cả loại</option>
-            <option value="CERTIFICATE">Giấy chứng nhận</option>
-            <option value="DOCUMENT_SIGN">Ký/Đóng dấu</option>
-            <option value="INFO_UPDATE">Cập nhật thông tin</option>
-            <option value="OTHER">Khác</option>
-          </select>
-        </div>
+
         <div className="filter-group">
           <label htmlFor="statusFilter">Trạng thái:</label>
           <select
             id="statusFilter"
             className="filter-select"
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setCurrentPage(0);
+            }}
           >
             <option value="ALL">Tất cả trạng thái</option>
             <option value="PENDING">Chờ xử lý</option>
-            <option value="PROCESSING">Đang xử lý</option>
-            <option value="COMPLETED">Hoàn thành</option>
-            <option value="REJECTED">Bị từ chối</option>
+            <option value="COMPLETED">Đã giải quyết</option>
+            <option value="REJECTED">Từ chối</option>
           </select>
         </div>
+
+        <div className="filter-group">
+          <label htmlFor="priorityFilter">Độ ưu tiên:</label>
+          <select
+            id="priorityFilter"
+            className="filter-select"
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value)}
+          >
+            <option value="ALL">Tất cả</option>
+            <option value="NORMAL">Bình thường</option>
+            <option value="HIGH">Cao</option>
+            <option value="URGENT">Khẩn cấp</option>
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="sortFilter">Sắp xếp:</label>
+          <select
+            id="sortFilter"
+            className="filter-select"
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setCurrentPage(0);
+            }}
+          >
+            <option value="createdAt">Ngày tạo</option>
+            <option value="priority">Độ ưu tiên</option>
+            <option value="status">Trạng thái</option>
+          </select>
+        </div>
+
         <button
           className="btn btn-outline"
           onClick={clearFilters}
@@ -145,14 +238,22 @@ export default function ReviewSupportRequests() {
         </button>
       </div>
 
+      {/* Stats */}
+      <div className="stats-bar">
+        <span>
+          Hiển thị {filteredRequests.length} / {totalItems} yêu cầu
+        </span>
+      </div>
+
       {/* Request List Table */}
       <div className="request-list-container">
         <table className="request-table">
           <thead>
             <tr>
-              <th>TTS</th>
-              <th>Loại YC</th>
-              <th>Mô tả</th>
+              <th>ID Intern</th>
+              <th>Tiêu đề</th>
+              <th>Nội dung</th>
+              <th>Độ ưu tiên</th>
               <th>Ngày gửi</th>
               <th>Trạng thái</th>
               <th>File</th>
@@ -162,39 +263,58 @@ export default function ReviewSupportRequests() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="7" className="loading">
+                <td colSpan="8" className="loading">
                   Đang tải...
                 </td>
               </tr>
-            ) : requests.length === 0 ? (
+            ) : filteredRequests.length === 0 ? (
               <tr>
-                <td colSpan="7" className="empty-requests">
+                <td colSpan="8" className="empty-requests">
                   Không có yêu cầu nào phù hợp.
                 </td>
               </tr>
             ) : (
-              requests.map((req) => (
+              filteredRequests.map((req) => (
                 <tr key={req.id}>
-                  <td>{req.internName || "N/A"}</td>
-                  <td>{getRequestTypeLabel(req.type)}</td>
-                  <td className="request-description">{req.description}</td>
+                  <td>#{req.internId || "N/A"}</td>
+                  <td className="request-subject">
+                    <strong>{req.subject}</strong>
+                  </td>
+                  <td className="request-description">
+                    {req.message?.length > 100
+                      ? req.message.substring(0, 100) + "..."
+                      : req.message}
+                  </td>
+                  <td>
+                    <span
+                      className={`priority-badge priority-${req.priority?.toLowerCase()}`}
+                    >
+                      {getPriorityLabel(req.priority)}
+                    </span>
+                  </td>
                   <td>
                     {req.createdAt
-                      ? new Date(req.createdAt).toLocaleDateString("vi-VN")
+                      ? new Date(req.createdAt).toLocaleDateString("vi-VN", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : "-"}
                   </td>
                   <td>
                     <RequestStatusBadge status={req.status} />
                   </td>
                   <td>
-                    {req.attachmentUrl ? (
+                    {req.attachmentFileId ? (
                       <a
-                        href={req.attachmentUrl}
+                        href={req.attachmentFileId}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="attachment-link"
                       >
-                        Xem
+                        📎 Xem
                       </a>
                     ) : (
                       "-"
@@ -213,7 +333,35 @@ export default function ReviewSupportRequests() {
             )}
           </tbody>
         </table>
-        {/* TODO: Add Pagination if needed */}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <div className="pagination-info">
+              Hiển thị {totalItems === 0 ? 0 : currentPage * pageSize + 1}–
+              {Math.min((currentPage + 1) * pageSize, totalItems)} trên {totalItems}
+            </div>
+            <div className="pagination-controls">
+              <button
+                className="btn btn-sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 0}
+              >
+                ‹ Trước
+              </button>
+              <span className="page-info">
+                Trang {currentPage + 1} / {totalPages}
+              </span>
+              <button
+                className="btn btn-sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages - 1}
+              >
+                Sau ›
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Review Modal */}
@@ -227,43 +375,3 @@ export default function ReviewSupportRequests() {
     </div>
   );
 }
-
-// // Giả sử bạn có component RequestStatusBadge ở một nơi khác hoặc định nghĩa lại ở đây
-// // Ví dụ định nghĩa lại (nếu chưa có sẵn):
-// function RequestStatusBadge({ status }) {
-//   let config = {
-//     text: status || "Unknown",
-//     className: "status-default",
-//     icon: "❓",
-//   };
-//   switch (status) {
-//     case "PENDING":
-//       config = { text: "Chờ xử lý", className: "status-pending", icon: "⏳" };
-//       break;
-//     case "PROCESSING":
-//       config = {
-//         text: "Đang xử lý",
-//         className: "status-processing",
-//         icon: "🔄",
-//       };
-//       break;
-//     case "COMPLETED":
-//       config = {
-//         text: "Hoàn thành",
-//         className: "status-completed",
-//         icon: "✅",
-//       };
-//       break;
-//     case "REJECTED":
-//       config = { text: "Bị từ chối", className: "status-rejected", icon: "❌" };
-//       break;
-//   }
-//   return (
-//     <span className={`status-badge ${config.className}`}>
-//       <span className="icon">{config.icon}</span> {config.text}
-//     </span>
-//   );
-// }
-// RequestStatusBadge.propTypes = {
-//   status: PropTypes.string,
-// };

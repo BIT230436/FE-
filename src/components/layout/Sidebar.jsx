@@ -111,6 +111,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     },
     {
       label: "Quản lý dự án",
+
       path: "/admin/mentors",
       icon: "👨‍🏫",
       requiredRoles: ["HR"],
@@ -136,14 +137,38 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     {
       label: "Yêu cầu hỗ trợ",
       path: "/support-requests",
-      icon: <TbHelpOctagon style={{ fontSize: "18px" }} />, // Sử dụng icon
+      icon: "❓",
       requiredRoles: ["INTERN"],
     },
     {
       label: "Duyệt yêu cầu HT", // HT = Hỗ trợ
       path: "/hr/support-requests",
-      icon: <TbMessageQuestion style={{ fontSize: "18px" }} />,
+      icon: "📋",
       requiredRoles: ["HR"],
+    },
+    {
+      label: "Báo cáo thực tập sinh",
+      path: "/reports",
+      icon: "📈",
+      requiredRoles: ["HR"],
+    },
+    {
+      label: "Báo cáo của tôi",
+      path: "/report-intern",
+      icon: "📝",
+      requiredRoles: ["INTERN"],
+    },
+    {
+      label: "Chấm công",
+      path: "/internship-attendance",
+      icon: "⏰",
+      requiredRoles: ["INTERN"],
+    },
+    {
+      label: "Xin nghỉ phép",
+      path: "/internship-leave-requests",
+      icon: "🛌",
+      requiredRoles: ["INTERN"],
     },
   ];
 

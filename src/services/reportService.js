@@ -55,6 +55,85 @@ export async function getEvaluationsByIntern(internId) {
   }
 }
 
+export async function createReport(request) {
+  try {
+    const userId = getCurrentUserId();
+    const response = await api.post(`/reports?userId=${userId}`, request);
+    console.log("✅ Created Report:", response.data);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function updateReport(reportId, request) {
+  try {
+    const response = await api.put(`/reports/${reportId}`, request);
+    console.log("📝 Updated Report:", response.data);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function deleteReport(reportId) {
+  try {
+    await api.delete(`/reports/${reportId}`);
+    console.log("🗑️ Deleted Report:", reportId);
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function getReportById(reportId) {
+  try {
+    const response = await api.get(`/reports/${reportId}`);
+    console.log("🔍 Fetched Report Detail:", response.data);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function getReportsByIntern(internId) {
+  try {
+    const response = await api.get(`/reports/intern/${internId}`);
+    console.log("📋 Fetched Intern Reports:", response.data);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+// 🔹 Lấy tất cả báo cáo (Report) của user hiện tại
+export async function getReportsByUser() {
+  try {
+    const userId = getCurrentUserId();
+    const response = await api.get(`/reports/by-user/reports`, {
+      params: { userId },
+    });
+    console.log("📋 Fetched Reports by User:", response.data);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+// 🔹 Lấy tất cả đánh giá (Evaluation) của user hiện tại
+export async function getEvaluationsByUser() {
+  try {
+    const userId = getCurrentUserId();
+    const response = await api.get(`/reports/by-user/evaluations`, {
+      params: { userId },
+    });
+    console.log("📄 Fetched Evaluations by User:", response.data);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+
 function handleError(error) {
   if (error.response) {
     console.error("❌ Server error:", error.response.data);

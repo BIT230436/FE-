@@ -19,7 +19,11 @@ import InternSchedule from "../pages/internships/InternshipSchedule"; // ✅ L�
 import MyTasks from "../pages/internships/MyTasks"; // ✅ Công việc của tôi
 import EvaluationForm from "../pages/mentor/EvaluationForm"; // ✅ Đánh giá thực tập sinh
 import SupportRequests from "../pages/internships/SupportRequests";
+import Reports from "../pages/hr/ReportManagement";
+import ReportIntern from "../pages/internships/ReportIntern";
 import ReviewSupportRequests from "../pages/hr/ReviewSupportRequests";
+import AttendancePage from "../pages/internships/AttendancePage";
+import LeaveRequestPage from "../pages/internships/LeaveRequestPage";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -246,10 +250,44 @@ export default function AppRouter() {
               }
             />
             <Route
+              path="/reports"
+              element={
+                <AccessGuard requiredRoles={["HR"]}>
+                  <Reports />
+                </AccessGuard>
+              }
+            />
+
+            <Route
+              path="/report-intern"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <ReportIntern />
+                </AccessGuard>
+              }
+            />
+
+            <Route
               path="/hr/support-requests"
               element={
                 <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <ReviewSupportRequests />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/internship-attendance"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <AttendancePage />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/internship-leave-requests"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <LeaveRequestPage />
                 </AccessGuard>
               }
             />

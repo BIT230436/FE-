@@ -6,6 +6,10 @@ import InternSelectionModal from "../../components/common/InternSelectionModal";
 import { assignTask, getAssignedTasks } from "../../services/taskService";
 import "./TaskManagement.css";
 
+// import vi locale if you want month names in Vietnamese
+import "dayjs/locale/vi";
+dayjs.locale("vi");
+
 const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -14,7 +18,8 @@ const TaskManagement = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    deadline: "",
+    due_date: "",
+    priority: "",
     internId: "",
   });
 
@@ -27,7 +32,57 @@ const TaskManagement = () => {
     setLoading(true);
     try {
       const data = await getAssignedTasks();
-      setTasks(data);
+      console.log("DEBUG: raw assigned tasks from API:", data);
+
+      // Normalize each task object so the rest of the component can rely on a single shape
+      const normalized = (data || []).map((t) => {
+        // try common variants for fields
+        const id = t.id || t.taskId || t.task_id;
+        const title = t.title || t.name || "";
+        const description = t.description || t.desc || "";
+        // possible date fields
+        const duedate =
+          t.duedate ||
+          t.due_date ||
+          t.due ||
+          (t.schedule && (t.schedule.date || t.schedule.dateTime)) ||
+          null;
+        const assignedAt =
+          t.assignedAt ||
+          t.assigned_at ||
+          t.createdAt ||
+          t.created_at ||
+          t.assignedAtTime ||
+          null;
+        const internName =
+          t.internName ||
+          t.intern_name ||
+          (t.intern && (t.intern.fullname || t.intern.name)) ||
+          (t.assignedTo && (t.assignedTo.fullname || t.assignedTo.name)) ||
+          "";
+        const internEmail =
+          t.internEmail ||
+          t.intern_email ||
+          (t.intern && (t.intern.email || t.internEmail)) ||
+          "";
+        const status = t.status || t.state || "UNKNOWN";
+        const priority = t.priority || t.prio || null;
+
+        return {
+          raw: t,
+          id,
+          title,
+          description,
+          duedate,
+          assignedAt,
+          internName,
+          internEmail,
+          status,
+          priority,
+        };
+      });
+
+      setTasks(normalized);
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Không thể tải danh sách nhiệm vụ");
@@ -58,7 +113,7 @@ const TaskManagement = () => {
     if (
       !formData.title ||
       !formData.description ||
-      !formData.deadline ||
+      !formData.due_date ||
       !formData.internId
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin");
@@ -71,8 +126,9 @@ const TaskManagement = () => {
       setFormData({
         title: "",
         description: "",
-        deadline: "",
+        due_date: "",
         internId: "",
+        priority: "",
       });
       setSelectedIntern(null);
       loadTasks();
@@ -84,22 +140,82 @@ const TaskManagement = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("vi-VN", options);
+  // Robust date formatter: accepts multiple input formats and returns friendly string or '-'
+  const formatDate = (dateInput) => {
+    if (!dateInput) return "-";
+
+    // if the backend already sent an object (unlikely) try to handle
+    if (typeof dateInput === "object" && dateInput instanceof Date) {
+      if (isNaN(dateInput.getTime())) return "-";
+      return dateInput.toLocaleDateString("vi-VN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+
+    // Try dayjs parsing with several accepted formats
+    const candidates = [
+      dateInput, // e.g. "2025-10-31" or "2025-10-31T14:30"
+      // maybe backend sends "/Date(...)/" or ISO variants - dayjs usually handles ISO
+    ];
+
+    for (const c of candidates) {
+      const d = dayjs(c);
+      if (d.isValid()) {
+        // show e.g. "31 tháng 10, 2025" or "31/10/2025"
+        try {
+          return d.format("D MMMM, YYYY"); // "31 tháng 10, 2025" in vi locale
+        } catch (e) {
+          return d.format("DD/MM/YYYY");
+        }
+      }
+    }
+
+    // fallback: try native Date
+    const native = new Date(dateInput);
+    if (!isNaN(native.getTime())) {
+      return native.toLocaleDateString("vi-VN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+
+    // if nothing works, show raw string so you can inspect it
+    return String(dateInput);
   };
 
-  const getStatusBadge = (status) => {
+  // ✅ Gộp cả kiểm tra Overdue vào đây, không đổi UI
+  const getStatusBadge = (task) => {
+    // Kiểm tra nếu task quá hạn
+    const due = new Date(task.duedate || task.dueDate);
+    const now = new Date();
+    let effectiveStatus = task.status;
+
+    if (
+      task.status !== "COMPLETED" &&
+      due instanceof Date &&
+      !isNaN(due.getTime()) &&
+      due < now
+    ) {
+      effectiveStatus = "OVERDUE";
+    }
+
+    // Map theo class CSS sẵn có
     const statusMap = {
       PENDING: { class: "status-pending", label: "Chờ xử lý" },
+      NEW: { class: "status-pending", label: "Chưa bắt đầu" },
       IN_PROGRESS: { class: "status-in-progress", label: "Đang thực hiện" },
       COMPLETED: { class: "status-completed", label: "Đã hoàn thành" },
-      OVERDUE: { class: "status-overdue", label: "Quá hạn" },
+      OVERDUE: { class: "status-overdue", label: "Overdue" }, // ✅ hiển thị tiếng Anh
     };
-    const statusInfo = statusMap[status] || {
+
+    const statusInfo = statusMap[effectiveStatus] || {
       class: "status-default",
-      label: status,
+      label: effectiveStatus || "-",
     };
+
     return (
       <span className={`status-badge ${statusInfo.class}`}>
         {statusInfo.label}
@@ -120,7 +236,8 @@ const TaskManagement = () => {
     setFormData({
       title: "",
       description: "",
-      deadline: "",
+      due_date: "",
+      priority: "",
       internId: "",
     });
     setSelectedIntern(null);
@@ -129,10 +246,23 @@ const TaskManagement = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Check for required fields before submitting
+      if (
+        !formData.title ||
+        !formData.description ||
+        !formData.due_date ||
+        !formData.internId
+      ) {
+        toast.error("Vui lòng điền đầy đủ thông tin");
+        return; // Don't proceed further if validation fails
+      }
+
       await handleSubmit(e);
+      // Only close the modal if submission was successful
       handleCloseTaskModal();
     } catch (error) {
       console.error("Error submitting task:", error);
+      // Error message is already shown in handleSubmit
     }
   };
 
@@ -208,17 +338,34 @@ const TaskManagement = () => {
                 </div>
 
                 <div className="form-group">
+                  <label htmlFor="priority">Độ ưu tiên</label>
+                  <select
+                    id="priority"
+                    name="priority"
+                    value={formData.priority || ""}
+                    onChange={handleInputChange}
+                    className="form-control"
+                    required
+                  >
+                    <option value="">-- Chọn độ ưu tiên --</option>
+                    <option value="1">1 - Cao</option>
+                    <option value="2">2 - Trung bình</option>
+                    <option value="3">3 - Thấp</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
                   <label>Hạn chót</label>
                   <DatePicker
                     showTime
                     format="DD/MM/YYYY HH:mm"
                     className="date-picker"
                     placeholder="Chọn thời hạn"
-                    value={formData.deadline ? dayjs(formData.deadline) : null}
+                    value={formData.due_date ? dayjs(formData.due_date) : null}
                     onChange={(date, dateString) => {
                       setFormData((prev) => ({
                         ...prev,
-                        deadline: date ? date.format("YYYY-MM-DDTHH:mm") : "",
+                        due_date: date ? date.format("YYYY-MM-DDTHH:mm") : "",
                       }));
                     }}
                     style={{ width: "100%" }}
@@ -273,8 +420,8 @@ const TaskManagement = () => {
                       <div className="intern-email">{task.internEmail}</div>
                     </div>
                   </td>
-                  <td>{formatDate(task.deadline)}</td>
-                  <td>{getStatusBadge(task.status)}</td>
+                  <td>{formatDate(task.duedate)}</td>
+                  <td>{getStatusBadge(task)}</td>
                   <td>{formatDate(task.assignedAt)}</td>
                 </tr>
               ))}
