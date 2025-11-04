@@ -170,6 +170,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "🛌",
       requiredRoles: ["INTERN"],
     },
+    {
+      label: "Duyệt nghỉ phép",
+      path: "/hr/leave-approvals",
+      icon: "🛎️",
+      requiredRoles: ["HR"],
+    },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---

@@ -4,6 +4,7 @@ import { DatePicker } from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./LeaveRequestPage.css";
+import { useAuthStore } from "../../store/authStore";
 import {
   getLeaveRequests,
   createLeaveRequest,
@@ -18,19 +19,46 @@ export default function LeaveRequestPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+  const currentUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
     loadLeaveRequests();
   }, []);
 
   async function loadLeaveRequests() {
+    if (!currentUser?.email) {
+      setLoading(false);
+      return;
+    }
+
+    console.log("=== LOADING LEAVE REQUESTS ===");
+    console.log("Current user email:", currentUser.email);
+    console.log("Current user ID:", currentUser.id);
+
     setLoading(true);
     try {
-      const response = await getLeaveRequests({
-        page: 0,
-        size: 100,
+      const response = await getLeaveRequests(currentUser.email);
+
+      console.log("Response from API:", response);
+
+      // Backend trả về { success, data, total } hoặc { success, data, pagination }
+      let userRequests = Array.isArray(response.data)
+        ? response.data
+        : [];
+
+      // 🔥 FIX: Filter theo email để chắc chắn chỉ lấy đơn của user hiện tại
+      const currentEmail = currentUser.email.toLowerCase();
+      userRequests = userRequests.filter(req => {
+        const internEmail = (req.internEmail || '').toLowerCase();
+        const match = internEmail === currentEmail;
+        console.log(`Checking request ${req.id}: ${req.internEmail} === ${currentUser.email}? ${match}`);
+        return match;
       });
-      setRequests(response.data || []);
+
+      console.log("Final filtered requests:", userRequests);
+      console.log("Total requests:", userRequests.length);
+
+      setRequests(userRequests);
     } catch (error) {
       console.error("Error loading leave requests:", error);
       toast.error("Không thể tải danh sách nghỉ phép");
@@ -54,6 +82,10 @@ export default function LeaveRequestPage() {
 
   function getStatusBadge(status) {
     const statusMap = {
+      PENDING: { text: "Đang chờ", class: "badge-pending" },
+      APPROVED: { text: "Đã duyệt", class: "badge-approved" },
+      REJECTED: { text: "Từ chối", class: "badge-rejected" },
+      // Lowercase variants
       pending: { text: "Đang chờ", class: "badge-pending" },
       approved: { text: "Đã duyệt", class: "badge-approved" },
       rejected: { text: "Từ chối", class: "badge-rejected" },
@@ -65,16 +97,6 @@ export default function LeaveRequestPage() {
     return (
       <span className={`badge ${statusInfo.class}`}>{statusInfo.text}</span>
     );
-  }
-
-  function getLeaveTypeName(type) {
-    const typeMap = {
-      paid: "Có phép",
-      unpaid: "Không phép",
-      sick: "Ốm đau",
-      other: "Khác",
-    };
-    return typeMap[type] || type;
   }
 
   function calculateDays(startDate, endDate) {
@@ -113,7 +135,7 @@ export default function LeaveRequestPage() {
           <div className="stat-icon">⏳</div>
           <div className="stat-info">
             <div className="stat-value">
-              {requests.filter((r) => r.status === "pending").length}
+              {requests.filter((r) => r.status === "PENDING" || r.status === "pending").length}
             </div>
             <div className="stat-label">Đang chờ</div>
           </div>
@@ -122,7 +144,7 @@ export default function LeaveRequestPage() {
           <div className="stat-icon">✓</div>
           <div className="stat-info">
             <div className="stat-value">
-              {requests.filter((r) => r.status === "approved").length}
+              {requests.filter((r) => r.status === "APPROVED" || r.status === "approved").length}
             </div>
             <div className="stat-label">Đã duyệt</div>
           </div>
@@ -131,7 +153,7 @@ export default function LeaveRequestPage() {
           <div className="stat-icon">✕</div>
           <div className="stat-info">
             <div className="stat-value">
-              {requests.filter((r) => r.status === "rejected").length}
+              {requests.filter((r) => r.status === "REJECTED" || r.status === "rejected").length}
             </div>
             <div className="stat-label">Từ chối</div>
           </div>
@@ -142,7 +164,7 @@ export default function LeaveRequestPage() {
       <div className="card">
         {requests.length === 0 ? (
           <div className="empty">
-            <div className="empty-icon">📝</div>
+            <div className="empty-icon">📋</div>
             <div className="empty-text">Bạn chưa có yêu cầu nghỉ phép nào</div>
             <button
               className="btn btn-primary"
@@ -158,13 +180,12 @@ export default function LeaveRequestPage() {
                 <thead>
                   <tr>
                     <th className="table-th">STT</th>
-                    <th className="table-th">Loại nghỉ</th>
                     <th className="table-th">Thời gian</th>
                     <th className="table-th">Số ngày</th>
                     <th className="table-th">Lý do</th>
                     <th className="table-th">Trạng thái</th>
+                    <th className="table-th">Lý do từ chối/duyệt</th>
                     <th className="table-th">Ngày tạo</th>
-                    <th className="table-th">Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -174,16 +195,10 @@ export default function LeaveRequestPage() {
                         {startIndex + index + 1}
                       </td>
                       <td className="table-td">
-                        <span className="leave-type">
-                          {getLeaveTypeName(request.leaveType)}
-                        </span>
-                      </td>
-                      <td className="table-td">
-                        {dayjs(request.startDate).format("DD/MM/YYYY")} -{" "}
-                        {dayjs(request.endDate).format("DD/MM/YYYY")}
+                        {dayjs(request.startDate).format("DD/MM/YYYY")} - {dayjs(request.endDate).format("DD/MM/YYYY")}
                       </td>
                       <td className="table-td center">
-                        {calculateDays(request.startDate, request.endDate)} ngày
+                        {request.leaveDays || calculateDays(request.startDate, request.endDate)} ngày
                       </td>
                       <td className="table-td">
                         <div className="reason-text">{request.reason}</div>
@@ -192,20 +207,10 @@ export default function LeaveRequestPage() {
                         {getStatusBadge(request.status)}
                       </td>
                       <td className="table-td">
-                        {dayjs(request.createdAt).format("DD/MM/YYYY HH:mm")}
+                        {request.approvalReason || request.rejectionReason || '-'}
                       </td>
                       <td className="table-td">
-                        {request.status === "pending" && (
-                          <button
-                            className="btn btn-cancel"
-                            onClick={() => handleCancelRequest(request.id)}
-                          >
-                            Hủy
-                          </button>
-                        )}
-                        {request.status !== "pending" && (
-                          <span className="text-muted">-</span>
-                        )}
+                        {dayjs(request.createdAt).format("DD/MM/YYYY HH:mm")}
                       </td>
                     </tr>
                   ))}
@@ -251,6 +256,7 @@ export default function LeaveRequestPage() {
       {/* Create Leave Request Modal */}
       {showCreate && (
         <CreateLeaveRequestModal
+          currentUser={currentUser}
           onClose={() => setShowCreate(false)}
           onCreate={async (data) => {
             try {
@@ -273,15 +279,13 @@ export default function LeaveRequestPage() {
   );
 }
 
-function CreateLeaveRequestModal({ onClose, onCreate }) {
-  const [leaveType, setLeaveType] = useState("paid");
+function CreateLeaveRequestModal({ currentUser, onClose, onCreate }) {
   const [dateRange, setDateRange] = useState(null);
   const [reason, setReason] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
 
   const validate = () => {
     const errors = {};
-    if (!leaveType) errors.leaveType = "Vui lòng chọn loại nghỉ";
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       errors.dateRange = "Vui lòng chọn thời gian nghỉ";
     }
@@ -303,8 +307,14 @@ function CreateLeaveRequestModal({ onClose, onCreate }) {
       return;
     }
 
+    if (!currentUser?.email) {
+      toast.error("Không xác định được người dùng. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    // Backend expects: { email, startDate, endDate, reason }
     const data = {
-      leaveType,
+      email: currentUser.email,
       startDate: dateRange[0].format("YYYY-MM-DD"),
       endDate: dateRange[1].format("YYYY-MM-DD"),
       reason: reason.trim(),
@@ -326,29 +336,6 @@ function CreateLeaveRequestModal({ onClose, onCreate }) {
         <h2 className="modal-title">Tạo yêu cầu nghỉ phép</h2>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">
-              Loại nghỉ <span className="required">*</span>
-            </label>
-            <select
-              className={`form-select ${
-                validationErrors.leaveType ? "input-error" : ""
-              }`}
-              value={leaveType}
-              onChange={(e) =>
-                handleInputChange(setLeaveType, "leaveType")(e.target.value)
-              }
-            >
-              <option value="paid">Có phép</option>
-              <option value="unpaid">Không phép</option>
-              <option value="sick">Ốm đau</option>
-              <option value="other">Khác</option>
-            </select>
-            {validationErrors.leaveType && (
-              <div className="error-message">{validationErrors.leaveType}</div>
-            )}
-          </div>
-
           <div className="form-group">
             <label className="form-label">
               Thời gian nghỉ <span className="required">*</span>
