@@ -1,0 +1,498 @@
+/* AttendancePage.css - Styles riêng cho trang chấm công */
+
+/* CSS Variables */
+:root {
+  --primary: #2b7cff;
+  --success: #34c759;
+  --danger: #ff3b30;
+  --warning: #ff9500;
+  --info: #5ac8fa;
+  --bg-light: #f4f8fb;
+  --bg-card: #fff;
+  --border-radius: 10px;
+  --shadow: 0 4px 16px rgba(43, 124, 255, 0.08);
+  --font-main: "Segoe UI", "Roboto", Arial, sans-serif;
+}
+
+/* Base Styles */
+body {
+  font-family: var(--font-main);
+  background: var(--bg-light);
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+
+/* Page Container */
+.page-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 1px;
+}
+
+/* Card Styles */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 24px;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(43, 124, 255, 0.15);
+}
+
+/* Clock Card - Gradient Background */
+.clock-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  text-align: center;
+  padding: 40px 24px;
+  margin-bottom: 24px;
+  border-radius: 16px;
+}
+
+.clock-display {
+  margin-bottom: 32px;
+}
+
+.current-time {
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  line-height: 1.2;
+}
+
+.current-date {
+  font-size: 18px;
+  font-weight: 400;
+  opacity: 0.95;
+  text-transform: capitalize;
+}
+
+/* Status Section */
+.status-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.status-label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Badge Styles */
+.badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-working {
+  background: var(--success);
+  color: #fff;
+  animation: pulse 2s infinite;
+}
+
+.badge-completed {
+  background: var(--info);
+  color: #fff;
+}
+
+.badge-pending {
+  background: var(--warning);
+  color: #fff;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Today Info Section */
+.today-info {
+  margin-bottom: 32px;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.info-item {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 20px 16px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.info-label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 8px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.info-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.btn {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-main);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-check-in,
+.btn-check-out {
+  min-width: 180px;
+  padding: 18px 36px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-check-in {
+  background: var(--success);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(52, 199, 89, 0.4);
+}
+
+.btn-check-in:hover:not(:disabled) {
+  background: #28a745;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 199, 89, 0.5);
+}
+
+.btn-check-out {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255, 59, 48, 0.4);
+}
+
+.btn-check-out:hover:not(:disabled) {
+  background: #e02d23;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 59, 48, 0.5);
+}
+
+.btn-check-in:disabled,
+.btn-check-out:disabled {
+  background: #a0aec0;
+  color: #e2e8f0;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
+  transform: none;
+}
+
+/* Section Title */
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e3eaf2;
+}
+
+/* Table Styles */
+.history-table-wrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.table thead {
+  background: linear-gradient(90deg, #eaf3ff 0%, #f4f8fb 100%);
+}
+
+.table-th {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 2px solid #e3eaf2;
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.table-td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e3eaf2;
+  font-size: 14px;
+  background: #fff;
+  transition: background 0.2s;
+}
+
+.table tr:hover .table-td {
+  background: #f0f6ff;
+}
+
+.table-td.center {
+  text-align: center;
+}
+
+/* Loading & Empty States */
+.loading,
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: #888;
+  font-size: 16px;
+}
+
+.loading.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 16px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .current-time {
+    font-size: 48px;
+  }
+
+  .current-date {
+    font-size: 16px;
+  }
+
+  .info-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .info-item {
+    padding: 16px 12px;
+  }
+
+  .info-value {
+    font-size: 24px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-check-in,
+  .btn-check-out {
+    width: 100%;
+    min-width: auto;
+    padding: 16px 24px;
+    font-size: 16px;
+  }
+
+  .clock-card {
+    padding: 32px 16px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+
+  .table-th,
+  .table-td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 12px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .current-time {
+    font-size: 40px;
+    letter-spacing: 1px;
+  }
+
+  .current-date {
+    font-size: 14px;
+  }
+
+  .status-section {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .status-label {
+    font-size: 14px;
+  }
+
+  .info-item {
+    padding: 12px 8px;
+  }
+
+  .info-label {
+    font-size: 12px;
+  }
+
+  .info-value {
+    font-size: 20px;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .btn-check-in,
+  .btn-check-out {
+    padding: 14px 20px;
+    font-size: 14px;
+  }
+
+  .clock-card {
+    padding: 24px 12px;
+    border-radius: 12px;
+  }
+
+  .card {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .table-th,
+  .table-td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
+  .badge {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #1a202c;
+    color: #e2e8f0;
+  }
+
+  .clock-card {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  }
+
+  .card {
+    background: #2d3748;
+  }
+
+  .section-title {
+    color: #90cdf4;
+    border-bottom-color: #4a5568;
+  }
+
+  .table {
+    background: #2d3748;
+  }
+
+  .table thead {
+    background: linear-gradient(90deg, #374151 0%, #1f2937 100%);
+  }
+
+  .table-th {
+    color: #90cdf4;
+    border-bottom-color: #4a5568;
+  }
+
+  .table-td {
+    background: #2d3748;
+    border-bottom-color: #4a5568;
+    color: #e2e8f0;
+  }
+
+  .table tr:hover .table-td {
+    background: #374151;
+  }
+
+  .loading,
+  .empty {
+    color: #a0aec0;
+  }
+}

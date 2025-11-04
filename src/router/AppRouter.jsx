@@ -22,6 +22,7 @@ import SupportRequests from "../pages/internships/SupportRequests";
 import Reports from "../pages/hr/ReportManagement";
 import ReportIntern from "../pages/internships/ReportIntern";
 import ReviewSupportRequests from "../pages/hr/ReviewSupportRequests";
+import AttendancePage from "../pages/internships/AttendancePage";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -261,6 +262,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <ReviewSupportRequests />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/internship-attendance"
+              element={
+                <AccessGuard requiredRoles={["INTERN"]}>
+                  <AttendancePage />
                 </AccessGuard>
               }
             />

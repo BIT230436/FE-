@@ -152,6 +152,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "📝",
       requiredRoles: ["INTERN"],
     },
+    {
+      label: "Chấm công",
+      path: "/internship-attendance",
+      icon: "⏰",
+      requiredRoles: ["INTERN"],
+    },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---
