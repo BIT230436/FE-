@@ -13,16 +13,16 @@ function RequestStatusBadge({ status }) {
   };
   switch (status) {
     case "PENDING":
-      config = { text: "Chờ xử lý", className: "status-pending"};
+      config = { text: "Chờ xử lý", className: "status-pending" };
       break;
     case "COMPLETED":
       config = {
-        text: "Complete",
+        text: "Đã xác nhận",
         className: "status-completed",
       };
       break;
     case "REJECTED":
-      config = { text: "Bị từ chối", className: "status-rejected"};
+      config = { text: "Bị từ chối", className: "status-rejected" };
       break;
   }
   return (
@@ -85,7 +85,7 @@ export default function SupportRequests() {
   };
 
   return (
-    <div 
+    <div
       className="support-requests-container"
       onClick={(e) => {
         // Prevent any click events from bubbling up to parent elements
@@ -95,8 +95,8 @@ export default function SupportRequests() {
     >
       <div className="page-header">
         <h1 className="page-title">📬 Yêu cầu hỗ trợ của tôi</h1>
-        <button 
-          className="btn btn-primary" 
+        <button
+          className="btn btn-primary"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -154,14 +154,14 @@ export default function SupportRequests() {
               </tr>
             ) : (
               filteredRequests.map((req) => (
-                <tr 
+                <tr
                   key={req.id}
                   onClick={(e) => {
                     // Prevent row click from navigating
                     e.preventDefault();
                     e.stopPropagation();
                   }}
-                  style={{ cursor: 'default' }}
+                  style={{ cursor: "default" }}
                 >
                   {/* Cột 1: Tiêu đề (subject) */}
                   <td className="request-subject">
@@ -202,7 +202,8 @@ export default function SupportRequests() {
                       <>
                         <strong>HR:</strong> {req.hrResponse}
                       </>
-                    ) : req.status === "COMPLETED" || req.status === "REJECTED" ? (
+                    ) : req.status === "COMPLETED" ||
+                      req.status === "REJECTED" ? (
                       <i>Không có phản hồi.</i>
                     ) : (
                       <i>Chưa có phản hồi.</i>
