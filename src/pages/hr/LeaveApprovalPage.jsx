@@ -59,15 +59,21 @@ export default function HRLeaveApprovalPage() {
   }
 
   function getStatusBadge(status) {
+    // Chuyển đổi status từ tiếng Anh (BE) sang tiếng Việt
     const statusMap = {
       pending: { text: "Đang chờ", class: "badge-pending" },
+      PENDING: { text: "Đang chờ", class: "badge-pending" },
       approved: { text: "Đã duyệt", class: "badge-approved" },
+      APPROVED: { text: "Đã duyệt", class: "badge-approved" },
       rejected: { text: "Từ chối", class: "badge-rejected" },
+      REJECTED: { text: "Từ chối", class: "badge-rejected" },
     };
+
     const statusInfo = statusMap[status] || {
-      text: status,
+      text: "Đang chờ", // Default nếu không tìm thấy
       class: "badge-pending",
     };
+
     return (
       <span className={`badge ${statusInfo.class}`}>{statusInfo.text}</span>
     );
@@ -86,7 +92,9 @@ export default function HRLeaveApprovalPage() {
         req.studentEmail?.toLowerCase().includes(searchText.toLowerCase())
       : true;
 
-    const matchesStatus = statusFilter ? req.status === statusFilter : true;
+    const matchesStatus = statusFilter
+      ? req.status?.toLowerCase() === statusFilter.toLowerCase()
+      : true;
 
     const matchesDateRange = dateRangeFilter
       ? dayjs(req.startDate).isBetween(
@@ -126,9 +134,12 @@ export default function HRLeaveApprovalPage() {
   // Statistics
   const stats = {
     total: requests.length,
-    pending: requests.filter((r) => r.status === "pending").length,
-    approved: requests.filter((r) => r.status === "approved").length,
-    rejected: requests.filter((r) => r.status === "rejected").length,
+    pending: requests.filter((r) => r.status?.toLowerCase() === "pending")
+      .length,
+    approved: requests.filter((r) => r.status?.toLowerCase() === "approved")
+      .length,
+    rejected: requests.filter((r) => r.status?.toLowerCase() === "rejected")
+      .length,
   };
 
   if (loading) {
@@ -253,8 +264,6 @@ export default function HRLeaveApprovalPage() {
                   <tr>
                     <th className="table-th">STT</th>
                     <th className="table-th">Thực tập sinh</th>
-                    <th className="table-th">Email</th>
-                    <th className="table-th">Loại nghỉ</th>
                     <th className="table-th">Thời gian</th>
                     <th className="table-th">Số ngày</th>
                     <th className="table-th">Lý do</th>
@@ -270,14 +279,6 @@ export default function HRLeaveApprovalPage() {
                         {startIndex + index + 1}
                       </td>
                       <td className="table-td">{request.studentName || "-"}</td>
-                      <td className="table-td">
-                        {request.studentEmail || "-"}
-                      </td>
-                      <td className="table-td">
-                        <span className="leave-type">
-                          {getLeaveTypeName(request.leaveType)}
-                        </span>
-                      </td>
                       <td className="table-td">
                         {dayjs(request.startDate).format("DD/MM/YYYY")} -{" "}
                         {dayjs(request.endDate).format("DD/MM/YYYY")}
@@ -297,7 +298,7 @@ export default function HRLeaveApprovalPage() {
                         {dayjs(request.createdAt).format("DD/MM/YYYY HH:mm")}
                       </td>
                       <td className="table-td">
-                        {request.status === "pending" ? (
+                        {request.status?.toLowerCase() === "pending" ? (
                           <div className="action-buttons">
                             <button
                               className="btn btn-approve"
@@ -314,7 +315,7 @@ export default function HRLeaveApprovalPage() {
                           </div>
                         ) : (
                           <span className="text-muted">
-                            {request.status === "approved"
+                            {request.status?.toLowerCase() === "approved"
                               ? "Đã duyệt"
                               : "Đã từ chối"}
                           </span>
@@ -368,6 +369,8 @@ export default function HRLeaveApprovalPage() {
           onClose={() => setShowApproveModal(null)}
           onConfirm={async (note) => {
             try {
+              // BE endpoint: /api/leave-requests/{id}/approve-by-token
+              // Body có thể để trống hoặc gửi note (nếu BE support)
               await approveLeaveRequest(showApproveModal.id, { note });
               toast.success("Đã duyệt yêu cầu nghỉ phép! ✅");
               setShowApproveModal(null);
@@ -389,6 +392,8 @@ export default function HRLeaveApprovalPage() {
           onClose={() => setShowRejectModal(null)}
           onConfirm={async (note) => {
             try {
+              // BE endpoint: /api/leave-requests/{id}/reject-by-token
+              // Body: { rejectionReason: "..." }
               await rejectLeaveRequest(showRejectModal.id, { note });
               toast.success("Đã từ chối yêu cầu nghỉ phép");
               setShowRejectModal(null);
