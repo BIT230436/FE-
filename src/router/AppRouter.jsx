@@ -36,6 +36,7 @@ import ContractList from "../pages/hr/ContractList";
 import InternshipProgramList from "../pages/hr/InternshipProgramList";
 import DepartmentManagement from "../pages/hr/DepartmentManagement";
 import AllowanceManagement from "../pages/hr/AllowanceManagement";
+import AttendanceReport from "../pages/hr/AttendanceReport";
 import Profile from "../pages/students/Profile";
 import DocumentUpload from "../pages/students/DocumentUpload";
 import MyDocuments from "../pages/students/MyDocuments";
@@ -185,6 +186,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredRoles={["HR", "ADMIN"]}>
                   <AllowanceManagement />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/hr/attendance-report"
+              element={
+                <AccessGuard requiredRoles={["HR", "ADMIN"]}>
+                  <AttendanceReport />
                 </AccessGuard>
               }
             />
