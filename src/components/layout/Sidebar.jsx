@@ -122,6 +122,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["HR"],
     },
     {
+      label: "Báo cáo chuyên cần",
+      path: "/hr/attendance-report",
+      icon: "📊",
+      requiredRoles: ["HR"],
+    },
+    {
       label: "Phụ cấp của tôi",
       path: "/my-allowance-history",
       icon: "💰",
