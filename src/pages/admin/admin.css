@@ -84,7 +84,7 @@
 
 .admin-btn--primary {
   background: var(--admin-primary);
-  color: #fff;
+  color: #ffffff !important;
 }
 .admin-btn--primary:hover {
   background: #1761c7;
