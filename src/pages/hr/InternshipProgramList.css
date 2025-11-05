@@ -215,17 +215,18 @@ body {
 }
 
 .clear-filters-btn {
-  background: #eaf3ff;
+  background: #eaf3ff !important;
   color: var(--primary);
   padding: 7px 16px;
   font-size: 14px;
   border: 1px solid #d0d4d9;
   border-radius: 6px;
   font-weight: 500;
+  color: #0c0c0c !important;
 }
 .clear-filters-btn:hover {
-  background: #dbeaff;
-  color: #1761c7;
+  background: #75aeff !important;
+  color: #ffffff !important;
 }
 
 .badge {

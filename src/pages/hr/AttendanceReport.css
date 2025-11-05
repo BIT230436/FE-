@@ -74,17 +74,31 @@
   border: 1px solid #ffccc7;
   color: #f5222d;
 }
+.form-input {
+  width: 100%;
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  color: #333;
+}
+
+.form-input:focus {
+  background-color: #ffffff;
+}
 
 /* Responsive styles */
 @media (max-width: 768px) {
   .filter-card {
     padding: 15px;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .filter-button,
   .export-button {
     width: 100%;

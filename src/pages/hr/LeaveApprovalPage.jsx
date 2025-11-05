@@ -88,8 +88,8 @@ export default function HRLeaveApprovalPage() {
   // Filter logic
   const filteredRequests = requests.filter((req) => {
     const matchesSearch = searchText
-      ? req.studentName?.toLowerCase().includes(searchText.toLowerCase()) ||
-        req.studentEmail?.toLowerCase().includes(searchText.toLowerCase())
+      ? req.internName?.toLowerCase().includes(searchText.toLowerCase()) ||
+        req.internEmail?.toLowerCase().includes(searchText.toLowerCase())
       : true;
 
     const matchesStatus = statusFilter
@@ -278,7 +278,7 @@ export default function HRLeaveApprovalPage() {
                       <td className="table-td center">
                         {startIndex + index + 1}
                       </td>
-                      <td className="table-td">{request.studentName || "-"}</td>
+                      <td className="table-td">{request.internName || "-"}</td>
                       <td className="table-td">
                         {dayjs(request.startDate).format("DD/MM/YYYY")} -{" "}
                         {dayjs(request.endDate).format("DD/MM/YYYY")}
@@ -430,7 +430,7 @@ function ApproveModal({ request, onClose, onConfirm }) {
         <div className="modal-content">
           <div className="info-row">
             <span className="info-label">Thực tập sinh:</span>
-            <span className="info-value">{request.studentName}</span>
+            <span className="info-value">{request.internName}</span>
           </div>
           <div className="info-row">
             <span className="info-label">Loại nghỉ:</span>
@@ -518,7 +518,7 @@ function RejectModal({ request, onClose, onConfirm }) {
         <div className="modal-content">
           <div className="info-row">
             <span className="info-label">Thực tập sinh:</span>
-            <span className="info-value">{request.studentName}</span>
+            <span className="info-value">{request.internName}</span>
           </div>
           <div className="info-row">
             <span className="info-label">Loại nghỉ:</span>

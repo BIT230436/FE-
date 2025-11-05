@@ -65,6 +65,7 @@ body {
   gap: 16px;
   box-shadow: var(--shadow);
   transition: all 0.3s ease;
+  background-color: #ffffff !important;
 }
 
 .stat-card:hover {
@@ -224,8 +225,8 @@ body {
 }
 
 .btn-clear {
-  background: #f4f4f4;
-  color: #303031;
+  background: #f4f4f4 !important;
+  color: #303031 !important;
   border: 1px solid #e3eaf2;
   width: 100%;
 }
@@ -237,7 +238,7 @@ body {
 .btn-approve {
   background: var(--success);
   color: #fff;
-  padding: 6px 16px;
+  padding: 6px 6px;
   font-size: 13px;
   box-shadow: 0 2px 6px rgba(52, 199, 89, 0.3);
 }
@@ -251,7 +252,7 @@ body {
 .btn-reject {
   background: var(--danger);
   color: #fff;
-  padding: 6px 16px;
+  padding: 6px 6px;
   font-size: 13px;
   box-shadow: 0 2px 6px rgba(255, 59, 48, 0.3);
 }
@@ -284,7 +285,20 @@ body {
 .action-buttons {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  justify-content: flex-start !important;
+  min-width: 140px; /* Đặt chiều rộng tối thiểu */
+}
+
+.action-buttons .btn {
+  padding: 6px 6px;
+  min-width: 80px; /* Đặt chiều rộng tối thiểu cho button */
+  white-space: nowrap; /* Ngăn text xuống dòng */
+}
+
+/* Table cell containing actions */
+.table td:last-child {
+  min-width: 140px; /* Đảm bảo ô cuối cùng đủ rộng */
+  white-space: nowrap;
 }
 
 /* Table Styles */
@@ -319,6 +333,7 @@ body {
   font-size: 13px;
   background: #fff;
   transition: background 0.2s;
+  color: #000000 !important;
 }
 
 .table tr:hover .table-td {
@@ -550,7 +565,7 @@ body {
 }
 
 .text-muted {
-  color: #999;
+  color: #333333;
   font-size: 13px;
 }
 
