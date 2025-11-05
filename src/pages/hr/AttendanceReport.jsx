@@ -35,6 +35,9 @@ const AttendanceReport = () => {
     searchText: "",
   });
 
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+
   // Dữ liệu phòng ban (lấy từ dữ liệu mẫu)
   const [departments, setDepartments] = useState([
     "Phát triển phần mềm",
@@ -248,10 +251,6 @@ const AttendanceReport = () => {
     setFilters({ ...filters, searchText: e.target.value });
   };
 
-  const handleDateChange = (dates) => {
-    setFilters((prev) => ({ ...prev, dateRange: dates }));
-  };
-
   const handleDepartmentChange = (value) => {
     setFilters((prev) => ({ ...prev, group: value }));
   };
@@ -310,20 +309,33 @@ const AttendanceReport = () => {
         <Card className="filter-card">
           {/* Main Filters Row */}
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-            <Col xs={24} md={8}>
+            <Col xs={24} sm={12}>
               <div className="filter-item">
-                <label>Khoảng thời gian:</label>
-                <RangePicker
-                  style={{ width: "100%", height: "40px" }}
-                  format="DD/MM/YYYY"
-                  value={filters.dateRange}
-                  onChange={handleDateChange}
-                  placeholder={["Từ ngày", "Đến ngày"]}
+                <label className="filter-item label">Từ ngày</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={startDateFilter}
+                  onChange={(e) => setStartDateFilter(e.target.value)}
                 />
               </div>
             </Col>
+            <Col xs={24} sm={12}>
+              <div className="filter-item">
+                <label className="filter-item label">Đến ngày</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={endDateFilter}
+                  onChange={(e) => setEndDateFilter(e.target.value)}
+                />
+              </div>
+            </Col>
+          </Row>
 
-            <Col xs={24} md={8}>
+          {/* Filters Row (department + mentor) */}
+          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+            <Col xs={24} md={12}>
               <div className="filter-item">
                 <label>Phòng ban:</label>
                 <Select
@@ -347,7 +359,7 @@ const AttendanceReport = () => {
               </div>
             </Col>
 
-            <Col xs={24} md={8}>
+            <Col xs={24} md={12}>
               <div className="filter-item">
                 <label>Mentor:</label>
                 <Select

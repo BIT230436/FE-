@@ -2,60 +2,136 @@
   padding: 20px;
   background-color: #f5f5f5;
   min-height: 100%;
+  box-sizing: border-box;
 }
 
 .attendance-report h2 {
   color: #1890ff;
-  margin-bottom: 20px;
-  font-size: 24px;
-  font-weight: 500;
+  margin-bottom: 18px;
+  font-size: 22px;
+  font-weight: 600;
 }
 
 .filter-card {
   margin-bottom: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  background: #fff;
 }
 
+/* Default filter-item layout (column) */
 .filter-item {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
 }
 
-.filter-item label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
+/* Date labels in JSX use class "filter-item label" -> target only those labels so other labels keep block behavior */
+label.filter-item {
+  display: inline-flex;
+  align-items: center;
+  width: 110px; /* fixed label width for date row */
+  margin-bottom: 0;
   color: #333;
+  font-weight: 600;
+  gap: 8px;
 }
 
+/* For rows that contain a label.filter-item + input[type="date"] we align items horizontally */
+.filter-item > input[type="date"] {
+  height: 40px;
+  padding: 6px 10px;
+  border: 1px solid #e3eaf2;
+  border-radius: 8px;
+  background: #f8fbff;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+/* Make ant select look consistent with inputs */
+.ant-select .ant-select-selector {
+  height: 40px !important;
+  display: flex;
+  align-items: center;
+  border-radius: 8px !important;
+  padding: 0 11px;
+  background: #f8fbff;
+  border: 1px solid #e3eaf2;
+}
+
+/* Ensure Select placeholder/values vertically centered */
+.ant-select-selection-item,
+.ant-select-selection-placeholder {
+  line-height: 40px !important;
+}
+
+/* Generic form input/select styles */
+.form-input,
+.form-select {
+  width: 100%;
+  color: #000000;
+  padding: 8px 12px;
+  border: 1px solid #e3eaf2;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 14px;
+  background: #f8fbff;
+  transition: border 0.18s;
+}
+
+/* focus */
+.form-input:focus,
+.form-select:focus,
+.ant-select-focused .ant-select-selector {
+  border-color: #1890ff !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.08);
+}
+
+/* Layout helper for rows that should appear inline (dates) */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Action buttons container */
+.form-actions,
 .action-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 8px;
+  align-items: center;
 }
 
+/* Buttons look */
 .filter-button {
   background-color: #1890ff;
   border-color: #1890ff;
+  color: #fff;
 }
 
 .export-button {
-  color: #1890ff;
-  border-color: #1890ff;
+  color: #fff;
+  background-color: #52c41a;
+  border-color: #52c41a;
 }
 
+/* Report table card */
 .report-table {
   background: white;
-  padding: 20px;
+  padding: 18px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .attendance-table {
-  margin-top: 15px;
+  margin-top: 12px;
 }
 
+/* Status badges */
 .status-badge {
   padding: 4px 8px;
   border-radius: 4px;
@@ -75,19 +151,33 @@
   color: #f5222d;
 }
 
-/* Responsive styles */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .filter-card {
-    padding: 15px;
+    padding: 12px;
   }
-  
+
+  /* Stack date inputs vertically on small screens */
+  label.filter-item {
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
   .action-buttons {
     flex-direction: column;
+    align-items: stretch;
   }
-  
+
   .filter-button,
   .export-button {
     width: 100%;
-    margin-bottom: 10px;
+  }
+
+  .ant-select .ant-select-selector {
+    height: 44px !important;
   }
 }
