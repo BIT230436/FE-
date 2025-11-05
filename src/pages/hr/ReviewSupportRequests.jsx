@@ -250,7 +250,8 @@ export default function ReviewSupportRequests() {
         <table className="request-table">
           <thead>
             <tr>
-              <th>ID Intern</th>
+              <th>STT</th>
+              <th>Thực tập sinh</th>
               <th>Tiêu đề</th>
               <th>Nội dung</th>
               <th>Độ ưu tiên</th>
@@ -263,36 +264,47 @@ export default function ReviewSupportRequests() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="8" className="loading">
+                <td colSpan="9" className="loading">
                   Đang tải...
                 </td>
               </tr>
             ) : filteredRequests.length === 0 ? (
               <tr>
-                <td colSpan="8" className="empty-requests">
+                <td colSpan="9" className="empty-requests">
                   Không có yêu cầu nào phù hợp.
                 </td>
               </tr>
             ) : (
-              filteredRequests.map((req) => (
-                <tr key={req.id}>
-                  <td>#{req.internId || "N/A"}</td>
-                  <td className="request-subject">
-                    <strong>{req.subject}</strong>
-                  </td>
-                  <td className="request-description">
-                    {req.message?.length > 100
-                      ? req.message.substring(0, 100) + "..."
-                      : req.message}
-                  </td>
-                  <td>
-                    <span
-                      className={`priority-badge priority-${req.priority?.toLowerCase()}`}
-                    >
-                      {getPriorityLabel(req.priority)}
-                    </span>
-                  </td>
-                  <td>
+              filteredRequests.map((req, index) => (
+                        <tr key={req.id}>
+
+                          <td>{currentPage * pageSize + index + 1}</td>
+
+                          <td>
+                            <strong>{req.internName || "Chưa có thông tin"}</strong>
+                            {req.internEmail && (
+                              <div style={{ fontSize: '0.85em', color: '#666' }}>
+                                {req.internEmail}
+                              </div>
+                            )}
+                          </td>
+
+                          <td className="request-subject">
+                            <strong>{req.subject}</strong>
+                          </td>
+                          <td className="request-description">
+                            {req.message?.length > 100
+                              ? req.message.substring(0, 100) + "..."
+                              : req.message}
+                          </td>
+                          <td>
+                            <span
+                              className={`priority-badge priority-${req.priority?.toLowerCase()}`}
+                            >
+                              {getPriorityLabel(req.priority)}
+                            </span>
+                          </td>
+                          <td>
                     {req.createdAt
                       ? new Date(req.createdAt).toLocaleDateString("vi-VN", {
                           year: "numeric",
