@@ -176,6 +176,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "🛎️",
       requiredRoles: ["HR"],
     },
+    {
+      label: "Quản lý GPS",
+      path: "/admin/gps",
+      icon: "🗺️",
+      requiredRoles: ["ADMIN"],
+    },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---
