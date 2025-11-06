@@ -50,3 +50,97 @@
 .status.pending {
   color: #888;
 }
+
+/* Action Buttons */
+.action-buttons {
+  text-align: center;
+}
+
+.btn-group {
+  display: inline-flex;
+  background: #f5f7fa;
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.status-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.status-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.status-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status-btn.active {
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+  transition: all 0.2s ease;
+}
+
+.status-dot.new {
+  background-color: #9ca3af;
+}
+
+.status-dot.in-progress {
+  background-color: #f59e0b;
+}
+
+.status-dot.completed {
+  background-color: #10b981;
+}
+
+/* Tooltip styles */
+.status-btn::after {
+  content: attr(title);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.status-btn:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(4px);
+}
+
+/* Deadline styling */
+.deadline {
+  font-size: 14px;
+  color: #4b5563;
+}
