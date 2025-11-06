@@ -24,7 +24,11 @@ export default function MyTasks() {
         console.log("Auth storage:", authStorage);
 
         // Lấy từ state.user.id
-        if (authStorage.state && authStorage.state.user && authStorage.state.user.id) {
+        if (
+          authStorage.state &&
+          authStorage.state.user &&
+          authStorage.state.user.id
+        ) {
           const userId = authStorage.state.user.id;
           console.log("Found userId from auth-storage:", userId);
           return userId;
@@ -75,7 +79,9 @@ export default function MyTasks() {
       const userId = getUserId();
 
       if (!userId) {
-        toast.error("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
+        toast.error(
+          "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại."
+        );
         console.error("Cannot find userId in localStorage");
         setLoading(false);
         return;
@@ -98,7 +104,9 @@ export default function MyTasks() {
           toast.info("Bạn chưa có công việc nào được giao");
         }
       } else {
-        toast.error(response.data.message || "Không thể tải danh sách công việc.");
+        toast.error(
+          response.data.message || "Không thể tải danh sách công việc."
+        );
         setTasks([]);
       }
     } catch (error) {
@@ -107,7 +115,9 @@ export default function MyTasks() {
       if (error.response) {
         // Server trả về error
         console.error("Error response:", error.response.data);
-        toast.error(error.response.data.message || "Không thể tải danh sách công việc.");
+        toast.error(
+          error.response.data.message || "Không thể tải danh sách công việc."
+        );
       } else if (error.request) {
         // Request được gửi nhưng không có response
         console.error("No response:", error.request);
@@ -171,9 +181,13 @@ export default function MyTasks() {
               <th>Tên công việc</th>
               <th>Mô tả</th>
               <th>Ưu tiên</th>
-              <th>Trạng thái</th>
+              <th>
+                <span style={{ marginLeft: 12 }}>Trạng thái</span>
+              </th>
               <th>Hạn chót</th>
-              <th>Thao tác</th>
+              <th>
+                <span style={{ marginLeft: 15 }}>Thao tác</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -182,9 +196,14 @@ export default function MyTasks() {
                 <td>{task.title}</td>
                 <td>{task.description}</td>
                 <td>
-                  <span className={`priority priority-${task.priority?.toLowerCase()}`}>
-                    {task.priority === "HIGH" ? "Cao" :
-                     task.priority === "MEDIUM" ? "Trung bình" : "Thấp"}
+                  <span
+                    className={`priority priority-${task.priority?.toLowerCase()}`}
+                  >
+                    {task.priority === "HIGH"
+                      ? "Cao"
+                      : task.priority === "MEDIUM"
+                      ? "Trung bình"
+                      : "Thấp"}
                   </span>
                 </td>
                 <td>
@@ -204,19 +223,46 @@ export default function MyTasks() {
                       : "Chưa bắt đầu"}
                   </span>
                 </td>
-                <td>{task.dueDate}</td>
                 <td>
-                  <select
-                    value={task.status}
-                    onChange={(e) =>
-                      handleStatusChange(task.id, e.target.value)
-                    }
-                    disabled={updating}
-                  >
-                    <option value="NEW">Chưa bắt đầu</option>
-                    <option value="IN_PROGRESS">Đang thực hiện</option>
-                    <option value="COMPLETED">Hoàn thành</option>
-                  </select>
+                  <span className="deadline">
+                    {task.dueDate
+                      ? new Date(task.dueDate).toLocaleDateString("vi-VN")
+                      : "Chưa có"}
+                  </span>
+                </td>
+                <td className="action-buttons">
+                  <div className="btn-group">
+                    <button
+                      className={`status-btn ${
+                        task.status === "NEW" ? "active" : ""
+                      } ${updating ? "disabled" : ""}`}
+                      onClick={() => handleStatusChange(task.id, "NEW")}
+                      disabled={updating}
+                      title="Chưa bắt đầu"
+                    >
+                      <span className="status-dot new"></span>
+                    </button>
+                    <button
+                      className={`status-btn ${
+                        task.status === "IN_PROGRESS" ? "active" : ""
+                      } ${updating ? "disabled" : ""}`}
+                      onClick={() => handleStatusChange(task.id, "IN_PROGRESS")}
+                      disabled={updating}
+                      title="Đang thực hiện"
+                    >
+                      <span className="status-dot in-progress"></span>
+                    </button>
+                    <button
+                      className={`status-btn ${
+                        task.status === "COMPLETED" ? "active" : ""
+                      } ${updating ? "disabled" : ""}`}
+                      onClick={() => handleStatusChange(task.id, "COMPLETED")}
+                      disabled={updating}
+                      title="Hoàn thành"
+                    >
+                      <span className="status-dot completed"></span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

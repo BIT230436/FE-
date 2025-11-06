@@ -26,6 +26,7 @@ import AttendancePage from "../pages/internships/AttendancePage";
 import LeaveRequestPage from "../pages/internships/LeaveRequestPage";
 import LeaveApprovalPage from "../pages/hr/LeaveApprovalPage";
 import Gps from "../pages/admin/Gps";
+import WorkSchedule from "../pages/hr/WorkSchedule";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -309,9 +310,16 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+            </Route>
+            <Route
+              path="/hr/work-schedule"
+              element={
+                <AccessGuard requiredRoles={["HR"]}>
+                  <WorkSchedule />
+                </AccessGuard>
+              }
+            />
           </Route>
-        </Route>
-
         {/* 🚫 Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
