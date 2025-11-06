@@ -25,6 +25,7 @@ import ReviewSupportRequests from "../pages/hr/ReviewSupportRequests";
 import AttendancePage from "../pages/internships/AttendancePage";
 import LeaveRequestPage from "../pages/internships/LeaveRequestPage";
 import LeaveApprovalPage from "../pages/hr/LeaveApprovalPage";
+import WorkSchedule from "../pages/hr/WorkSchedule";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -297,6 +298,14 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredRoles={["HR"]}>
                   <LeaveApprovalPage />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/hr/work-schedule"
+              element={
+                <AccessGuard requiredRoles={["HR"]}>
+                  <WorkSchedule />
                 </AccessGuard>
               }
             />
