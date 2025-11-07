@@ -4,6 +4,7 @@ import { DatePicker } from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./LeaveApprovalPage.css";
+import { useAuthStore } from "../../store/authStore";
 import {
   getAllLeaveRequests,
   approveLeaveRequest,
@@ -13,10 +14,15 @@ import {
 const { RangePicker } = DatePicker;
 
 export default function HRLeaveApprovalPage() {
+  const { user } = useAuthStore();
+
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showApproveModal, setShowApproveModal] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(null);
+
+  // ✅ STATE CHO THÔNG BÁO INLINE
+  const [notification, setNotification] = useState(null);
 
   // Filters
   const [searchText, setSearchText] = useState("");
@@ -31,6 +37,16 @@ export default function HRLeaveApprovalPage() {
     loadLeaveRequests();
   }, []);
 
+  // ✅ AUTO HIDE NOTIFICATION AFTER 5 SECONDS
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
   async function loadLeaveRequests() {
     setLoading(true);
     try {
@@ -38,7 +54,6 @@ export default function HRLeaveApprovalPage() {
         page: 0,
         size: 1000,
       });
-      // BE trả về { success, data, total, totalPages }
       setRequests(response.data || []);
     } catch (error) {
       console.error("Error loading leave requests:", error);
@@ -59,7 +74,6 @@ export default function HRLeaveApprovalPage() {
   }
 
   function getStatusBadge(status) {
-    // Chuyển đổi status từ tiếng Anh (BE) sang tiếng Việt
     const statusMap = {
       pending: { text: "Đang chờ", class: "badge-pending" },
       PENDING: { text: "Đang chờ", class: "badge-pending" },
@@ -70,7 +84,7 @@ export default function HRLeaveApprovalPage() {
     };
 
     const statusInfo = statusMap[status] || {
-      text: "Đang chờ", // Default nếu không tìm thấy
+      text: "Đang chờ",
       class: "badge-pending",
     };
 
@@ -142,6 +156,75 @@ export default function HRLeaveApprovalPage() {
       .length,
   };
 
+  // ✅ HÀM DUYỆT
+  async function handleApprove(request, note) {
+    try {
+      await approveLeaveRequest(request.id, {
+        hrEmail: user?.email,
+        note: note || ""
+      });
+
+      // ✅ HIỂN THỊ THÔNG BÁO THÀNH CÔNG
+      setNotification({
+        type: 'success',
+        message: `Đã duyệt yêu cầu nghỉ phép của ${request.internName}`,
+        details: `Từ ${dayjs(request.startDate).format("DD/MM/YYYY")} đến ${dayjs(request.endDate).format("DD/MM/YYYY")}`
+      });
+
+      setShowApproveModal(null);
+      await loadLeaveRequests();
+
+    } catch (error) {
+      console.error("Lỗi khi duyệt:", error);
+
+      // ✅ HIỂN THỊ THÔNG BÁO LỖI
+      setNotification({
+        type: 'error',
+        message: 'Duyệt yêu cầu thất bại',
+        details: error?.response?.data?.message || error?.message || 'Vui lòng thử lại'
+      });
+    }
+  }
+
+  // ✅ HÀM TỪ CHỐI
+  async function handleReject(request, reason) {
+    if (!reason || reason.trim().length < 10) {
+      setNotification({
+        type: 'error',
+        message: 'Lý do từ chối không hợp lệ',
+        details: 'Vui lòng nhập lý do ít nhất 10 ký tự'
+      });
+      return;
+    }
+
+    try {
+      await rejectLeaveRequest(request.id, {
+        hrEmail: user?.email,
+        rejectionReason: reason.trim()
+      });
+
+      // ✅ HIỂN THỊ THÔNG BÁO THÀNH CÔNG
+      setNotification({
+        type: 'warning',
+        message: `Đã từ chối yêu cầu nghỉ phép của ${request.internName}`,
+        details: `Lý do: ${reason.trim()}`
+      });
+
+      setShowRejectModal(null);
+      await loadLeaveRequests();
+
+    } catch (error) {
+      console.error("Lỗi khi từ chối:", error);
+
+      // ✅ HIỂN THỊ THÔNG BÁO LỖI
+      setNotification({
+        type: 'error',
+        message: 'Từ chối yêu cầu thất bại',
+        details: error?.response?.data?.message || error?.message || 'Vui lòng thử lại'
+      });
+    }
+  }
+
   if (loading) {
     return <div className="loading center">Đang tải...</div>;
   }
@@ -161,6 +244,16 @@ export default function HRLeaveApprovalPage() {
       <div className="page-header">
         <h1 className="page-title">Duyệt nghỉ phép</h1>
       </div>
+
+      {/* ✅ INLINE NOTIFICATION */}
+      {notification && (
+        <InlineNotification
+          type={notification.type}
+          message={notification.message}
+          details={notification.details}
+          onClose={() => setNotification(null)}
+        />
+      )}
 
       {/* Statistics Cards */}
       <div className="stats-row">
@@ -249,7 +342,7 @@ export default function HRLeaveApprovalPage() {
       <div className="card">
         {filteredRequests.length === 0 ? (
           <div className="empty">
-            <div className="empty-icon">📝</div>
+            <div className="empty-icon">🔭</div>
             <div className="empty-text">
               {requests.length === 0
                 ? "Chưa có yêu cầu nghỉ phép nào"
@@ -278,7 +371,14 @@ export default function HRLeaveApprovalPage() {
                       <td className="table-td center">
                         {startIndex + index + 1}
                       </td>
-                      <td className="table-td">{request.internName || "-"}</td>
+                      <td className="table-td">
+                        <strong>{request.internName || "-"}</strong>
+                        {request.internEmail && (
+                          <div style={{ fontSize: '0.85em', color: '#666', marginTop: '2px' }}>
+                            {request.internEmail}
+                          </div>
+                        )}
+                      </td>
                       <td className="table-td">
                         {dayjs(request.startDate).format("DD/MM/YYYY")} -{" "}
                         {dayjs(request.endDate).format("DD/MM/YYYY")}
@@ -367,21 +467,7 @@ export default function HRLeaveApprovalPage() {
         <ApproveModal
           request={showApproveModal}
           onClose={() => setShowApproveModal(null)}
-          onConfirm={async (note) => {
-            try {
-              // BE endpoint: /api/leave-requests/{id}/approve-by-token
-              // Body có thể để trống hoặc gửi note (nếu BE support)
-              await approveLeaveRequest(showApproveModal.id, { note });
-              toast.success("Đã duyệt yêu cầu nghỉ phép! ✅");
-              setShowApproveModal(null);
-              await loadLeaveRequests();
-            } catch (error) {
-              console.error("Error approving request:", error);
-              toast.error(
-                error?.response?.data?.message || "Duyệt yêu cầu thất bại"
-              );
-            }
-          }}
+          onConfirm={(note) => handleApprove(showApproveModal, note)}
         />
       )}
 
@@ -390,23 +476,116 @@ export default function HRLeaveApprovalPage() {
         <RejectModal
           request={showRejectModal}
           onClose={() => setShowRejectModal(null)}
-          onConfirm={async (note) => {
-            try {
-              // BE endpoint: /api/leave-requests/{id}/reject-by-token
-              // Body: { rejectionReason: "..." }
-              await rejectLeaveRequest(showRejectModal.id, { note });
-              toast.success("Đã từ chối yêu cầu nghỉ phép");
-              setShowRejectModal(null);
-              await loadLeaveRequests();
-            } catch (error) {
-              console.error("Error rejecting request:", error);
-              toast.error(
-                error?.response?.data?.message || "Từ chối yêu cầu thất bại"
-              );
-            }
-          }}
+          onConfirm={(reason) => handleReject(showRejectModal, reason)}
         />
       )}
+    </div>
+  );
+}
+
+// ✅ COMPONENT THÔNG BÁO INLINE
+function InlineNotification({ type, message, details, onClose }) {
+  const icons = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+
+  const colors = {
+    success: {
+      bg: '#d1fae5',
+      border: '#10b981',
+      text: '#065f46'
+    },
+    error: {
+      bg: '#fee2e2',
+      border: '#ef4444',
+      text: '#991b1b'
+    },
+    warning: {
+      bg: '#fef3c7',
+      border: '#f59e0b',
+      text: '#92400e'
+    },
+    info: {
+      bg: '#dbeafe',
+      border: '#3b82f6',
+      text: '#1e40af'
+    }
+  };
+
+  const style = colors[type] || colors.info;
+
+  return (
+    <div
+      style={{
+        backgroundColor: style.bg,
+        borderLeft: `4px solid ${style.border}`,
+        padding: '16px 20px',
+        borderRadius: '8px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '12px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        animation: 'slideDown 0.3s ease-out'
+      }}
+    >
+      <div style={{ fontSize: '24px', flexShrink: 0 }}>
+        {icons[type]}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{
+          fontWeight: '600',
+          color: style.text,
+          fontSize: '16px',
+          marginBottom: '4px'
+        }}>
+          {message}
+        </div>
+        {details && (
+          <div style={{
+            color: style.text,
+            fontSize: '14px',
+            opacity: 0.8
+          }}>
+            {details}
+          </div>
+        )}
+      </div>
+      <button
+        onClick={onClose}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: style.text,
+          cursor: 'pointer',
+          fontSize: '20px',
+          padding: '0',
+          lineHeight: '1',
+          opacity: 0.6,
+          transition: 'opacity 0.2s'
+        }}
+        onMouseEnter={(e) => e.target.style.opacity = '1'}
+        onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+      >
+        ×
+      </button>
+      <style>
+        {`
+          @keyframes slideDown {
+            from {
+              opacity: 0;
+              transform: translateY(-20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
@@ -431,18 +610,6 @@ function ApproveModal({ request, onClose, onConfirm }) {
           <div className="info-row">
             <span className="info-label">Thực tập sinh:</span>
             <span className="info-value">{request.internName}</span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Loại nghỉ:</span>
-            <span className="info-value">
-              {request.leaveType === "paid"
-                ? "Có phép"
-                : request.leaveType === "unpaid"
-                ? "Không phép"
-                : request.leaveType === "sick"
-                ? "Ốm đau"
-                : "Khác"}
-            </span>
           </div>
           <div className="info-row">
             <span className="info-label">Thời gian:</span>
@@ -494,13 +661,11 @@ function RejectModal({ request, onClose, onConfirm }) {
 
     if (!note.trim()) {
       setError("Vui lòng nhập lý do từ chối");
-      toast.error("Vui lòng nhập lý do từ chối");
       return;
     }
 
     if (note.trim().length < 10) {
       setError("Lý do phải có ít nhất 10 ký tự");
-      toast.error("Lý do từ chối phải có ít nhất 10 ký tự");
       return;
     }
 
@@ -519,18 +684,6 @@ function RejectModal({ request, onClose, onConfirm }) {
           <div className="info-row">
             <span className="info-label">Thực tập sinh:</span>
             <span className="info-value">{request.internName}</span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Loại nghỉ:</span>
-            <span className="info-value">
-              {request.leaveType === "paid"
-                ? "Có phép"
-                : request.leaveType === "unpaid"
-                ? "Không phép"
-                : request.leaveType === "sick"
-                ? "Ốm đau"
-                : "Khác"}
-            </span>
           </div>
           <div className="info-row">
             <span className="info-label">Thời gian:</span>

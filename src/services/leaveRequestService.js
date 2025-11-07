@@ -43,6 +43,7 @@ export async function getLeaveStats() {
   const { data } = await api.get("/leave-requests/stats");
   return data;
 }
+
 // ==================== HR APIs ====================
 
 /**
@@ -70,32 +71,71 @@ export async function getPendingLeaveRequests() {
 }
 
 /**
- * [HR] Duyệt yêu cầu nghỉ phép (dùng token)
+ * [HR] Duyệt yêu cầu nghỉ phép
  * @param {number} requestId - ID của yêu cầu nghỉ phép
- * @param {Object} data - { note } - Ghi chú khi duyệt (optional)
+ * @param {Object} data - { hrEmail } hoặc lấy từ localStorage
  */
 export async function approveLeaveRequest(requestId, data = {}) {
-  // BE sử dụng endpoint approve-by-token với Authorization header
+  // Lấy email HR từ nhiều nguồn
+  let hrEmail = data.hrEmail || localStorage.getItem('userEmail');
+
+  // Nếu không có, thử parse từ auth-storage (Zustand)
+  if (!hrEmail) {
+    const authStorageStr = localStorage.getItem('auth-storage');
+    if (authStorageStr) {
+      try {
+        const authStorage = JSON.parse(authStorageStr);
+        hrEmail = authStorage.state?.user?.email;
+      } catch (e) {
+        console.error('Parse auth-storage failed:', e);
+      }
+    }
+  }
+
+  if (!hrEmail) {
+    throw new Error('Không tìm thấy thông tin HR. Vui lòng đăng nhập lại.');
+  }
+
   const response = await api.put(
-    `/leave-requests/${requestId}/approve-by-token`,
-    data
+    `/leave-requests/${requestId}/approve`,
+    { hrEmail: hrEmail }
   );
   return response.data;
 }
 
 /**
- * [HR] Từ chối yêu cầu nghỉ phép (dùng token)
+ * [HR] Từ chối yêu cầu nghỉ phép
  * @param {number} requestId - ID của yêu cầu nghỉ phép
- * @param {Object} data - { note } - Lý do từ chối (bắt buộc ở FE nhưng BE gọi là rejectionReason)
+ * @param {Object} data - { note, hrEmail } - note là lý do từ chối (bắt buộc)
  */
 export async function rejectLeaveRequest(requestId, data) {
-  // BE expects { rejectionReason: "..." }
+  // Lấy email HR từ nhiều nguồn
+  let hrEmail = data.hrEmail || localStorage.getItem('userEmail');
+
+  // Nếu không có, thử parse từ auth-storage (Zustand)
+  if (!hrEmail) {
+    const authStorageStr = localStorage.getItem('auth-storage');
+    if (authStorageStr) {
+      try {
+        const authStorage = JSON.parse(authStorageStr);
+        hrEmail = authStorage.state?.user?.email;
+      } catch (e) {
+        console.error('Parse auth-storage failed:', e);
+      }
+    }
+  }
+
+  if (!hrEmail) {
+    throw new Error('Không tìm thấy thông tin HR. Vui lòng đăng nhập lại.');
+  }
+
   const payload = {
+    hrEmail: hrEmail,
     rejectionReason: data.note || data.rejectionReason,
   };
 
   const response = await api.put(
-    `/leave-requests/${requestId}/reject-by-token`,
+    `/leave-requests/${requestId}/reject`,
     payload
   );
   return response.data;
