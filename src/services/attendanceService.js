@@ -9,6 +9,30 @@ function getCurrentUserId() {
   return user.id;
 }
 
+// Helper function để xử lý lỗi thống nhất
+function handleError(error, defaultMessage = "Có lỗi xảy ra") {
+  console.error("❌ Service Error:", error);
+
+  // Nếu error đã được format bởi interceptor
+  if (error.status !== undefined) {
+    throw new Error(error.message || defaultMessage);
+  }
+
+  // Nếu là lỗi từ axios gốc
+  if (error.response) {
+    const message =
+      error.response.data?.message ||
+      error.response.statusText ||
+      defaultMessage;
+    throw new Error(message);
+  }
+
+  // Lỗi khác
+  throw new Error(error.message || defaultMessage);
+}
+
+// ==================== QR CODE ====================
+
 export async function generateQrCode(code) {
   try {
     const response = await api.get(`/attendance/generate`, {
@@ -17,7 +41,7 @@ export async function generateQrCode(code) {
     console.log("📸 Generated QR URL:", response.data);
     return response.data;
   } catch (error) {
-    handleError(error);
+    handleError(error, "Không thể tạo QR code");
   }
 }
 
@@ -27,12 +51,14 @@ export async function scanQrCode(code, sig) {
     const response = await api.post(`/attendance/scan`, null, {
       params: { userId, code, sig },
     });
-    console.log("🕒 Scan result:", response.data);
+    console.log("🕐 Scan result:", response.data);
     return response.data;
   } catch (error) {
-    handleError(error);
+    handleError(error, "Không thể quét QR code");
   }
 }
+
+// ==================== RECORDS ====================
 
 export async function getRecordsByDate(date) {
   try {
@@ -42,7 +68,7 @@ export async function getRecordsByDate(date) {
     console.log("📅 Attendance records by date:", response.data);
     return response.data;
   } catch (error) {
-    handleError(error);
+    handleError(error, "Không thể lấy danh sách chấm công");
   }
 }
 
@@ -52,25 +78,25 @@ export async function getMyAttendanceRecords() {
     const response = await api.get(`/attendance/records/my`, {
       params: { userId },
     });
-    console.log("🧍 My attendance records:", response.data);
+    console.log("🧑 My attendance records:", response.data);
     return response.data;
   } catch (error) {
-    handleError(error);
+    handleError(error, "Không thể lấy bản ghi của bạn");
   }
 }
 
-// ✅ 5️⃣ Lấy tất cả bản ghi chấm công (HR)
 export async function getAllAttendanceRecords() {
   try {
     const response = await api.get(`/attendance/records/all`);
     console.log("📋 All attendance records:", response.data);
     return response.data;
   } catch (error) {
-    handleError(error);
+    handleError(error, "Không thể lấy tất cả bản ghi");
   }
 }
 
-// Chấm công vào làm
+// ==================== CHECK IN/OUT ====================
+
 export async function checkIn() {
   try {
     const userId = getCurrentUserId();
@@ -78,11 +104,10 @@ export async function checkIn() {
     console.log("✅ Check-in thành công:", response.data);
     return response.data;
   } catch (error) {
-    handleError(error);
+    handleError(error, "Check-in thất bại");
   }
 }
 
-// Chấm công tan làm
 export async function checkOut() {
   try {
     const userId = getCurrentUserId();
@@ -90,11 +115,12 @@ export async function checkOut() {
     console.log("🚪 Check-out thành công:", response.data);
     return response.data;
   } catch (error) {
-    handleError(error);
+    handleError(error, "Check-out thất bại");
   }
 }
 
-// Lấy thông tin chấm công hôm nay
+// ==================== TODAY & HISTORY ====================
+
 export async function getTodayAttendance() {
   try {
     const userId = getCurrentUserId();
@@ -102,13 +128,28 @@ export async function getTodayAttendance() {
     const response = await api.get(`/attendance/today`, {
       params: { userId, date: today },
     });
+    console.log("📅 Today attendance:", response.data);
     return response.data;
   } catch (error) {
-    handleError(error);
+    handleError(error, "Không thể lấy thông tin hôm nay");
   }
 }
 
-// Lấy báo cáo chuyên cần
+export async function getAttendanceHistory({ page = 0, size = 10 }) {
+  try {
+    const userId = getCurrentUserId();
+    const response = await api.get(`/attendance/history`, {
+      params: { userId, page, size },
+    });
+    console.log("📚 Attendance history:", response.data);
+    return response.data;
+  } catch (error) {
+    handleError(error, "Không thể lấy lịch sử chấm công");
+  }
+}
+
+// ==================== REPORT ====================
+
 export async function getAttendanceReport(filters) {
   try {
     const { dateRange, group, mentor, searchText } = filters;
@@ -124,39 +165,9 @@ export async function getAttendanceReport(filters) {
     if (searchText) params.search = searchText;
 
     const response = await api.get(`/attendance/report`, { params });
+    console.log("📊 Attendance report:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Lỗi khi lấy báo cáo chuyên cần:", error);
-    throw error;
-  }
-}
-
-// Lấy lịch sử chấm công
-export async function getAttendanceHistory(startDate, endDate) {
-  try {
-    const userId = getCurrentUserId();
-    const response = await api.get(`/attendance/history`, {
-      params: {
-        userId,
-        startDate: dayjs(startDate).format("YYYY-MM-DD"),
-        endDate: dayjs(endDate).format("YYYY-MM-DD"),
-      },
-    });
-    return response.data;
-  } catch (error) {
-    handleError(error);
-  }
-}
-
-function handleError(error) {
-  if (error.response) {
-    console.error("❌ Lỗi từ server:", error.response.data);
-    throw new Error(error.response.data.message || "Lỗi từ server");
-  } else if (error.request) {
-    console.error("⚠️ Không nhận được phản hồi từ server:", error.request);
-    throw new Error("Không kết nối được tới server");
-  } else {
-    console.error("🚨 Lỗi khác:", error.message);
-    throw new Error(error.message);
+    handleError(error, "Không thể lấy báo cáo chuyên cần");
   }
 }

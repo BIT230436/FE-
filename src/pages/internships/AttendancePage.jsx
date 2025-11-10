@@ -16,6 +16,7 @@ export default function AttendancePage() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState(null);
 
   // Cập nhật đồng hồ mỗi giây
   useEffect(() => {
@@ -32,20 +33,39 @@ export default function AttendancePage() {
 
   async function loadAttendanceData() {
     setLoading(true);
+    setError(null);
+
     try {
       // Load thông tin chấm công hôm nay
       const todayResponse = await getTodayAttendance();
-      setTodayRecord(todayResponse.data || null);
+      console.log("Today response:", todayResponse);
+
+      // Xử lý response wrapper
+      if (todayResponse && todayResponse.data) {
+        setTodayRecord(todayResponse.data);
+      } else {
+        setTodayRecord(null);
+      }
 
       // Load lịch sử chấm công
       const historyResponse = await getAttendanceHistory({
         page: 0,
         size: 10,
       });
-      setHistory(historyResponse.data || []);
+      console.log("History response:", historyResponse);
+
+      // Xử lý response wrapper
+      if (historyResponse && historyResponse.data) {
+        setHistory(
+          Array.isArray(historyResponse.data) ? historyResponse.data : []
+        );
+      } else {
+        setHistory([]);
+      }
     } catch (error) {
       console.error("Error loading attendance data:", error);
-      toast.error("Không thể tải dữ liệu chấm công");
+      setError(error.message || "Không thể tải dữ liệu chấm công");
+      toast.error(error.message || "Không thể tải dữ liệu chấm công");
     } finally {
       setLoading(false);
     }
@@ -57,12 +77,20 @@ export default function AttendancePage() {
     setProcessing(true);
     try {
       const response = await checkIn();
-      setTodayRecord(response.data);
+      console.log("Check-in response:", response);
+
+      // Xử lý response wrapper
+      if (response && response.data) {
+        setTodayRecord(response.data);
+      }
+
       toast.success("Check-in thành công! ✅");
+
+      // Reload data để cập nhật
       await loadAttendanceData();
     } catch (error) {
       console.error("Error checking in:", error);
-      toast.error(error?.response?.data?.message || "Check-in thất bại");
+      toast.error(error.message || "Check-in thất bại");
     } finally {
       setProcessing(false);
     }
@@ -74,12 +102,20 @@ export default function AttendancePage() {
     setProcessing(true);
     try {
       const response = await checkOut();
-      setTodayRecord(response.data);
+      console.log("Check-out response:", response);
+
+      // Xử lý response wrapper
+      if (response && response.data) {
+        setTodayRecord(response.data);
+      }
+
       toast.success("Check-out thành công! 👋");
+
+      // Reload data để cập nhật
       await loadAttendanceData();
     } catch (error) {
       console.error("Error checking out:", error);
-      toast.error(error?.response?.data?.message || "Check-out thất bại");
+      toast.error(error.message || "Check-out thất bại");
     } finally {
       setProcessing(false);
     }
@@ -117,7 +153,26 @@ export default function AttendancePage() {
   }
 
   if (loading) {
-    return <div className="loading center">Đang tải...</div>;
+    return (
+      <div className="loading center">
+        <div className="spinner"></div>
+        <p>Đang tải...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="error-container">
+          <h2>❌ Có lỗi xảy ra</h2>
+          <p>{error}</p>
+          <button className="btn btn-primary" onClick={loadAttendanceData}>
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

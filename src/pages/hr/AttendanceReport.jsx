@@ -12,12 +12,11 @@ import {
   message,
   Spin,
 } from "antd";
-import moment from "moment";
+import dayjs from "dayjs";
 import {
   SearchOutlined,
   FileExcelOutlined,
-  FilterOutlined,
-  LoadingOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import "./AttendanceReport.css";
 import * as AttendanceService from "../../services/attendanceService";
@@ -29,17 +28,21 @@ const AttendanceReport = () => {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [filters, setFilters] = useState({
-    dateRange: [moment().startOf("month"), moment().endOf("month")],
+    dateRange: [dayjs().startOf("month"), dayjs().endOf("month")],
     group: null,
     mentor: null,
     searchText: "",
   });
 
-  const [startDateFilter, setStartDateFilter] = useState("");
-  const [endDateFilter, setEndDateFilter] = useState("");
+  const [summary, setSummary] = useState({
+    totalInterns: 0,
+    totalWorkingDays: 0,
+    totalLateDays: 0,
+    totalAbsentDays: 0,
+  });
 
-  // Dữ liệu phòng ban (lấy từ dữ liệu mẫu)
-  const [departments, setDepartments] = useState([
+  // Danh sách phòng ban (có thể lấy từ API sau)
+  const [departments] = useState([
     "Phát triển phần mềm",
     "Thiết kế",
     "Nhân sự",
@@ -48,142 +51,98 @@ const AttendanceReport = () => {
     "Marketing",
   ]);
 
-  // Dữ liệu mentor (tạo từ dữ liệu mẫu)
+  // Danh sách mentor (có thể lấy từ API sau)
   const [mentors] = useState([
-    { id: 1, name: "Nguyễn Văn A", department: "Phát triển phần mềm" },
-    { id: 2, name: "Trần Thị B", department: "Thiết kế" },
-    { id: 3, name: "Lê Văn C", department: "Phát triển phần mềm" },
-    { id: 4, name: "Phạm Thị D", department: "Nhân sự" },
-    { id: 5, name: "Hoàng Văn E", department: "Kế toán" },
+    { id: 1, name: "Nguyễn Văn A" },
+    { id: 2, name: "Trần Thị B" },
+    { id: 3, name: "Lê Văn C" },
+    { id: 4, name: "Phạm Thị D" },
   ]);
 
-  // Tạo thêm dữ liệu mẫu
-  const generateMockData = () => {
-    const names = [
-      "Nguyễn Văn An",
-      "Trần Thị Bình",
-      "Lê Văn Cường",
-      "Phạm Thị Dung",
-      "Hoàng Văn Đạt",
-      "Vũ Thị Hà",
-      "Đặng Văn Hùng",
-      "Bùi Thị Hương",
-      "Đỗ Văn Khánh",
-      "Nguyễn Thị Lan",
-      "Trần Văn Minh",
-      "Lê Thị Ngọc",
-    ];
-
-    const statuses = ["Tốt", "Khá", "Trung bình", "Yếu"];
-
-    return Array.from({ length: 20 }, (_, i) => ({
-      id: i + 1,
-      employeeId: `NV${String(i + 100).padStart(3, "0")}`,
-      fullName: names[Math.floor(Math.random() * names.length)],
-      department: departments[Math.floor(Math.random() * departments.length)],
-      workingDays: Math.floor(Math.random() * 22) + 1, // 1-22 ngày
-      leaveDays: Math.floor(Math.random() * 5), // 0-4 ngày
-      lateDays: Math.floor(Math.random() * 4), // 0-3 lần
-      absentDays: Math.floor(Math.random() * 3), // 0-2 ngày
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-    }));
-  };
-  const [summary, setSummary] = useState({
-    totalWorkingDays: 0,
-    totalLeaveDays: 0,
-    totalLateDays: 0,
-    totalAbsentDays: 0,
-  });
-
-  // Load data when component mounts or filters change
+  // Load data khi component mount hoặc filters thay đổi
   useEffect(() => {
     fetchAttendanceData();
-  }, [filters.dateRange, filters.group, filters.mentor, filters.searchText]);
+  }, []);
 
   const fetchAttendanceData = async () => {
     try {
       setLoading(true);
-      const data = await AttendanceService.getAttendanceReport(filters);
 
-      // Đảm bảo data là mảng trước khi setState
-      const attendanceData = Array.isArray(data) ? data : [];
-      setDataSource(attendanceData);
+      // Gọi API với filters
+      const response = await AttendanceService.getAttendanceReport(filters);
 
-      // Tính tổng hợp dữ liệu
-      const summaryData = attendanceData.reduce(
+      console.log("API Response:", response);
+
+      // Xử lý response data
+      let attendanceData = [];
+
+      if (response && response.data) {
+        attendanceData = Array.isArray(response.data) ? response.data : [];
+      } else if (Array.isArray(response)) {
+        attendanceData = response;
+      }
+
+      // Transform data nếu cần (tùy theo cấu trúc backend trả về)
+      const transformedData = attendanceData.map((record, index) => ({
+        key: record.id || index,
+        id: record.id,
+        employeeId: record.internId || record.employeeId || `TTS${index + 1}`,
+        fullName: record.internName || record.fullName || "N/A",
+        department: record.department || "Chưa phân công",
+        workingDays: record.totalWorkingDays || record.workingDays || 0,
+        leaveDays: record.totalLeaveDays || record.leaveDays || 0,
+        lateDays: record.totalLateDays || record.lateDays || 0,
+        absentDays: record.totalAbsentDays || record.absentDays || 0,
+      }));
+
+      setDataSource(transformedData);
+
+      // Tính toán summary
+      const summaryData = transformedData.reduce(
         (acc, curr) => ({
+          totalInterns: acc.totalInterns + 1,
           totalWorkingDays:
             acc.totalWorkingDays + (parseInt(curr.workingDays) || 0),
-          totalLeaveDays: acc.totalLeaveDays + (parseInt(curr.leaveDays) || 0),
           totalLateDays: acc.totalLateDays + (parseInt(curr.lateDays) || 0),
           totalAbsentDays:
             acc.totalAbsentDays + (parseInt(curr.absentDays) || 0),
         }),
         {
+          totalInterns: 0,
           totalWorkingDays: 0,
-          totalLeaveDays: 0,
           totalLateDays: 0,
           totalAbsentDays: 0,
         }
       );
 
       setSummary(summaryData);
+
+      if (transformedData.length === 0) {
+        message.info("Không có dữ liệu trong khoảng thời gian này");
+      }
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu chuyên cần:", error);
-      // Hiển thị dữ liệu mẫu khi có lỗi
-      const sampleData = [
-        {
-          id: 1,
-          employeeId: "NV001",
-          fullName: "Nguyễn Văn A",
-          department: "Phát triển phần mềm",
-          workingDays: 20,
-          leaveDays: 2,
-          lateDays: 1,
-          absentDays: 0,
-          status: "Tốt",
-        },
-        {
-          id: 2,
-          employeeId: "NV002",
-          fullName: "Trần Thị B",
-          department: "Thiết kế",
-          workingDays: 18,
-          leaveDays: 1,
-          lateDays: 0,
-          absentDays: 1,
-          status: "Khá",
-        },
-      ];
-      setDataSource(sampleData);
-
-      const sampleSummary = sampleData.reduce(
-        (acc, curr) => ({
-          totalWorkingDays:
-            acc.totalWorkingDays + (parseInt(curr.workingDays) || 0),
-          totalLeaveDays: acc.totalLeaveDays + (parseInt(curr.leaveDays) || 0),
-          totalLateDays: acc.totalLateDays + (parseInt(curr.lateDays) || 0),
-          totalAbsentDays:
-            acc.totalAbsentDays + (parseInt(curr.absentDays) || 0),
-        }),
-        {
-          totalWorkingDays: 0,
-          totalLeaveDays: 0,
-          totalLateDays: 0,
-          totalAbsentDays: 0,
-        }
-      );
-      setSummary(sampleSummary);
-
-      message.warning(
-        "Đang sử dụng dữ liệu mẫu. Vui lòng kiểm tra kết nối API."
-      );
+      message.error(error.message || "Không thể tải dữ liệu báo cáo");
+      setDataSource([]);
+      setSummary({
+        totalInterns: 0,
+        totalWorkingDays: 0,
+        totalLateDays: 0,
+        totalAbsentDays: 0,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const columns = [
+    {
+      title: "STT",
+      key: "index",
+      width: 60,
+      fixed: "left",
+      render: (_, __, index) => index + 1,
+    },
     {
       title: "Mã TTS",
       dataIndex: "employeeId",
@@ -196,41 +155,54 @@ const AttendanceReport = () => {
       dataIndex: "fullName",
       key: "fullName",
       fixed: "left",
-      width: 150,
+      width: 180,
       sorter: (a, b) => a.fullName.localeCompare(b.fullName),
     },
     {
       title: "Phòng ban",
       dataIndex: "department",
       key: "department",
-      filters: [
-        { text: "Phát triển phần mềm", value: "Phát triển phần mềm" },
-        { text: "Thiết kế", value: "Thiết kế" },
-      ],
-      onFilter: (value, record) => record.department.includes(value),
+      width: 150,
     },
     {
       title: "Số ngày đi làm",
       dataIndex: "workingDays",
       key: "workingDays",
+      width: 120,
       sorter: (a, b) => (a.workingDays || 0) - (b.workingDays || 0),
-      render: (days) => <span className="working-days">{days || 0} ngày</span>,
+      render: (days) => (
+        <span
+          className="working-days"
+          style={{ color: "#52c41a", fontWeight: "500" }}
+        >
+          {days || 0} ngày
+        </span>
+      ),
     },
     {
       title: "Nghỉ phép",
       dataIndex: "leaveDays",
       key: "leaveDays",
+      width: 100,
       sorter: (a, b) => (a.leaveDays || 0) - (b.leaveDays || 0),
-      render: (days) => <span className="leave-days">{days || 0} ngày</span>,
+      render: (days) => (
+        <span className="leave-days" style={{ color: "#1890ff" }}>
+          {days || 0} ngày
+        </span>
+      ),
     },
     {
       title: "Đi muộn",
       dataIndex: "lateDays",
       key: "lateDays",
+      width: 100,
       sorter: (a, b) => (a.lateDays || 0) - (b.lateDays || 0),
       render: (days) => (
-        <span className={days > 0 ? "late-days" : ""}>
-          {days > 0 ? `${days} ngày` : "Không"}
+        <span
+          className={days > 0 ? "late-days" : ""}
+          style={{ color: days > 0 ? "#faad14" : "#52c41a" }}
+        >
+          {days > 0 ? `${days} lần` : "Không"}
         </span>
       ),
     },
@@ -238,259 +210,247 @@ const AttendanceReport = () => {
       title: "Vắng mặt",
       dataIndex: "absentDays",
       key: "absentDays",
+      width: 110,
       sorter: (a, b) => (a.absentDays || 0) - (b.absentDays || 0),
       render: (days) => (
-        <span className={days > 0 ? "absent-days" : ""}>
+        <span
+          className={days > 0 ? "absent-days" : ""}
+          style={{ color: days > 0 ? "#f5222d" : "#52c41a" }}
+        >
           {days > 0 ? `${days} ngày` : "Không"}
         </span>
       ),
     },
   ];
 
+  const handleDateRangeChange = (dates) => {
+    setFilters({ ...filters, dateRange: dates });
+  };
+
   const handleSearch = (e) => {
     setFilters({ ...filters, searchText: e.target.value });
   };
 
   const handleDepartmentChange = (value) => {
-    setFilters((prev) => ({ ...prev, group: value }));
+    setFilters({ ...filters, group: value });
   };
 
   const handleMentorChange = (value) => {
-    setFilters((prev) => ({ ...prev, mentor: value }));
+    setFilters({ ...filters, mentor: value });
   };
 
   const handleResetFilters = () => {
     setFilters({
-      dateRange: [moment().startOf("month"), moment().endOf("month")],
+      dateRange: [dayjs().startOf("month"), dayjs().endOf("month")],
       group: null,
       mentor: null,
       searchText: "",
     });
+    // Reload data sau khi reset
+    setTimeout(() => fetchAttendanceData(), 100);
   };
 
   const handleSearchSubmit = () => {
     fetchAttendanceData();
   };
 
-  const handleExport = async () => {
-    try {
-      setLoading(true);
-      await AttendanceService.exportToExcel(filters);
-      message.success("Xuất file Excel thành công");
-    } catch (error) {
-      message.error("Có lỗi khi xuất file Excel");
-      console.error("Export error:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleExport = () => {
+    message.info("Tính năng xuất Excel đang được phát triển");
+    // TODO: Implement export functionality
   };
-
-  // Tạo dữ liệu mẫu khi component mount
-  useEffect(() => {
-    // Thêm dữ liệu mẫu vào localStorage nếu chưa có
-    const mockData = generateMockData();
-    if (!localStorage.getItem("mockAttendanceData")) {
-      localStorage.setItem("mockAttendanceData", JSON.stringify(mockData));
-    }
-  }, []);
-
-  const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
   return (
     <div className="attendance-report">
-      <Spin
-        spinning={loading}
-        indicator={antIcon}
-        tip="Đang tải dữ liệu..."
-        size="large"
-      >
-        <h2>Báo cáo chuyên cần thực tập sinh</h2>
+      <h2 style={{ marginBottom: "20px" }}>Báo cáo chuyên cần thực tập sinh</h2>
 
-        <Card className="filter-card">
-          {/* Main Filters Row */}
-          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-            <Col xs={24} sm={12}>
-              <div className="filter-item">
-                <label className="filter-item label">Từ ngày</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={startDateFilter}
-                  onChange={(e) => setStartDateFilter(e.target.value)}
-                />
-              </div>
-            </Col>
-            <Col xs={24} sm={12}>
-              <div className="filter-item">
-                <label className="filter-item label">Đến ngày</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={endDateFilter}
-                  onChange={(e) => setEndDateFilter(e.target.value)}
-                />
-              </div>
-            </Col>
-          </Row>
-
-          {/* Filters Row (department + mentor) */}
-          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-            <Col xs={24} md={12}>
-              <div className="filter-item">
-                <label>Phòng ban:</label>
-                <Select
-                  style={{ width: "100%", height: "40px" }}
-                  placeholder="Tất cả phòng ban"
-                  value={filters.group}
-                  onChange={handleDepartmentChange}
-                  allowClear
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                >
-                  {departments.map((dept, index) => (
-                    <Option key={index} value={dept}>
-                      {dept}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-            </Col>
-
-            <Col xs={24} md={12}>
-              <div className="filter-item">
-                <label>Mentor:</label>
-                <Select
-                  style={{ width: "100%", height: "40px" }}
-                  placeholder="Tất cả mentor"
-                  value={filters.mentor}
-                  onChange={handleMentorChange}
-                  allowClear
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                >
-                  {mentors.map((mentor) => (
-                    <Option key={mentor.id} value={mentor.id}>
-                      {mentor.name} ({mentor.department})
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-            </Col>
-          </Row>
-
-          {/* Search and Action Buttons Row */}
-          <Row className="search-row" gutter={[16, 16]} align="middle">
-            <Col xs={24} md={16}>
-              <div
-                className="filter-item"
-                style={{ display: "flex", alignItems: "center", gap: "10px" }}
-              >
-                <div style={{ minWidth: "60px" }}>Tìm kiếm:</div>
-                <Input
-                  placeholder="Tìm kiếm theo tên hoặc mã TTS"
-                  prefix={<SearchOutlined />}
-                  value={filters.searchText}
-                  onChange={handleSearch}
-                  onPressEnter={handleSearchSubmit}
-                  allowClear
-                  style={{ flex: 1 }}
-                />
-              </div>
-            </Col>
-            <Col xs={24} md={8}>
-              <div
-                className="filter-item"
+      <Card className="filter-card" style={{ marginBottom: "20px" }}>
+        {/* Date Range Picker */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col xs={24} md={12}>
+            <div className="filter-item">
+              <label
                 style={{
-                  display: "flex",
-                  gap: "10px",
-                  justifyContent: "flex-end",
-                  width: "100%",
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
                 }}
               >
-                <Button
-                  onClick={handleResetFilters}
-                  disabled={loading}
-                  type="primary"
-                  style={{
-                    backgroundColor: "#1890ff",
-                    borderColor: "#1890ff",
-                    color: "#fff",
-                    flex: 1,
-                    maxWidth: "120px",
-                  }}
-                >
-                  Đặt lại
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<FileExcelOutlined />}
-                  onClick={handleExport}
-                  loading={loading}
-                  style={{
-                    backgroundColor: "#52c41a",
-                    borderColor: "#52c41a",
-                    flex: 1,
-                    maxWidth: "150px",
-                  }}
-                >
-                  Xuất Excel
-                </Button>
-              </div>
-            </Col>
-          </Row>
-        </Card>
-
-        {/* Summary Cards */}
-        <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title="Tổng số TTS"
-                value={dataSource.length}
-                valueStyle={{ color: "#1890ff" }}
-                loading={loading}
+                Khoảng thời gian:
+              </label>
+              <RangePicker
+                style={{ width: "100%" }}
+                value={filters.dateRange}
+                onChange={handleDateRangeChange}
+                format="DD/MM/YYYY"
+                placeholder={["Từ ngày", "Đến ngày"]}
               />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title="Tổng ngày đi muộn"
-                value={summary.totalLateDays}
-                valueStyle={{ color: "#faad14" }}
-                loading={loading}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title="Tổng ngày nghỉ phép"
-                value={summary.totalLeaveDays}
-                valueStyle={{ color: "#52c41a" }}
-                loading={loading}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title="Tổng ngày vắng mặt"
-                value={summary.totalAbsentDays}
-                valueStyle={{ color: "#f5222d" }}
-                loading={loading}
-              />
-            </Card>
+            </div>
           </Col>
         </Row>
 
-        <div className="report-table">
+        {/* Department and Mentor Filters */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col xs={24} md={12}>
+            <div className="filter-item">
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                }}
+              >
+                Phòng ban:
+              </label>
+              <Select
+                style={{ width: "100%" }}
+                placeholder="Tất cả phòng ban"
+                value={filters.group}
+                onChange={handleDepartmentChange}
+                allowClear
+                showSearch
+                optionFilterProp="children"
+              >
+                {departments.map((dept, index) => (
+                  <Option key={index} value={dept}>
+                    {dept}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+          </Col>
+
+          <Col xs={24} md={12}>
+            <div className="filter-item">
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                }}
+              >
+                Mentor:
+              </label>
+              <Select
+                style={{ width: "100%" }}
+                placeholder="Tất cả mentor"
+                value={filters.mentor}
+                onChange={handleMentorChange}
+                allowClear
+                showSearch
+                optionFilterProp="children"
+              >
+                {mentors.map((mentor) => (
+                  <Option key={mentor.id} value={mentor.id}>
+                    {mentor.name}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+          </Col>
+        </Row>
+
+        {/* Search and Action Buttons */}
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} md={12}>
+            <div className="filter-item">
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                }}
+              >
+                Tìm kiếm:
+              </label>
+              <Input
+                placeholder="Tìm kiếm theo tên hoặc mã TTS"
+                prefix={<SearchOutlined />}
+                value={filters.searchText}
+                onChange={handleSearch}
+                onPressEnter={handleSearchSubmit}
+                allowClear
+              />
+            </div>
+          </Col>
+          <Col xs={24} md={12}>
+            <div style={{ display: "flex", gap: "10px", marginTop: "30px" }}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={handleResetFilters}
+                disabled={loading}
+              >
+                Đặt lại
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleSearchSubmit}
+                loading={loading}
+              >
+                Tìm kiếm
+              </Button>
+              <Button
+                type="primary"
+                icon={<FileExcelOutlined />}
+                onClick={handleExport}
+                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+              >
+                Xuất Excel
+              </Button>
+            </div>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* Summary Cards */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title="Tổng số TTS"
+              value={summary.totalInterns}
+              valueStyle={{ color: "#1890ff" }}
+              loading={loading}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title="Tổng ngày làm việc"
+              value={summary.totalWorkingDays}
+              valueStyle={{ color: "#52c41a" }}
+              loading={loading}
+              suffix="ngày"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title="Tổng lần đi muộn"
+              value={summary.totalLateDays}
+              valueStyle={{ color: "#faad14" }}
+              loading={loading}
+              suffix="lần"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title="Tổng ngày vắng mặt"
+              value={summary.totalAbsentDays}
+              valueStyle={{ color: "#f5222d" }}
+              loading={loading}
+              suffix="ngày"
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Data Table */}
+      <Card>
+        <Spin spinning={loading} tip="Đang tải dữ liệu...">
           <Table
             dataSource={dataSource}
             columns={columns}
@@ -501,35 +461,15 @@ const AttendanceReport = () => {
               showTotal: (total) => `Tổng cộng: ${total} TTS`,
               pageSizeOptions: ["10", "20", "50", "100"],
             }}
-            scroll={{ x: "max-content" }}
-            className="attendance-table"
+            scroll={{ x: 1000 }}
             bordered
             size="middle"
-            loading={loading}
-            summary={() => (
-              <Table.Summary fixed>
-                <Table.Summary.Row style={{ fontWeight: "bold" }}>
-                  <Table.Summary.Cell index={0} colSpan={3}>
-                    Tổng cộng
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={1}>
-                    {summary.totalWorkingDays} ngày
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={2}>
-                    {summary.totalLeaveDays} ngày
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={3}>
-                    {summary.totalLateDays} ngày
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={4}>
-                    {summary.totalAbsentDays} ngày
-                  </Table.Summary.Cell>
-                </Table.Summary.Row>
-              </Table.Summary>
-            )}
+            locale={{
+              emptyText: "Không có dữ liệu",
+            }}
           />
-        </div>
-      </Spin>
+        </Spin>
+      </Card>
     </div>
   );
 };
