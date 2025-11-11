@@ -7,6 +7,7 @@ import "./auth.css";
 import teamworkImage from "../../assets/Hinh-anh-ky-nang-lam-viec-nhom.jpg";
 import logoTeam from "../../assets/logoTeam.jpg";
 import { FcGoogle } from "react-icons/fc";
+import Chatbot from "../../components/chatbot/Chatbot";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -32,26 +33,26 @@ export default function Login() {
       }
       setAuth(response.user, response.token);
       // ✅ Lưu userId - QUAN TRỌNG!
-        if (response.userId || response.id || response.user_id) {
-          const userId = response.userId || response.id || response.user_id;
-          localStorage.setItem("userId", userId);
-        }
+      if (response.userId || response.id || response.user_id) {
+        const userId = response.userId || response.id || response.user_id;
+        localStorage.setItem("userId", userId);
+      }
 
-        // ✅ Lưu toàn bộ user object
-        const userObject = {
-          userId: response.userId || response.id || response.user_id,
-          email: response.email,
-          fullname: response.fullname || response.name,
-          role: response.role,
-          // ... các field khác
-        };
+      // ✅ Lưu toàn bộ user object
+      const userObject = {
+        userId: response.userId || response.id || response.user_id,
+        email: response.email,
+        fullname: response.fullname || response.name,
+        role: response.role,
+        // ... các field khác
+      };
 
-        localStorage.setItem("user", JSON.stringify(userObject));
+      localStorage.setItem("user", JSON.stringify(userObject));
 
-        console.log("Saved to localStorage:", {
-          userId: localStorage.getItem("userId"),
-          user: localStorage.getItem("user")
-        });
+      console.log("Saved to localStorage:", {
+        userId: localStorage.getItem("userId"),
+        user: localStorage.getItem("user"),
+      });
       if (response.user.role === "USER") {
         navigate("/upload-documents");
       } else {
@@ -150,6 +151,7 @@ export default function Login() {
           </span>
         </div>
       </div>
+      <Chatbot />
     </div>
   );
 }
