@@ -36,8 +36,8 @@ const Chatbot = () => {
   const userRole = user?.role;
   const userId = user?.id;
 
-  // Only show for INTERN and USER roles
-  if (!["INTERN", "USER"].includes(userRole)) {
+  // Hiển thị cho tất cả người dùng, kể cả chưa đăng nhập
+  if (userRole && !["INTERN", "USER"].includes(userRole)) {
     return null;
   }
 
