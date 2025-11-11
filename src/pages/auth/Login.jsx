@@ -7,6 +7,7 @@ import "./auth.css";
 import teamworkImage from "../../assets/Hinh-anh-ky-nang-lam-viec-nhom.jpg";
 import logoTeam from "../../assets/logoTeam.jpg";
 import { FcGoogle } from "react-icons/fc";
+import Chatbot from "../../components/chatbot/Chatbot";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -150,6 +151,7 @@ export default function Login() {
           </span>
         </div>
       </div>
+      <Chatbot />
     </div>
   );
 }
