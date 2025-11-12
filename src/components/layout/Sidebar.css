@@ -1,3 +1,6 @@
+/* ======================== */
+/* Sidebar tổng thể */
+/* ======================== */
 .sidebar {
   position: fixed;
   top: 0;
@@ -16,9 +19,14 @@
   overflow-y: auto;
   overflow-x: hidden;
 }
+
 .sidebar.collapsed {
   width: 70px;
 }
+
+/* ======================== */
+/* Nút thu gọn Sidebar */
+/* ======================== */
 .sidebar-toggle {
   position: absolute;
   top: 14px;
@@ -39,6 +47,10 @@
 .sidebar-toggle:hover {
   background-color: #1761c7;
 }
+
+/* ======================== */
+/* Header */
+/* ======================== */
 .sidebar-header {
   padding: 24px 0 20px 0;
   border-bottom: 1.5px solid #e3eaf2;
@@ -48,6 +60,10 @@
   color: #2b7cff;
   letter-spacing: 1px;
 }
+
+/* ======================== */
+/* Thông tin người dùng */
+/* ======================== */
 .sidebar-user {
   padding: 18px;
   display: flex;
@@ -82,12 +98,9 @@
   justify-content: center;
   font-weight: 700;
   font-size: 18px;
-
-  /* Thêm 2 dòng này */
-  flex-shrink: 0; /* Quan trọng: Ngăn avatar bị bóp méo */
-  transition: all 0.2s ease-in-out; /* Tạo hiệu ứng chuyển động mượt mà */
+  flex-shrink: 0;
+  transition: all 0.2s ease-in-out;
 }
-
 .sidebar-user-info {
   display: flex;
   flex-direction: column;
@@ -105,14 +118,16 @@
   background: #eaf3ff;
   border-radius: 6px;
   padding: 2px 8px;
-  margin-left: 0;
   font-weight: 500;
 }
+
+/* ======================== */
+/* Menu điều hướng */
+/* ======================== */
 .sidebar-nav {
   flex: 1;
   padding: 14px 0;
 }
-/* .sidebar-nav-item styles handled by child elements */
 .sidebar-nav-btn {
   width: 100%;
   padding: 14px 24px;
@@ -137,7 +152,6 @@
   gap: 0;
   justify-content: center;
 }
-/* .sidebar-nav-icon styles handled inline */
 .sidebar-nav-arrow {
   margin-left: auto;
 }
@@ -162,6 +176,50 @@
   background-color: #f0f6ff;
   color: #1761c7;
 }
+
+/* ======================== */
+/* 🔔 Thông báo */
+/* ======================== */
+.sidebar-notifications {
+  padding: 10px 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.sidebar-notification-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: #2b7cff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+.sidebar-notification-btn:hover {
+  background-color: #eaf3ff;
+  color: #1761c7;
+}
+.notification-badge {
+  background: #ff3b30;
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  margin-left: 6px;
+  box-shadow: 0 2px 6px rgba(255, 59, 48, 0.3);
+}
+
+/* ======================== */
+/* Nút đăng xuất */
+/* ======================== */
 .sidebar-logout {
   padding: 20px 15px;
   border-top: 1.5px solid #e3e4f2;
@@ -183,26 +241,27 @@
   background-color: #d32f2f;
 }
 
-/* --- Active Menu Item Styles --- */
+/* ======================== */
+/* Active menu item */
+/* ======================== */
 .sidebar-nav-btn.active,
 .sidebar-submenu-btn.active {
-  /* background-color: #2b7cff;  */
-  color: #ac158bd1; /* Màu chữ trắng */
-  font-weight: 600; /* Chữ đậm hơn */
-  box-shadow: 0 4px 12px rgba(43, 124, 255, 0.25); /* Thêm bóng đổ */
+  color: #ac158bd1;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(43, 124, 255, 0.25);
 }
-
 .sidebar-nav-btn.active:hover,
 .sidebar-submenu-btn.active:hover {
-  background-color: #1a6ad9; /* Màu nền đậm hơn khi hover */
-  color: #ffffff; /* Giữ màu chữ trắng */
+  background-color: #1a6ad9;
+  color: #ffffff;
 }
-
-/* Đảm bảo icon bên trong cũng đổi màu */
 .sidebar-nav-btn.active .sidebar-nav-icon {
   color: #ffffff;
 }
 
+/* ======================== */
+/* Responsive */
+/* ======================== */
 @media (max-width: 768px) {
   .sidebar {
     width: 100vw;

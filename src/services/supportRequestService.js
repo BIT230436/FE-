@@ -68,6 +68,7 @@ export const getMySupportRequests = async (filters = {}) => {
 export const createSupportRequest = async ({
   type,
   description,
+  priority = "NORMAL", // ⭐ Priority với giá trị mặc định
   attachment,
 }) => {
   try {
@@ -75,6 +76,7 @@ export const createSupportRequest = async ({
     console.log("📝 Creating request with user_id:", userId);
     console.log("Type:", type);
     console.log("Description:", description);
+    console.log("Priority:", priority); // ⭐ Log priority
     console.log("Attachment:", attachment);
 
     if (!userId) {
@@ -88,10 +90,10 @@ export const createSupportRequest = async ({
     }
 
     const formData = new FormData();
-    formData.append("userId", userId); // ⭐ Gửi userId
+    formData.append("userId", userId);
     formData.append("subject", type);
     formData.append("message", description);
-    formData.append("priority", "NORMAL");
+    formData.append("priority", priority); // ⭐ Gửi priority thay vì hard-code "NORMAL"
 
     if (attachment) {
       formData.append("file", attachment);

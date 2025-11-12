@@ -11,9 +11,16 @@ const REQUEST_TYPES = [
   { value: "OTHER", label: "Yêu cầu khác" },
 ];
 
+const PRIORITY_OPTIONS = [
+  { value: "NORMAL", label: "🟢 Bình thường", description: "Yêu cầu thông thường, sẽ được xử lý theo thứ tự" },
+  { value: "HIGH", label: "🟡 Cao", description: "Yêu cầu quan trọng, cần xử lý sớm" },
+  { value: "URGENT", label: "🔴 Khẩn cấp", description: "Yêu cầu khẩn cấp, cần xử lý ngay" },
+];
+
 export default function NewRequestModal({ onClose, onSuccess }) {
   const [type, setType] = useState(REQUEST_TYPES[0].value);
   const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("NORMAL"); // ⭐ THÊM state cho priority
   const [attachment, setAttachment] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -42,6 +49,7 @@ export default function NewRequestModal({ onClose, onSuccess }) {
       const response = await createSupportRequest({
         type,
         description,
+        priority, // ⭐ THÊM priority vào request
         attachment,
       });
       if (response.success) {
@@ -56,6 +64,12 @@ export default function NewRequestModal({ onClose, onSuccess }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ⭐ Helper để lấy mô tả của priority hiện tại
+  const getCurrentPriorityDescription = () => {
+    const selected = PRIORITY_OPTIONS.find(opt => opt.value === priority);
+    return selected ? selected.description : "";
   };
 
   return (
@@ -85,6 +99,29 @@ export default function NewRequestModal({ onClose, onSuccess }) {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* ⭐ THÊM trường chọn độ ưu tiên */}
+          <div className="form-group">
+            <label htmlFor="priority" className="form-label">
+              Độ ưu tiên *
+            </label>
+            <select
+              id="priority"
+              className="form-select"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              required
+            >
+              {PRIORITY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <small className="form-text text-muted" style={{ display: 'block', marginTop: '0.5rem' }}>
+              {getCurrentPriorityDescription()}
+            </small>
           </div>
 
           <div className="form-group">
