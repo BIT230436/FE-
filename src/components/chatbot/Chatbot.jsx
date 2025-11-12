@@ -3,6 +3,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { askGemini } from "../../services/chatbotService";
 import "./Chatbot.css";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+
 const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
@@ -69,7 +74,6 @@ const Chatbot = () => {
     } catch (err) {
       console.error("Error sending message:", err);
 
-      // err có thể là string từ service hoặc Error object
       const errorMsg =
         typeof err === "string"
           ? err
@@ -202,7 +206,33 @@ const Chatbot = () => {
               )}
             </div>
             <div className="message-content-wrapper">
-              <div className="message-content">{message.content}</div>
+              <div className="message-content markdown-body">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({ node, inline, className, children, ...props }) {
+                      const match = /language-(\w+)/.exec(className || "");
+                      return !inline && match ? (
+                        <SyntaxHighlighter
+                          style={oneDark}
+                          language={match[1]}
+                          PreTag="div"
+                          {...props}
+                        >
+                          {String(children).replace(/\n$/, "")}
+                        </SyntaxHighlighter>
+                      ) : (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              </div>
+
               <div className="message-time">
                 {formatTime(message.timestamp)}
               </div>
