@@ -22,9 +22,9 @@ function formatDate(dateString) {
 }
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
   }).format(amount);
 }
 
@@ -66,7 +66,8 @@ export default function AllowanceManagement() {
       }
     } catch (error) {
       console.error("Failed to create allowance:", error);
-      const errorMessage = error.response?.data?.message || "Thêm phụ cấp thất bại!";
+      const errorMessage =
+        error.response?.data?.message || "Thêm phụ cấp thất bại!";
       toast.error(errorMessage);
     }
   };
@@ -132,18 +133,16 @@ export default function AllowanceManagement() {
                 <tr key={item.allowanceId}>
                   <td className="table-td">{index + 1}</td>
                   <td className="table-td">{item.internName}</td>
-                  <td className="table-td">{item.allowanceType || 'N/A'}</td>
-                  <td className="table-td">
-                    {formatCurrency(item.amount)}
-                  </td>
+                  <td className="table-td">{item.allowanceType || "N/A"}</td>
+                  <td className="table-td">{formatCurrency(item.amount)}</td>
                   <td className="table-td">{formatDate(item.date)}</td>
                   <td className="table-td">
                     {item.paidAt ? (
-                      <span style={{ color: 'green', fontWeight: 'bold' }}>
+                      <span style={{ color: "green", fontWeight: "bold" }}>
                         {formatDate(item.paidAt)}
                       </span>
                     ) : (
-                      <span style={{ color: 'gray' }}>-</span>
+                      <span style={{ color: "gray" }}>-</span>
                     )}
                   </td>
                   <td className="table-td">
@@ -234,6 +233,7 @@ function CreateAllowanceModal({ onClose, onCreate }) {
                 placeholder="Chọn một thực tập sinh từ danh sách"
               />
               <button
+                style={{ padding: "6px 12px" }}
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => setShowInternModal(true)}

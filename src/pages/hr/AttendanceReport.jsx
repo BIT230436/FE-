@@ -42,22 +42,22 @@ const AttendanceReport = () => {
   });
 
   // Danh sách phòng ban (có thể lấy từ API sau)
-  const [departments] = useState([
-    "Phát triển phần mềm",
-    "Thiết kế",
-    "Nhân sự",
-    "Kế toán",
-    "Kinh doanh",
-    "Marketing",
-  ]);
+  // const [departments] = useState([
+  //   "Phát triển phần mềm",
+  //   "Thiết kế",
+  //   "Nhân sự",
+  //   "Kế toán",
+  //   "Kinh doanh",
+  //   "Marketing",
+  // ]);
 
   // Danh sách mentor (có thể lấy từ API sau)
-  const [mentors] = useState([
-    { id: 1, name: "Nguyễn Văn A" },
-    { id: 2, name: "Trần Thị B" },
-    { id: 3, name: "Lê Văn C" },
-    { id: 4, name: "Phạm Thị D" },
-  ]);
+  // const [mentors] = useState([
+  //   { id: 1, name: "Nguyễn Văn A" },
+  //   { id: 2, name: "Trần Thị B" },
+  //   { id: 3, name: "Lê Văn C" },
+  //   { id: 4, name: "Phạm Thị D" },
+  // ]);
 
   // Load data khi component mount hoặc filters thay đổi
   useEffect(() => {
@@ -158,12 +158,7 @@ const AttendanceReport = () => {
       width: 180,
       sorter: (a, b) => a.fullName.localeCompare(b.fullName),
     },
-    {
-      title: "Phòng ban",
-      dataIndex: "department",
-      key: "department",
-      width: 150,
-    },
+
     {
       title: "Số ngày đi làm",
       dataIndex: "workingDays",
@@ -223,184 +218,45 @@ const AttendanceReport = () => {
     },
   ];
 
-  const handleDateRangeChange = (dates) => {
-    setFilters({ ...filters, dateRange: dates });
-  };
+  // const handleDateRangeChange = (dates) => {
+  //   setFilters({ ...filters, dateRange: dates });
+  // };
 
-  const handleSearch = (e) => {
-    setFilters({ ...filters, searchText: e.target.value });
-  };
+  // const handleSearch = (e) => {
+  //   setFilters({ ...filters, searchText: e.target.value });
+  // };
 
-  const handleDepartmentChange = (value) => {
-    setFilters({ ...filters, group: value });
-  };
+  // const handleDepartmentChange = (value) => {
+  //   setFilters({ ...filters, group: value });
+  // };
 
-  const handleMentorChange = (value) => {
-    setFilters({ ...filters, mentor: value });
-  };
+  // const handleMentorChange = (value) => {
+  //   setFilters({ ...filters, mentor: value });
+  // };
 
-  const handleResetFilters = () => {
-    setFilters({
-      dateRange: [dayjs().startOf("month"), dayjs().endOf("month")],
-      group: null,
-      mentor: null,
-      searchText: "",
-    });
-    // Reload data sau khi reset
-    setTimeout(() => fetchAttendanceData(), 100);
-  };
+  // const handleResetFilters = () => {
+  //   setFilters({
+  //     dateRange: [dayjs().startOf("month"), dayjs().endOf("month")],
+  //     group: null,
+  //     mentor: null,
+  //     searchText: "",
+  //   });
+  //   // Reload data sau khi reset
+  //   setTimeout(() => fetchAttendanceData(), 100);
+  // };
 
-  const handleSearchSubmit = () => {
-    fetchAttendanceData();
-  };
+  // const handleSearchSubmit = () => {
+  //   fetchAttendanceData();
+  // };
 
-  const handleExport = () => {
-    message.info("Tính năng xuất Excel đang được phát triển");
-    // TODO: Implement export functionality
-  };
+  // const handleExport = () => {
+  //   message.info("Tính năng xuất Excel đang được phát triển");
+  //   // TODO: Implement export functionality
+  // };
 
   return (
     <div className="attendance-report">
       <h2 style={{ marginBottom: "20px" }}>Báo cáo chuyên cần thực tập sinh</h2>
-
-      <Card className="filter-card" style={{ marginBottom: "20px" }}>
-        {/* Date Range Picker */}
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} md={12}>
-            <div className="filter-item">
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: "500",
-                }}
-              >
-                Khoảng thời gian:
-              </label>
-              <RangePicker
-                style={{ width: "100%" }}
-                value={filters.dateRange}
-                onChange={handleDateRangeChange}
-                format="DD/MM/YYYY"
-                placeholder={["Từ ngày", "Đến ngày"]}
-              />
-            </div>
-          </Col>
-        </Row>
-
-        {/* Department and Mentor Filters */}
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} md={12}>
-            <div className="filter-item">
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: "500",
-                }}
-              >
-                Phòng ban:
-              </label>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="Tất cả phòng ban"
-                value={filters.group}
-                onChange={handleDepartmentChange}
-                allowClear
-                showSearch
-                optionFilterProp="children"
-              >
-                {departments.map((dept, index) => (
-                  <Option key={index} value={dept}>
-                    {dept}
-                  </Option>
-                ))}
-              </Select>
-            </div>
-          </Col>
-
-          <Col xs={24} md={12}>
-            <div className="filter-item">
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: "500",
-                }}
-              >
-                Mentor:
-              </label>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="Tất cả mentor"
-                value={filters.mentor}
-                onChange={handleMentorChange}
-                allowClear
-                showSearch
-                optionFilterProp="children"
-              >
-                {mentors.map((mentor) => (
-                  <Option key={mentor.id} value={mentor.id}>
-                    {mentor.name}
-                  </Option>
-                ))}
-              </Select>
-            </div>
-          </Col>
-        </Row>
-
-        {/* Search and Action Buttons */}
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} md={12}>
-            <div className="filter-item">
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: "500",
-                }}
-              >
-                Tìm kiếm:
-              </label>
-              <Input
-                placeholder="Tìm kiếm theo tên hoặc mã TTS"
-                prefix={<SearchOutlined />}
-                value={filters.searchText}
-                onChange={handleSearch}
-                onPressEnter={handleSearchSubmit}
-                allowClear
-              />
-            </div>
-          </Col>
-          <Col xs={24} md={12}>
-            <div style={{ display: "flex", gap: "10px", marginTop: "30px" }}>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={handleResetFilters}
-                disabled={loading}
-              >
-                Đặt lại
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleSearchSubmit}
-                loading={loading}
-              >
-                Tìm kiếm
-              </Button>
-              <Button
-                type="primary"
-                icon={<FileExcelOutlined />}
-                onClick={handleExport}
-                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
-              >
-                Xuất Excel
-              </Button>
-            </div>
-          </Col>
-        </Row>
-      </Card>
-
       {/* Summary Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
         <Col xs={24} sm={12} md={6}>

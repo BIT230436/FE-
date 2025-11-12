@@ -153,7 +153,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["HR"],
     },
     {
-      label: "Báo cáo của tôi",
+      label: "Đánh giá của tôi",
       path: "/report-intern",
       icon: "📝",
       requiredRoles: ["INTERN"],
@@ -176,12 +176,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "🛎️",
       requiredRoles: ["HR"],
     },
-    {
-      label: "Lịch làm việc",
-      path: "/hr/work-schedule",
-      icon: "📅",
-      requiredRoles: ["HR"],
-    },
+    // {
+    //   label: "Lịch làm việc",
+    //   path: "/hr/work-schedule",
+    //   icon: "📅",
+    //   requiredRoles: ["HR"],
+    // },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---
