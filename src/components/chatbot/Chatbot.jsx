@@ -1,363 +1,415 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useAuthStore } from "../../store/authStore";
-import {
-  TbMessage2,
-  TbSend,
-  TbX,
-  TbThumbUp,
-  TbThumbDown,
-} from "react-icons/tb";
-import {
-  processMessage,
-  chatbotAPI,
-  chatbotUtils,
-} from "../../services/chatbotAI";
+// src/components/ChatbotWidget.jsx
+import React, { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom"; // Import useLocation
+import { askGemini } from "../../services/chatbotService";
 import "./Chatbot.css";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-const Chatbot = () => {
+const ChatbotWidget = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
-      sender: "bot",
+      type: "bot",
+      content: "Xin chào! Tôi là trợ lý AI. Tôi có thể giúp gì cho bạn?",
       timestamp: new Date(),
     },
   ]);
-  const [isTyping, setIsTyping] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState(null);
-  const [useBackend, setUseBackend] = useState(false);
   const [error, setError] = useState(null);
-
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const user = useAuthStore((state) => state.user);
-  const userRole = user?.role;
-  const userId = user?.id;
 
-  // Hiển thị cho tất cả người dùng, kể cả chưa đăng nhập
-  if (userRole && !["INTERN", "USER"].includes(userRole)) {
-    return null;
-  }
+  // Hàm decode JWT token
+  const decodeToken = (token) => {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map(function (c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join("")
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  };
 
-  // Initialize conversation ID
-  useEffect(() => {
-    if (userId && !conversationId) {
+  // Kiểm tra xem có nên hiển thị chatbot không
+  const shouldShowChatbot = () => {
+    // Thử lấy user từ nhiều nguồn
+    const userStr = localStorage.getItem("user");
+    const authStorageStr = localStorage.getItem("auth-storage");
+
+    let user = null;
+    let token = null;
+
+    // Thử parse từ auth-storage (Zustand store)
+    try {
+      if (authStorageStr) {
+        const authStorage = JSON.parse(authStorageStr);
+        user = authStorage.state?.user || authStorage.user;
+        token = authStorage.state?.token || authStorage.token;
+      }
+    } catch (e) {
+      console.error("Parse auth-storage error:", e);
+    }
+
+    // Fallback: thử parse từ localStorage user
+    if (!user) {
       try {
-        setConversationId(chatbotUtils.generateConversationId(userId));
-      } catch (err) {
-        console.error("Error generating conversation ID:", err);
-        setConversationId(`conv_${userId}_${Date.now()}`);
+        if (userStr && userStr !== "{}") {
+          user = JSON.parse(userStr);
+        }
+      } catch (e) {
+        console.error("Parse user error:", e);
       }
     }
-  }, [userId, conversationId]);
 
-  // Auto-scroll to bottom
-  const scrollToBottom = useCallback(() => {
+    // Thử decode từ token nếu chưa có user
+    if (!user && token) {
+      const decoded = decodeToken(token);
+      if (decoded) {
+        user = decoded;
+      }
+    }
+
+    // Kiểm tra nếu đang ở trang login
+    const isLoginPage =
+      location.pathname === "/login" || location.pathname === "/";
+
+    // Debug
+    console.log("=== CHATBOT DEBUG ===");
+    console.log("Path:", location.pathname);
+    console.log("Auth storage:", authStorageStr);
+    console.log("Final user object:", user);
+    console.log("User role:", user?.role);
+    console.log("User roles:", user?.roles);
+
+    // Kiểm tra xem user có data thực sự không
+    const hasUserData =
+      user && Object.keys(user).length > 0 && (user.role || user.roles);
+
+    // Nếu chưa đăng nhập, chỉ hiển thị ở trang login
+    if (!hasUserData) {
+      console.log("-> Show on login page:", isLoginPage);
+      return isLoginPage;
+    }
+
+    // Kiểm tra role (có thể là role hoặc roles array)
+    const allowedRoles = ["intern", "user", "INTERN", "USER", "Intern", "User"];
+    let shouldShow = false;
+
+    if (user.role) {
+      shouldShow = allowedRoles.includes(user.role);
+    } else if (user.roles && Array.isArray(user.roles)) {
+      shouldShow = user.roles.some((r) => allowedRoles.includes(r));
+    }
+
+    console.log("-> Should show for role:", shouldShow);
+    return shouldShow;
+  };
+
+  // Đóng chatbot khi chuyển trang không được phép
+  useEffect(() => {
+    if (!shouldShowChatbot()) {
+      setIsOpen(false);
+    }
+  }, [location.pathname]);
+
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+  };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping, scrollToBottom]);
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, isOpen]);
 
-  // Focus input when chat opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
 
-  const toggleChat = useCallback(() => {
-    setIsOpen((prev) => !prev);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!inputValue.trim() || isLoading) return;
+
+    const userMessage = {
+      id: Date.now(),
+      type: "user",
+      content: inputValue.trim(),
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
+    setIsLoading(true);
     setError(null);
-  }, []);
 
-  // Generate bot response using local AI
-  const generateLocalResponse = useCallback(
-    (userMessage) => {
-      try {
-        const result = processMessage(userMessage, messages);
-        return result.text;
-      } catch (err) {
-        console.error("Error generating local response:", err);
-        return "Xin lỗi, tôi chưa hiểu rõ câu hỏi của bạn.";
-      }
-    },
-    [messages]
-  );
+    try {
+      const response = await askGemini(userMessage.content, conversationId);
 
-  const handleSendMessage = useCallback(
-    async (e) => {
-      e.preventDefault();
-
-      const trimmedMessage = message.trim();
-      if (!trimmedMessage || isTyping) return;
-
-      // Validate message
-      let isSpamMessage = false;
-      try {
-        isSpamMessage = chatbotUtils.isSpam(trimmedMessage);
-      } catch (err) {
-        console.error("Error checking spam:", err);
+      if (response.conversationId) {
+        setConversationId(response.conversationId);
       }
 
-      if (isSpamMessage) {
-        setError("Tin nhắn không hợp lệ. Vui lòng thử lại.");
-        return;
-      }
-
-      let sanitizedMessage = trimmedMessage;
-      try {
-        sanitizedMessage = chatbotUtils.sanitizeMessage(trimmedMessage);
-      } catch (err) {
-        console.error("Error sanitizing message:", err);
-      }
-
-      // Add user message
-      const userMessage = {
-        id: Date.now(),
-        text: sanitizedMessage,
-        sender: "user",
+      const botMessage = {
+        id: Date.now() + 1,
+        type: "bot",
+        content: response.answer,
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, userMessage]);
-      setMessage("");
-      setIsTyping(true);
-      setError(null);
-
-      try {
-        // Generate bot response
-        const botText = generateLocalResponse(sanitizedMessage);
-
-        // Simulate typing delay
-        const typingDelay = 500 + Math.random() * 500;
-        setTimeout(() => {
-          const botResponse = {
-            id: Date.now() + 1,
-            text: botText,
-            sender: "bot",
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, botResponse]);
-          setIsTyping(false);
-        }, typingDelay);
-      } catch (error) {
-        console.error("Error generating response:", error);
-        setIsTyping(false);
-        setError("Đã xảy ra lỗi. Vui lòng thử lại.");
-      }
-    },
-    [message, isTyping, generateLocalResponse]
-  );
-
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSendMessage(e);
-      }
-    },
-    [handleSendMessage]
-  );
-
-  // Handle feedback
-  const handleFeedback = useCallback(
-    async (messageId, rating) => {
-      try {
-        if (useBackend) {
-          await chatbotAPI.saveFeedback(messageId, rating);
-        }
-
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === messageId ? { ...msg, feedback: rating } : msg
-          )
-        );
-      } catch (error) {
-        console.error("Failed to save feedback:", error);
-      }
-    },
-    [useBackend]
-  );
-
-  // Connect to human support
-  const handleConnectSupport = useCallback(async () => {
-    try {
-      setIsTyping(true);
-
-      if (useBackend) {
-        await chatbotAPI.connectToSupport(
-          userId,
-          "User requested human support"
-        );
-      }
-
-      const supportMessage = {
-        id: Date.now(),
-        text: "Đã chuyển yêu cầu của bạn đến bộ phận hỗ trợ. Chúng tôi sẽ liên hệ lại sớm nhất có thể.",
-        sender: "bot",
-        timestamp: new Date(),
-        isSupport: true,
-      };
-
-      setMessages((prev) => [...prev, supportMessage]);
-      setIsTyping(false);
-    } catch (error) {
-      console.error("Failed to connect to support:", error);
-      setIsTyping(false);
-      setError("Không thể kết nối với bộ phận hỗ trợ. Vui lòng thử lại sau.");
-    }
-  }, [userId, useBackend]);
-
-  const formatTime = (date) => {
-    try {
-      return chatbotUtils.formatTime(date);
+      setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
-      console.error("Error formatting time:", err);
-      return new Date(date).toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      console.error("Error sending message:", err);
+
+      const errorMsg =
+        typeof err === "string"
+          ? err
+          : err.message || "Đã xảy ra lỗi khi gửi tin nhắn. Vui lòng thử lại.";
+
+      setError(errorMsg);
+
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: "error",
+        content: errorMsg,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      inputRef.current?.focus();
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const clearChat = () => {
+    setMessages([
+      {
+        id: 1,
+        type: "bot",
+        content: "Xin chào! Tôi là trợ lý AI. Tôi có thể giúp gì cho bạn?",
+        timestamp: new Date(),
+      },
+    ]);
+    setConversationId(null);
+    setError(null);
+  };
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const toggleChat = () => {
+    setIsOpen(!isOpen);
+  };
+
+  // Không render gì nếu không được phép hiển thị
+  if (!shouldShowChatbot()) {
+    return null;
+  }
+
   return (
-    <div className="chatbot-container">
-      {isOpen ? (
-        <div className="chatbot-window">
-          {/* Header */}
-          <div className="chatbot-header">
-            <div className="chatbot-header-content">
-              <div className="chatbot-avatar">
-                <TbMessage2 size={20} />
-              </div>
-              <div className="chatbot-title">
-                <h3>Hỗ trợ trực tuyến</h3>
-                <span className="chatbot-status">
-                  {useBackend ? "Kết nối server" : "Chế độ offline"}
-                </span>
-              </div>
-            </div>
-            <button
-              className="close-btn"
-              onClick={toggleChat}
-              aria-label="Đóng chat"
-            >
-              <TbX size={20} />
-            </button>
-          </div>
+    <>
+      {/* Nút mở chatbot */}
+      <button
+        className={`chatbot-toggle-btn ${isOpen ? "hidden" : ""}`}
+        onClick={toggleChat}
+        aria-label="Mở chat"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          width="28"
+          height="28"
+        >
+          <path
+            d="M20 2H4C2.9 2 2.01 2.9 2.01 4L2 22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM6 9H18V11H6V9ZM14 14H6V12H14V14ZM18 8H6V6H18V8Z"
+            fill="currentColor"
+          />
+        </svg>
+        <span className="notification-badge">1</span>
+      </button>
 
-          {/* Error notification */}
-          {error && (
-            <div className="chatbot-error">
-              <span>{error}</span>
-              <button onClick={() => setError(null)}>×</button>
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="chatbot-messages">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`message ${msg.sender}`}>
-                <div className="message-content">
-                  <p>{msg.text}</p>
-                  <span className="message-time">
-                    {formatTime(msg.timestamp)}
+      {/* Cửa sổ chat */}
+      {isOpen && (
+        <div className="chatbot-widget">
+          <div className="chatbot-container">
+            <div className="chatbot-header">
+              <div className="chatbot-header-info">
+                <div className="chatbot-avatar">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 5C13.66 5 15 6.34 15 8C15 9.66 13.66 11 12 11C10.34 11 9 9.66 9 8C9 6.34 10.34 5 12 5ZM12 19.2C9.5 19.2 7.29 17.92 6 15.98C6.03 13.99 10 12.9 12 12.9C13.99 12.9 17.97 13.99 18 15.98C16.71 17.92 14.5 19.2 12 19.2Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </div>
+                <div className="chatbot-header-text">
+                  <h3>Trợ lý AI</h3>
+                  <span className="chatbot-status">
+                    <span className="status-dot"></span> Đang hoạt động
                   </span>
-
-                  {/* Feedback buttons for bot messages */}
-                  {msg.sender === "bot" && !msg.feedback && !msg.isSupport && (
-                    <div className="message-feedback">
-                      <button
-                        className="feedback-btn"
-                        onClick={() => handleFeedback(msg.id, "positive")}
-                        title="Hữu ích"
-                      >
-                        <TbThumbUp size={14} />
-                      </button>
-                      <button
-                        className="feedback-btn"
-                        onClick={() => handleFeedback(msg.id, "negative")}
-                        title="Chưa hữu ích"
-                      >
-                        <TbThumbDown size={14} />
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
-            ))}
+              <div className="chatbot-header-actions">
+                <button
+                  className="clear-chat-btn"
+                  onClick={clearChat}
+                  title="Xóa lịch sử chat"
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  🗑️
+                </button>
+                <button
+                  className="close-chat-btn"
+                  onClick={toggleChat}
+                  title="Đóng chat"
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  <span style={{ fontSize: "20px", paddingBottom: "5px" }}>
+                    -
+                  </span>
+                </button>
+              </div>
+            </div>
 
-            {isTyping && (
-              <div className="message bot">
-                <div className="message-content typing">
-                  <div className="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+            <div className="chatbot-messages">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`message message-${message.type}`}
+                >
+                  <div className="message-avatar">
+                    {message.type === "bot" ? (
+                      <span style={{ fontSize: "18px" }}>🤖</span>
+                    ) : message.type === "error" ? (
+                      <span style={{ fontSize: "18px" }}>⚠️</span>
+                    ) : (
+                      <span style={{ fontSize: "18px" }}>👤</span>
+                    )}
+                  </div>
+                  <div className="message-content-wrapper">
+                    <div className="message-content markdown-body">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({
+                            node,
+                            inline,
+                            className,
+                            children,
+                            ...props
+                          }) {
+                            const match = /language-(\w+)/.exec(
+                              className || ""
+                            );
+                            return !inline && match ? (
+                              <SyntaxHighlighter
+                                style={oneDark}
+                                language={match[1]}
+                                PreTag="div"
+                                {...props}
+                              >
+                                {String(children).replace(/\n$/, "")}
+                              </SyntaxHighlighter>
+                            ) : (
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
+                    <div className="message-time">
+                      {formatTime(message.timestamp)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              ))}
 
-            <div ref={messagesEndRef} />
-          </div>
+              {isLoading && (
+                <div className="message message-bot">
+                  <div className="message-avatar">
+                    <span style={{ fontSize: "18px" }}>🤖</span>
+                  </div>
+                  <div className="message-content-wrapper">
+                    <div className="message-content typing-indicator">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-          {/* Quick actions */}
-          <div className="chatbot-quick-actions">
-            <button
-              className="quick-action-btn"
-              onClick={handleConnectSupport}
-              disabled={isTyping}
-            >
-              Kết nối hỗ trợ viên
-            </button>
-          </div>
-
-          {/* Input */}
-          <div className="chatbot-input-container">
-            <div className="chatbot-input">
-              <input
-                ref={inputRef}
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Nhập tin nhắn..."
-                className="chatbot-message-input"
-                maxLength={500}
-                disabled={isTyping}
-              />
-              <button
-                type="button"
-                onClick={handleSendMessage}
-                className="chatbot-send-button"
-                disabled={!message.trim() || isTyping}
-                aria-label="Gửi tin nhắn"
-              >
-                <TbSend size={20} />
-              </button>
+              <div ref={messagesEndRef} />
             </div>
-            {message.length > 400 && (
-              <div className="character-count">{message.length}/500</div>
-            )}
+
+            <form className="chatbot-input-form" onSubmit={handleSubmit}>
+              <div className="input-wrapper">
+                <textarea
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Nhập tin nhắn của bạn..."
+                  rows="1"
+                  disabled={isLoading}
+                  className="chatbot-input"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim() || isLoading}
+                  className="send-button"
+                >
+                  <span style={{ fontSize: "20px" }}>➤</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      ) : (
-        <button
-          className="chatbot-button"
-          onClick={toggleChat}
-          aria-label="Mở chat"
-        >
-          <TbMessage2 size={24} />
-          <span className="notification-dot"></span>
-        </button>
       )}
-    </div>
+    </>
   );
 };
 
-export default Chatbot;
+export default ChatbotWidget;

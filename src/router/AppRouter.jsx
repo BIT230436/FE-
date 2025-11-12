@@ -25,6 +25,7 @@ import ReviewSupportRequests from "../pages/hr/ReviewSupportRequests";
 import AttendancePage from "../pages/internships/AttendancePage";
 import LeaveRequestPage from "../pages/internships/LeaveRequestPage";
 import LeaveApprovalPage from "../pages/hr/LeaveApprovalPage";
+import Gps from "../pages/admin/Gps";
 import WorkSchedule from "../pages/hr/WorkSchedule";
 
 // ✅ Thêm mới
@@ -313,6 +314,15 @@ export default function AppRouter() {
               }
             />
             <Route
+              path="/admin/gps"
+              element={
+                <AccessGuard requiredRoles={["ADMIN"]}>
+                  <Gps />
+                </AccessGuard>
+              }
+            />
+            </Route>
+            <Route
               path="/hr/work-schedule"
               element={
                 <AccessGuard requiredRoles={["HR"]}>
@@ -321,8 +331,6 @@ export default function AppRouter() {
               }
             />
           </Route>
-        </Route>
-
         {/* 🚫 Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

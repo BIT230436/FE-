@@ -9,8 +9,8 @@ export default function QrGenerator() {
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      const data = await generateQrCode("MY_CODE_123"); // hoặc code động từ context
-      setQrData(data); // dữ liệu trả về từ API
+      const data = await generateQrCode("MY_CODE_123");
+      setQrData(data);
     } catch (error) {
       console.error(error.message);
     } finally {

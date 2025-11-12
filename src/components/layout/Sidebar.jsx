@@ -124,7 +124,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     {
       label: "Báo cáo chuyên cần",
       path: "/hr/attendance-report",
-      icon: "📊",
+      icon: "📅",
       requiredRoles: ["HR"],
     },
     {
@@ -176,11 +176,17 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["HR"],
     },
     {
-      label: "Lịch làm việc",
-      path: "/hr/work-schedule",
-      icon: "📅",
-      requiredRoles: ["HR"],
+      label: "Quản lý GPS",
+      path: "/admin/gps",
+      icon: "🗺️",
+      requiredRoles: ["ADMIN"],
     },
+    // {
+    //   label: "Lịch làm việc",
+    //   path: "/hr/work-schedule",
+    //   icon: "📅",
+    //   requiredRoles: ["HR"],
+    // },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---
