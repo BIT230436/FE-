@@ -286,36 +286,25 @@ const ChatbotWidget = () => {
                   className="clear-chat-btn"
                   onClick={clearChat}
                   title="Xóa lịch sử chat"
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "bold",
+                  }}
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  🗑️
                 </button>
                 <button
                   className="close-chat-btn"
                   onClick={toggleChat}
                   title="Đóng chat"
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "bold",
+                  }}
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
-                      fill="currentColor"
-                    />
-                  </svg>
+                  <span style={{ fontSize: "20px", paddingBottom: "5px" }}>
+                    -
+                  </span>
                 </button>
               </div>
             </div>
@@ -328,38 +317,11 @@ const ChatbotWidget = () => {
                 >
                   <div className="message-avatar">
                     {message.type === "bot" ? (
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
-                          fill="currentColor"
-                        />
-                      </svg>
+                      <span style={{ fontSize: "18px" }}>🤖</span>
                     ) : message.type === "error" ? (
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
-                          fill="currentColor"
-                        />
-                      </svg>
+                      <span style={{ fontSize: "18px" }}>⚠️</span>
                     ) : (
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"
-                          fill="currentColor"
-                        />
-                      </svg>
+                      <span style={{ fontSize: "18px" }}>👤</span>
                     )}
                   </div>
                   <div className="message-content-wrapper">
@@ -407,16 +369,7 @@ const ChatbotWidget = () => {
               {isLoading && (
                 <div className="message message-bot">
                   <div className="message-avatar">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
-                        fill="currentColor"
-                      />
-                    </svg>
+                    <span style={{ fontSize: "18px" }}>🤖</span>
                   </div>
                   <div className="message-content-wrapper">
                     <div className="message-content typing-indicator">
@@ -448,16 +401,7 @@ const ChatbotWidget = () => {
                   disabled={!inputValue.trim() || isLoading}
                   className="send-button"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"
-                      fill="currentColor"
-                    />
-                  </svg>
+                  <span style={{ fontSize: "20px" }}>➤</span>
                 </button>
               </div>
             </form>
