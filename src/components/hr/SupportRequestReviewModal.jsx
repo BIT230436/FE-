@@ -1,10 +1,9 @@
-// src/components/hr/SupportRequestReviewModal.jsx
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
 import { reviewSupportRequest } from "../../services/supportRequestService";
 
-// Helper để lấy text từ type value (Tái sử dụng)
+// Helper để lấy text từ type value
 const getRequestTypeLabel = (typeValue) => {
   const typeMap = {
     CERTIFICATE: "Giấy chứng nhận",
@@ -15,23 +14,41 @@ const getRequestTypeLabel = (typeValue) => {
   return typeMap[typeValue] || typeValue;
 };
 
+// ⭐ Helper để lấy label cho priority
+const getPriorityLabel = (priority) => {
+  const priorityMap = {
+    NORMAL: "Bình thường",
+    HIGH: "Cao",
+    URGENT: "Khẩn cấp",
+  };
+  return priorityMap[priority] || priority;
+};
+
+// ⭐ Helper để lấy icon và style cho priority
+const getPriorityBadge = (priority) => {
+  const badges = {
+    NORMAL: { icon: "🟢", color: "#28a745", bgColor: "#d4edda" },
+    HIGH: { icon: "🟡", color: "#ffc107", bgColor: "#fff3cd" },
+    URGENT: { icon: "🔴", color: "#dc3545", bgColor: "#f8d7da" },
+  };
+  return badges[priority] || badges.NORMAL;
+};
+
 export default function SupportRequestReviewModal({
   request,
   onClose,
   onSuccess,
 }) {
-  const [response, setResponse] = useState(request.response || ""); // Lấy phản hồi cũ nếu có
-  const [status, setStatus] = useState(request.status); // Trạng thái hiện tại
+  const [response, setResponse] = useState(request.hrResponse || request.response || "");
+  const [status, setStatus] = useState(request.status);
   const [loading, setLoading] = useState(false);
 
-  // Chỉ cho phép duyệt/từ chối nếu đang PENDING hoặc PROCESSING
   const canReview =
     request.status === "PENDING" || request.status === "PROCESSING";
 
   const handleReview = async (newStatus) => {
-    if (!canReview) return; // Không cho phép nếu đã hoàn thành/từ chối
+    if (!canReview) return;
 
-    // Nếu từ chối, yêu cầu phải có phản hồi (lý do)
     if (newStatus === "REJECTED" && !response.trim()) {
       toast.error("Vui lòng nhập lý do từ chối vào ô phản hồi.");
       return;
@@ -41,7 +58,7 @@ export default function SupportRequestReviewModal({
     try {
       const apiResponse = await reviewSupportRequest(request.id, {
         status: newStatus,
-        response: response.trim() || null, // Gửi null nếu trống
+        response: response.trim() || null,
       });
 
       if (apiResponse.success) {
@@ -51,8 +68,8 @@ export default function SupportRequestReviewModal({
               newStatus === "COMPLETED" ? "duyệt" : "từ chối"
             } yêu cầu thành công!`
         );
-        onSuccess(); // Load lại danh sách
-        onClose(); // Đóng modal
+        onSuccess();
+        onClose();
       } else {
         toast.error(apiResponse.message || "Cập nhật thất bại.");
       }
@@ -62,6 +79,9 @@ export default function SupportRequestReviewModal({
       setLoading(false);
     }
   };
+
+  // ⭐ Lấy badge info cho priority
+  const priorityBadge = getPriorityBadge(request.priority);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -80,11 +100,37 @@ export default function SupportRequestReviewModal({
           <dl>
             <dt>Thực tập sinh:</dt>
             <dd>
-              {request.internName || "N/A"} ({request.internEmail || "N/A"})
+              <strong>{request.internName || "N/A"}</strong>
+              {request.internEmail && (
+                <div style={{ fontSize: '0.9em', color: '#666' }}>
+                  {request.internEmail}
+                </div>
+              )}
             </dd>
 
             <dt>Loại yêu cầu:</dt>
-            <dd>{getRequestTypeLabel(request.type)}</dd>
+            <dd>{getRequestTypeLabel(request.subject || request.type)}</dd>
+
+            {/* ⭐ THÊM hiển thị độ ưu tiên */}
+            <dt>Độ ưu tiên:</dt>
+            <dd>
+              <span 
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '12px',
+                  backgroundColor: priorityBadge.bgColor,
+                  color: priorityBadge.color,
+                  fontWeight: '500',
+                  fontSize: '0.9rem'
+                }}
+              >
+                <span>{priorityBadge.icon}</span>
+                <span>{getPriorityLabel(request.priority)}</span>
+              </span>
+            </dd>
 
             <dt>Ngày gửi:</dt>
             <dd>
@@ -94,18 +140,18 @@ export default function SupportRequestReviewModal({
             </dd>
 
             <dt>Mô tả:</dt>
-            <dd className="review-description">{request.description}</dd>
+            <dd className="review-description">{request.message || request.description}</dd>
 
             <dt>File đính kèm:</dt>
             <dd>
-              {request.attachmentUrl ? (
+              {request.attachmentFileId || request.attachmentUrl ? (
                 <a
-                  href={request.attachmentUrl}
+                  href={request.attachmentFileId || request.attachmentUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="attachment-link"
                 >
-                  Xem file đính kèm
+                  📎 Xem file đính kèm
                 </a>
               ) : (
                 "Không có"
@@ -113,7 +159,14 @@ export default function SupportRequestReviewModal({
             </dd>
 
             <dt>Trạng thái hiện tại:</dt>
-            <dd>{request.status}</dd>
+            <dd>
+              <span className={`status-badge status-${request.status?.toLowerCase()}`}>
+                {request.status === "PENDING" && "Chờ xử lý"}
+                {request.status === "COMPLETED" && "Đã xác nhận"}
+                {request.status === "REJECTED" && "Bị từ chối"}
+                {request.status === "PROCESSING" && "Đang xử lý"}
+              </span>
+            </dd>
           </dl>
         </div>
 
@@ -130,7 +183,7 @@ export default function SupportRequestReviewModal({
             value={response}
             onChange={(e) => setResponse(e.target.value)}
             placeholder={canReview ? "Nhập phản hồi cho thực tập sinh..." : ""}
-            disabled={!canReview || loading} // Disable nếu không thể review hoặc đang loading
+            disabled={!canReview || loading}
           ></textarea>
           {request.hrName && (
             <p className="reviewer-info">Người xử lý: {request.hrName}</p>
@@ -146,33 +199,33 @@ export default function SupportRequestReviewModal({
           >
             Đóng
           </button>
-          {canReview && ( // Chỉ hiển thị nút duyệt/từ chối nếu có thể review
+          {canReview && (
             <>
               <button
                 type="button"
-                className="btn btn-danger" // Nút Từ chối
+                className="btn btn-danger"
                 onClick={() => handleReview("REJECTED")}
                 disabled={loading}
-                style={{ backgroundColor: "#dc3545", borderColor: "#dc3545" }} // Màu đỏ
+                style={{ backgroundColor: "#dc3545", borderColor: "#dc3545" }}
                 onMouseOver={(e) =>
                   (e.target.style.backgroundColor = "#c82333")
                 }
                 onMouseOut={(e) => (e.target.style.backgroundColor = "#dc3545")}
               >
-                {loading ? "Đang xử lý..." : " Từ chối"}
+                {loading ? "Đang xử lý..." : "❌ Từ chối"}
               </button>
               <button
                 type="button"
-                className="btn btn-success" // Nút Duyệt
+                className="btn btn-success"
                 onClick={() => handleReview("COMPLETED")}
                 disabled={loading}
-                style={{ backgroundColor: "#28a745", borderColor: "#28a745" }} // Màu xanh lá
+                style={{ backgroundColor: "#28a745", borderColor: "#28a745" }}
                 onMouseOver={(e) =>
                   (e.target.style.backgroundColor = "#218838")
                 }
                 onMouseOut={(e) => (e.target.style.backgroundColor = "#28a745")}
               >
-                {loading ? "Đang xử lý..." : " Xác Nhận"}
+                {loading ? "Đang xử lý..." : "✅ Xác Nhận"}
               </button>
             </>
           )}
