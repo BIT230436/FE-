@@ -15,9 +15,9 @@ import TaskManagement from "../pages/mentor/TaskManagement";
 import OAuthCallback from "../pages/auth/OAuthCallback";
 import MyContract from "../pages/students/MyContract";
 import AllowanceHistory from "../pages/internships/AllowanceHistory";
-import InternSchedule from "../pages/internships/InternshipSchedule"; // ✅ Lịch thực tập
-import MyTasks from "../pages/internships/MyTasks"; // ✅ Công việc của tôi
-import EvaluationForm from "../pages/mentor/EvaluationForm"; // ✅ Đánh giá thực tập sinh
+import InternSchedule from "../pages/internships/InternshipSchedule";
+import MyTasks from "../pages/internships/MyTasks";
+import EvaluationForm from "../pages/mentor/EvaluationForm";
 import SupportRequests from "../pages/internships/SupportRequests";
 import Reports from "../pages/hr/ReportManagement";
 import ReportIntern from "../pages/internships/ReportIntern";
@@ -27,6 +27,9 @@ import LeaveRequestPage from "../pages/internships/LeaveRequestPage";
 import LeaveApprovalPage from "../pages/hr/LeaveApprovalPage";
 import Gps from "../pages/admin/Gps";
 import WorkSchedule from "../pages/hr/WorkSchedule";
+
+// ✅ Thêm mới
+import NotificationsPage from "../pages/NotificationsPage";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
@@ -71,6 +74,16 @@ export default function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+
+            {/* ✅ Trang thông báo mới */}
+            <Route
+              path="/notifications"
+              element={
+                <AccessGuard requiredRoles={["ADMIN", "HR", "MENTOR", "INTERN"]}>
+                  <NotificationsPage />
+                </AccessGuard>
+              }
+            />
 
             {/* ✅ Thực tập */}
             <Route
@@ -219,7 +232,7 @@ export default function AppRouter() {
               }
             />
 
-            {/* 🧑‍🎓 INTERN (Thực tập sinh) */}
+            {/* 🧑‍🎓 INTERN */}
             <Route
               path="/my-contract"
               element={
@@ -260,7 +273,6 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
-
             <Route
               path="/report-intern"
               element={
@@ -269,7 +281,6 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
-
             <Route
               path="/hr/support-requests"
               element={

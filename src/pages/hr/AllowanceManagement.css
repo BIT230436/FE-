@@ -112,6 +112,7 @@
   display: flex;
   gap: 10px;
   margin-top: 8px;
+  align-items: flex-end;
 }
 
 .form-input {

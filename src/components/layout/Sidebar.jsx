@@ -111,7 +111,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     },
     {
       label: "Quản lý dự án",
-
       path: "/admin/mentors",
       icon: "👨‍🏫",
       requiredRoles: ["HR"],
@@ -125,7 +124,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     {
       label: "Báo cáo chuyên cần",
       path: "/hr/attendance-report",
-      icon: "📊",
+      icon: "📅",
       requiredRoles: ["HR"],
     },
     {
@@ -153,7 +152,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["HR"],
     },
     {
-      label: "Báo cáo của tôi",
+      label: "Đánh giá của tôi",
       path: "/report-intern",
       icon: "📝",
       requiredRoles: ["INTERN"],
@@ -175,12 +174,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       path: "/hr/leave-approvals",
       icon: "🛎️",
       requiredRoles: ["HR"],
-    },
-    {
-      label: "Quản lý GPS",
-      path: "/admin/gps",
-      icon: "🗺️",
-      requiredRoles: ["ADMIN"],
     },
     // {
     //   label: "Lịch làm việc",
@@ -315,6 +308,20 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           </div>
         ))}
       </nav>
+
+      {/* --- Thông báo (ẩn với ADMIN) --- */}
+      {userRole !== "ADMIN" && (
+        <div className="sidebar-notifications">
+          <button
+            className="sidebar-notification-btn"
+            onClick={() => handleNavigate("/notifications")}
+            title="Thông báo"
+          >
+            🔔
+            {!collapsed && <span>Thông báo</span>}
+          </button>
+        </div>
+      )}
 
       {/* Logout */}
       <div className="sidebar-logout">

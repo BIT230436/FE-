@@ -202,7 +202,7 @@ export default function InternViewReports() {
               <div className="section-header">
                 <h2 className="section-title">
                   <FileText />
-                  Báo Cáo Cuối Kỳ Từ HR
+                  Báo Cáo Đánh Giá Cuối Kỳ Từ HR
                   <span className="count-badge">{reports.length}</span>
                 </h2>
               </div>
