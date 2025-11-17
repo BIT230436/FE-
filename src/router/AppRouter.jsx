@@ -27,6 +27,7 @@ import LeaveRequestPage from "../pages/internships/LeaveRequestPage";
 import LeaveApprovalPage from "../pages/hr/LeaveApprovalPage";
 import Gps from "../pages/admin/Gps";
 import WorkSchedule from "../pages/hr/WorkSchedule";
+import Statistics from "../pages/statistics/Statistics";
 
 // ✅ Thêm mới
 import NotificationsPage from "../pages/NotificationsPage";
@@ -79,7 +80,9 @@ export default function AppRouter() {
             <Route
               path="/notifications"
               element={
-                <AccessGuard requiredRoles={["ADMIN", "HR", "MENTOR", "INTERN"]}>
+                <AccessGuard
+                  requiredRoles={["ADMIN", "HR", "MENTOR", "INTERN"]}
+                >
                   <NotificationsPage />
                 </AccessGuard>
               }
@@ -321,16 +324,24 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
-            </Route>
-            <Route
-              path="/hr/work-schedule"
-              element={
-                <AccessGuard requiredRoles={["HR"]}>
-                  <WorkSchedule />
-                </AccessGuard>
-              }
-            />
           </Route>
+          <Route
+            path="/hr/work-schedule"
+            element={
+              <AccessGuard requiredRoles={["HR"]}>
+                <WorkSchedule />
+              </AccessGuard>
+            }
+          />
+          <Route
+            path="/statistics"
+            element={
+              <AccessGuard requiredRoles={["HR", "ADMIN"]}>
+                <Statistics />
+              </AccessGuard>
+            }
+          />
+        </Route>
         {/* 🚫 Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
