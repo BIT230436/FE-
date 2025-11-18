@@ -10,7 +10,6 @@ import { getInternStatusStats } from "../../services/internshipService";
 
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -20,8 +19,6 @@ export default function Dashboard() {
   const [contractCount, setContractCount] = useState(null);
   const [roleStats, setRoleStats] = useState([]);
   const [internStats, setInternStats] = useState([]);
-
-
 
   useEffect(() => {
     console.log("Dashboard - Current user:", user);
@@ -40,8 +37,6 @@ export default function Dashboard() {
         const data = await getUsers({ q: "", role: "", status: "" });
         // Cố gắng lấy totalUsers trước, nếu không có thì lấy total hoặc 0
         if (mounted) setUserCount(data.totalUsers ?? data.total ?? 0);
-
-        
       } catch (err) {
         console.error("Failed to load user count", err);
         if (mounted) setUserCount(0);
@@ -52,7 +47,7 @@ export default function Dashboard() {
       mounted = false;
     };
   }, []);
-// Tổng số hồ sơ thực tập sinh
+  // Tổng số hồ sơ thực tập sinh
   useEffect(() => {
     let mounted = true;
 
@@ -110,7 +105,7 @@ export default function Dashboard() {
       mounted = false;
     };
   }, []);
-  
+
   useEffect(() => {
     let mounted = true;
 
@@ -129,7 +124,6 @@ export default function Dashboard() {
     };
   }, []);
 
-
   // Chỉ USER mới không được xem Dashboard
   if (user?.role === "USER") {
     return (
@@ -141,7 +135,6 @@ export default function Dashboard() {
 
   // số liệu, dùng ký tự unicode
   const stats = [
-    
     {
       label: "Hợp đồng",
       value: contractCount ?? "loading...",
@@ -316,6 +309,32 @@ export default function Dashboard() {
           <p>
             Bạn có thể quản lý thực tập sinh, duyệt hồ sơ và theo dõi tiến độ.
           </p>
+          <button
+            onClick={() => navigate("/statistics")}
+            style={{
+              marginTop: "15px",
+              padding: "12px 24px",
+              backgroundColor: "#2b7cff",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "15px",
+              fontWeight: "600",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = "#1a5fd1";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = "#2b7cff";
+            }}
+          >
+            <span>📊</span>
+            <span>Xem thống kê chi tiết</span>
+          </button>
         </div>
       )}
       {user?.role === "INTERN" && (
