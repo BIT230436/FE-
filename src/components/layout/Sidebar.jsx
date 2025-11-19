@@ -29,6 +29,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const menuItems = [
     { label: "Dashboard", path: "/", icon: "📊" },
     {
+      label: "Thống kê",
+      path: "/statistics",
+      icon: "📈",
+      requiredRoles: ["HR", "ADMIN"],
+    },
+    {
       label: "Thực tập",
       path: "/internships",
       icon: "💼",

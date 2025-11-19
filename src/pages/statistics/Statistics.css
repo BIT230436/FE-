@@ -33,6 +33,35 @@
   background-color: #5a6268;
 }
 
+/* Tabs */
+.tabs-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover {
+  color: #2b7cff;
+}
+
+.tab-btn.active {
+  color: #2b7cff;
+  border-bottom-color: #2b7cff;
+}
+
 /* Filters Section */
 .filters-section {
   background: white;
@@ -67,7 +96,8 @@
   color: #333;
 }
 
-.filter-item select {
+.filter-item select,
+.filter-item input[type="date"] {
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -77,11 +107,13 @@
   transition: border-color 0.3s;
 }
 
-.filter-item select:hover {
+.filter-item select:hover,
+.filter-item input[type="date"]:hover {
   border-color: #2b7cff;
 }
 
-.filter-item select:focus {
+.filter-item select:focus,
+.filter-item input[type="date"]:focus {
   outline: none;
   border-color: #2b7cff;
   box-shadow: 0 0 0 3px rgba(43, 124, 255, 0.1);
