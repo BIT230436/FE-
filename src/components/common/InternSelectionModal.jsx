@@ -7,6 +7,7 @@ export default function InternSelectionModal({ onClose, onSelect }) {
   const [interns, setInterns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchInterns = async () => {
@@ -14,12 +15,29 @@ export default function InternSelectionModal({ onClose, onSelect }) {
       if (interns.length === 0) {
         setLoading(true);
       }
+      setError("");
+
       try {
-        const response = await getInternships({ q: searchQuery, size: 50 });
-        setInterns(response.data || response || []);
+        const response = await getInternships({
+          q: searchQuery,
+          size: 100,
+          status: 'active' // ✅ Chỉ lấy intern đang active
+        });
+
+        // ✅ Handle response format mới từ backend
+        const internData = response.data || response || [];
+        setInterns(internData);
+
+        // ✅ Hiển thị thông báo nếu không có intern
+        if (internData.length === 0 && !searchQuery) {
+          setError("Bạn chưa quản lý program nào hoặc chưa có thực tập sinh trong các program của bạn");
+        }
+
       } catch (error) {
         console.error("Failed to fetch interns:", error);
-        toast.error("Không thể tải danh sách thực tập sinh.");
+        const errorMsg = error.response?.data?.message || "Không thể tải danh sách thực tập sinh.";
+        setError(errorMsg);
+        toast.error(errorMsg);
         setInterns([]);
       } finally {
         // Luôn tắt loading sau khi hoàn tất
@@ -56,10 +74,37 @@ export default function InternSelectionModal({ onClose, onSelect }) {
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ marginBottom: "1rem" }}
           />
+
+          {/* ✅ Hiển thị số lượng intern */}
+          {!loading && interns.length > 0 && (
+            <div style={{
+              marginBottom: "1rem",
+              padding: "0.5rem",
+              background: "#f0f9ff",
+              borderRadius: "4px",
+              fontSize: "14px",
+              color: "#0369a1"
+            }}>
+              📋 Có <strong>{interns.length}</strong> thực tập sinh trong các program bạn quản lý
+            </div>
+          )}
+
           {loading ? (
             <div className="loading center">Đang tải...</div>
+          ) : error ? (
+            <div className="center" style={{
+              padding: "2rem",
+              color: "#dc2626",
+              textAlign: "center"
+            }}>
+              ⚠️ {error}
+            </div>
           ) : interns.length === 0 ? (
-            <div className="center">Không tìm thấy thực tập sinh.</div>
+            <div className="center" style={{ padding: "2rem", textAlign: "center" }}>
+              {searchQuery
+                ? `Không tìm thấy thực tập sinh phù hợp với "${searchQuery}"`
+                : "Không tìm thấy thực tập sinh."}
+            </div>
           ) : (
             <table className="table table-hover">
               <thead>
@@ -67,8 +112,11 @@ export default function InternSelectionModal({ onClose, onSelect }) {
                   <th className="table-th" style={{ width: "35%" }}>
                     Tên thực tập sinh
                   </th>
-                  <th className="table-th" style={{ width: "65%" }}>
+                  <th className="table-th" style={{ width: "40%" }}>
                     Email
+                  </th>
+                  <th className="table-th" style={{ width: "25%" }}>
+                    Program
                   </th>
                 </tr>
               </thead>
@@ -82,8 +130,15 @@ export default function InternSelectionModal({ onClose, onSelect }) {
                     tabIndex={0}
                     style={{ cursor: "pointer" }}
                   >
-                    <td className="table-td">{intern.student}</td>
-                    <td className="table-td">{intern.studentEmail}</td>
+                    <td className="table-td">
+                      {intern.student || intern.fullname}
+                    </td>
+                    <td className="table-td">
+                      {intern.studentEmail || intern.email}
+                    </td>
+                    <td className="table-td" style={{ fontSize: "13px", color: "#6b7280" }}>
+                      {intern.programId || "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
