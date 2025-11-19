@@ -57,7 +57,13 @@ export default function InternSelectionModal({ onClose, onSelect }) {
       <div
         className="modal-box large"
         onClick={(e) => e.stopPropagation()}
-        style={{ display: "flex", flexDirection: "column", maxHeight: "80vh" }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "90vh",
+          width: "90%",
+          maxWidth: "1000px"
+        }}
       >
         <div className="modal-header">
           <h2 className="modal-title">Chọn Thực Tập Sinh</h2>
@@ -65,7 +71,14 @@ export default function InternSelectionModal({ onClose, onSelect }) {
             ✕
           </button>
         </div>
-        <div className="modal-body" style={{ overflowY: "auto" }}>
+        <div className="modal-body" style={{
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "200px",
+          maxHeight: "calc(90vh - 150px)",
+          padding: "0"
+        }}>
           <input
             type="text"
             placeholder="Tìm kiếm theo tên hoặc email..."
@@ -106,17 +119,52 @@ export default function InternSelectionModal({ onClose, onSelect }) {
                 : "Không tìm thấy thực tập sinh."}
             </div>
           ) : (
-            <table className="table table-hover">
+            <div style={{ 
+              width: "100%",
+              overflowX: "auto"
+            }}>
+              <table className="table table-hover" style={{
+                width: "100%",
+                tableLayout: "auto",
+                minWidth: "100%",
+                margin: 0,
+                borderCollapse: "collapse"
+              }}>
               <thead>
                 <tr>
-                  <th className="table-th" style={{ width: "35%" }}>
+                  <th className="table-th" style={{
+                    padding: "12px",
+                    textAlign: "left",
+                    backgroundColor: "#f8fafc",
+                    borderBottom: "1px solid #e2e8f0",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 10
+                  }}>
                     Tên thực tập sinh
                   </th>
-                  <th className="table-th" style={{ width: "40%" }}>
+                  <th className="table-th" style={{
+                    padding: "12px 24px 12px 40px",
+                    textAlign: "left",
+                    backgroundColor: "#f8fafc",
+                    borderBottom: "1px solid #e2e8f0",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 10,
+                    minWidth: "250px"
+                  }}>
                     Email
                   </th>
-                  <th className="table-th" style={{ width: "25%" }}>
-                    Program
+                  <th className="table-th" style={{
+                    padding: "12px",
+                    textAlign: "left",
+                    backgroundColor: "#f8fafc",
+                    borderBottom: "1px solid #e2e8f0",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 10
+                  }}>
+                    Dự án
                   </th>
                 </tr>
               </thead>
@@ -130,19 +178,40 @@ export default function InternSelectionModal({ onClose, onSelect }) {
                     tabIndex={0}
                     style={{ cursor: "pointer" }}
                   >
-                    <td className="table-td">
+                    <td className="table-td" style={{
+                      padding: "12px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      borderBottom: "1px solid #f1f5f9"
+                    }}>
                       {intern.student || intern.fullname}
                     </td>
-                    <td className="table-td">
+                    <td className="table-td" style={{
+                      padding: "12px 24px 12px 40px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      borderBottom: "1px solid #f1f5f9"
+                    }}>
                       {intern.studentEmail || intern.email}
                     </td>
-                    <td className="table-td" style={{ fontSize: "13px", color: "#6b7280" }}>
-                      {intern.programId || "-"}
+                    <td className="table-td" style={{
+                      padding: "12px",
+                      fontSize: "13px",
+                      color: "#6b7280",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      borderBottom: "1px solid #f1f5f9"
+                    }}>
+                      {intern.programName || "-"}
                     </td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           )}
         </div>
       </div>

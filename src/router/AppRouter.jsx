@@ -15,7 +15,6 @@ import TaskManagement from "../pages/mentor/TaskManagement";
 import OAuthCallback from "../pages/auth/OAuthCallback";
 import MyContract from "../pages/students/MyContract";
 import AllowanceHistory from "../pages/internships/AllowanceHistory";
-import InternSchedule from "../pages/internships/InternshipSchedule";
 import MyTasks from "../pages/internships/MyTasks";
 import EvaluationForm from "../pages/mentor/EvaluationForm";
 import SupportRequests from "../pages/internships/SupportRequests";
@@ -80,9 +79,7 @@ export default function AppRouter() {
             <Route
               path="/notifications"
               element={
-                <AccessGuard
-                  requiredRoles={["ADMIN", "HR", "MENTOR", "INTERN"]}
-                >
+                <AccessGuard requiredRoles={["INTERN"]}>
                   <NotificationsPage />
                 </AccessGuard>
               }
@@ -94,16 +91,6 @@ export default function AppRouter() {
               element={
                 <AccessGuard requiredPermissions={["VIEW_INTERNSHIPS"]}>
                   <InternshipList />
-                </AccessGuard>
-              }
-            />
-
-            {/* ✅ Lịch thực tập */}
-            <Route
-              path="/intern-schedule"
-              element={
-                <AccessGuard requiredRoles={["INTERN", "HR", "ADMIN"]}>
-                  <InternSchedule />
                 </AccessGuard>
               }
             />
