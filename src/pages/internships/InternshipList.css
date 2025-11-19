@@ -64,14 +64,24 @@ body {
   box-shadow: 0 8px 24px rgba(43, 124, 255, 0.15);
 }
 
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -24px;
+  padding: 0 24px;
+}
+
 .table {
   width: 100%;
+  min-width: 1000px; /* Ensures table doesn't collapse too much */
   border-collapse: separate;
   border-spacing: 0;
   background: var(--bg-card);
   border-radius: var(--border-radius);
   overflow: hidden;
   box-shadow: var(--shadow);
+  table-layout: auto; /* Changed from fixed to auto to handle content better */
 }
 
 .table thead {
@@ -170,6 +180,30 @@ body {
 
 .table .btn-warning:hover {
   background: #e6b800;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hoàn thành button style - matches Sửa button */
+.table .btn-info {
+  background: #17a2b8;
+  color: #fff;
+  border: 1px solid #138496;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px;
+  margin: 4px 4px;
+  transition: all 0.2s ease;
+}
+
+.table .btn-info:hover {
+  background: #138496;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -443,6 +477,9 @@ body {
   .card {
     padding: 16px;
     margin-bottom: 16px;
+  }
+  .table-container {
+    overflow-x: auto;
   }
   .table {
     font-size: 13px;

@@ -49,4 +49,3 @@ export async function getInternPrograms() {
   const { data } = await api.get("/intern-profiles/programs");
   return data;
 }
-
