@@ -112,11 +112,11 @@ export default function InternSelectionModal({ onClose, onSelect }) {
                   <th className="table-th" style={{ width: "15%" }}>
                     Tên thực tập sinh
                   </th>
-                  <th className="table-th" style={{ width: "20%" }}>
+                  <th className="table-th" style={{ width: "40%" }}>
                     Email
                   </th>
-                  <th className="table-th" style={{ width: "20%" }}>
-                    Dự Án
+                  <th className="table-th" style={{ width: "25%" }}>
+                    Dự án
                   </th>
                 </tr>
               </thead>
