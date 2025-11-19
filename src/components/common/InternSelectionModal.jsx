@@ -109,17 +109,14 @@ export default function InternSelectionModal({ onClose, onSelect }) {
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th className="table-th" style={{ width: "35%" }}>
+                  <th className="table-th" style={{ width: "15%" }}>
                     Tên thực tập sinh
                   </th>
-                  <th className="table-th" style={{ width: "35%" }}>
+                  <th className="table-th" style={{ width: "20%" }}>
                     Email
                   </th>
-                  <th className="table-th" style={{ width: "7%" }}>
-                    ProgramId
-                    </th>
-                  <th className="table-th" style={{ width: "23%" }}>
-                    ProgramName
+                  <th className="table-th" style={{ width: "20%" }}>
+                    Dự Án
                   </th>
                 </tr>
               </thead>
@@ -138,9 +135,6 @@ export default function InternSelectionModal({ onClose, onSelect }) {
                     </td>
                     <td className="table-td">
                       {intern.studentEmail || intern.email}
-                    </td>
-                    <td className="table-td" style={{ fontSize: "13px", color: "#6b7280" }}>
-                      {intern.programId || "-"}
                     </td>
                     <td className="table-td" style={{ fontSize: "13px", color: "#6b7280" }}>
                       {intern.programName || "-"}
