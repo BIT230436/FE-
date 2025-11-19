@@ -130,14 +130,23 @@ export default function HRProjectManagement() {
         return;
       }
 
+      // 🚫 Kiểm tra intern đã có project chưa
+      if (intern.programId || intern.projectId || intern.currentProject) {
+        setError("Thực tập sinh này đã thuộc một project khác!");
+        setLoading(false);
+        return;
+      }
+
       await addInternToProject(selectedProject.id, internId);
 
       setSuccessMessage(
-        `Đã thêm ${intern.student} vào project ${selectedProject.title}`
+        `Đã thêm ${intern.student || intern.fullName} vào project ${
+          selectedProject.title
+        }`
       );
       setShowModal(false);
-      
-      // Use the filtered load function instead of loadProjects
+
+      // Reload lại danh sách project
       if (selectedProgramId) {
         await loadProjectsByFilter(selectedProgramId, selectedDepartmentId);
       } else {
@@ -156,6 +165,7 @@ export default function HRProjectManagement() {
       setLoading(false);
     }
   };
+
 
   const handleRemoveIntern = async (internId, internName, projectTitle) => {
     if (

@@ -80,9 +80,7 @@ export default function AppRouter() {
             <Route
               path="/notifications"
               element={
-                <AccessGuard
-                  requiredRoles={["ADMIN", "HR", "MENTOR", "INTERN"]}
-                >
+                <AccessGuard requiredRoles={["INTERN"]}>
                   <NotificationsPage />
                 </AccessGuard>
               }
