@@ -35,12 +35,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredPermissions: ["VIEW_INTERNSHIPS"],
     },
     {
-      label: "Lịch thực tập",
-      path: "/intern-schedule",
-      icon: "🗓️",
-      requiredRoles: ["INTERN"],
-    },
-    {
       label: "Công việc của tôi",
       path: "/my-tasks",
       icon: "📋",
@@ -175,12 +169,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "🛎️",
       requiredRoles: ["HR"],
     },
-    // {
-    //   label: "Lịch làm việc",
-    //   path: "/hr/work-schedule",
-    //   icon: "📅",
-    //   requiredRoles: ["HR"],
-    // },
+    {
+      label: "Lịch làm việc",
+      path: "/hr/work-schedule",
+      icon: "📅",
+      requiredRoles: ["HR"],
+    },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---
