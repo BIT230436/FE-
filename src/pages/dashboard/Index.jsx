@@ -309,32 +309,6 @@ export default function Dashboard() {
           <p>
             Bạn có thể quản lý thực tập sinh, duyệt hồ sơ và theo dõi tiến độ.
           </p>
-          <button
-            onClick={() => navigate("/statistics")}
-            style={{
-              marginTop: "15px",
-              padding: "12px 24px",
-              backgroundColor: "#2b7cff",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "15px",
-              fontWeight: "600",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#1a5fd1";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "#2b7cff";
-            }}
-          >
-            <span>📊</span>
-            <span>Xem thống kê chi tiết</span>
-          </button>
         </div>
       )}
       {user?.role === "INTERN" && (

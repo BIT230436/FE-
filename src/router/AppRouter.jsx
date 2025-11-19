@@ -311,20 +311,20 @@ export default function AppRouter() {
                 </AccessGuard>
               }
             />
+            <Route
+              path="/statistics"
+              element={
+                <AccessGuard requiredRoles={["HR", "ADMIN"]}>
+                  <Statistics />
+                </AccessGuard>
+              }
+            />
           </Route>
           <Route
             path="/hr/work-schedule"
             element={
               <AccessGuard requiredRoles={["HR"]}>
                 <WorkSchedule />
-              </AccessGuard>
-            }
-          />
-          <Route
-            path="/statistics"
-            element={
-              <AccessGuard requiredRoles={["HR", "ADMIN"]}>
-                <Statistics />
               </AccessGuard>
             }
           />
