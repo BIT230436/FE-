@@ -181,6 +181,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       icon: "📅",
       requiredRoles: ["HR"],
     },
+    {
+      label: "Thông báo",
+      path: "/notifications",
+      icon: "🔔",
+      requiredRoles: ["INTERN"],
+    },
   ];
 
   // --- Lọc menu theo quyền / vai trò ---
@@ -308,20 +314,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           </div>
         ))}
       </nav>
-
-      {/* --- Thông báo (ẩn với ADMIN) --- */}
-      {userRole !== "ADMIN" && (
-        <div className="sidebar-notifications">
-          <button
-            className="sidebar-notification-btn"
-            onClick={() => handleNavigate("/notifications")}
-            title="Thông báo"
-          >
-            🔔
-            {!collapsed && <span>Thông báo</span>}
-          </button>
-        </div>
-      )}
 
       {/* Logout */}
       <div className="sidebar-logout">

@@ -29,7 +29,7 @@ import WorkSchedule from "../pages/hr/WorkSchedule";
 import Statistics from "../pages/statistics/Statistics";
 
 // ✅ Thêm mới
-import NotificationsPage from "../pages/NotificationsPage";
+import NotificationsPage from "../pages/internships/NotificationsPage";
 
 // Layout & Guards
 import AppLayout from "../components/layout/Layout";
