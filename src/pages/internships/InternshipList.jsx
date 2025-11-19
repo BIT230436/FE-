@@ -188,8 +188,9 @@ export default function InternshipList() {
         </div>
       </div>
 
-      <div className="card">
-        <table className="table">
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', padding: '0 1rem' }}>
+          <table className="table" style={{ minWidth: '1000px' }}>
           <thead>
             <tr>
               <th className="table-th">STT</th>
@@ -240,25 +241,67 @@ export default function InternshipList() {
                   <td className="table-td">
                     <button
                       className="btn btn-success"
-                      style={{ marginRight: 8 }}
+                      style={{ marginRight: 8, marginBottom: 4 }}
                       onClick={() => setViewing(internship)}
                     >
                       Xem
                     </button>
                     <button
                       className="btn btn-warning"
-                      style={{ marginRight: 8 }}
+                      style={{ marginRight: 8, marginBottom: 4 }}
                       onClick={() => setEditing(internship)}
                     >
                       Sửa
                     </button>
+                    {internship.status === "active" && (
+                      <button
+                        className="btn btn-info"
+                        style={{ marginRight: 8, marginBottom: 4 }}
+                        onClick={async () => {
+                          if (
+                            window.confirm(
+                              "Bạn có chắc muốn đánh dấu hoàn thành?"
+                            )
+                          ) {
+                            try {
+                              await updateInternship(internship.intern_id, {
+                                title: internship.title,
+                                student: internship.student,
+                                studentEmail: internship.studentEmail,
+                                school: internship.school,
+                                major: internship.major,
+                                status: "completed",
+                                startDate: internship.startDate,
+                                endDate: dayjs().format("YYYY-MM-DD"),
+                              });
+
+                              toast.success(
+                                "Đã cập nhật trạng thái thành 'Hoàn thành'"
+                              );
+                              loadInternships();
+                            } catch (error) {
+                              console.error(
+                                "Error updating internship status:",
+                                error
+                              );
+                              toast.error(
+                                error.response?.data?.message ||
+                                  "Cập nhật thất bại"
+                              );
+                            }
+                          }
+                        }}
+                      >
+                        Hoàn thành
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
-
+        </div>
         <div className="pagination">
           <div className="pagination-info">
             Hiển thị {totalItems === 0 ? 0 : startIndex + 1}–
@@ -494,7 +537,9 @@ function CreateInternshipModal({
               </label>
               <select
                 id="title"
-                className={`form-select ${validationErrors.title ? "input-error" : ""}`}
+                className={`form-select ${
+                  validationErrors.title ? "input-error" : ""
+                }`}
                 value={title}
                 onChange={handleInputChange(setTitle, "title")}
               >
@@ -790,7 +835,6 @@ function EditInternshipModal({ data, onClose, onSave, programs = [] }) {
       startDate: startDate ? dayjs(startDate).format("YYYY-MM-DD") : null,
       endDate: endDate ? dayjs(endDate).format("YYYY-MM-DD") : null,
     });
-
   };
 
   const handleInputChange = (setter, field) => (e) => {
@@ -811,7 +855,9 @@ function EditInternshipModal({ data, onClose, onSave, programs = [] }) {
                 Vị trí <span style={{ color: "red" }}>*</span>
               </label>
               <select
-                className={`form-select ${validationErrors.title ? "input-error" : ""}`}
+                className={`form-select ${
+                  validationErrors.title ? "input-error" : ""
+                }`}
                 value={title}
                 onChange={handleInputChange(setTitle, "title")}
               >
