@@ -1,0 +1,357 @@
+.notifications-page {
+  padding: 32px;
+  max-width: 900px;
+  margin: 20px auto;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(43, 124, 255, 0.12);
+  animation: fadeIn 0.4s ease-in-out;
+  min-height: 85vh;
+  border: 1px solid rgba(43, 124, 255, 0.08);
+}
+
+/* --- HEADER --- */
+.notifications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  border-bottom: 2px solid transparent;
+  background: linear-gradient(to right, #e3eaf2, transparent) bottom / 100% 2px
+    no-repeat;
+  padding-bottom: 20px;
+}
+
+.notifications-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1a1a1a;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.notifications-header h2 .icon {
+  color: #2b7cff;
+  filter: drop-shadow(0 2px 4px rgba(43, 124, 255, 0.3));
+}
+
+.unread-badge {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  color: white;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+  animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.mark-read-btn {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #2b7cff 0%, #1761c7 100%);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(43, 124, 255, 0.3);
+  transition: all 0.3s ease;
+  gap: 6px;
+}
+
+.mark-read-btn:hover {
+  background: linear-gradient(135deg, #1761c7 0%, #0d4a9f 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(43, 124, 255, 0.4);
+}
+
+.mark-read-btn:active {
+  transform: translateY(0);
+}
+
+/* --- DANH SÁCH THÔNG BÁO --- */
+.notifications-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(43, 124, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.notification-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+
+.notification-item:hover {
+  background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+  transform: translateX(8px);
+  box-shadow: 0 4px 16px rgba(43, 124, 255, 0.12);
+}
+
+/* --- Trạng thái - ĐẶC BIỆT cho UNREAD --- */
+.notification-item.unread {
+  background: linear-gradient(135deg, #eaf3ff 0%, #f0f7ff 100%);
+  border: 1px solid rgba(43, 124, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(43, 124, 255, 0.15);
+}
+
+.notification-item.unread::before {
+  background: linear-gradient(180deg, #2b7cff 0%, #1761c7 100%);
+  box-shadow: 2px 0 8px rgba(43, 124, 255, 0.3);
+}
+
+.notification-item.unread:hover {
+  background: linear-gradient(135deg, #d6e9ff 0%, #e3f2ff 100%);
+  border-color: rgba(43, 124, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(43, 124, 255, 0.2);
+}
+
+/* Trạng thái READ */
+.notification-item.read {
+  opacity: 0.75;
+  background: #fafafa;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: none;
+}
+
+.notification-item.read:hover {
+  background: #f5f5f5;
+  transform: translateX(4px);
+  opacity: 0.85;
+}
+
+/* --- ICON --- */
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #e3f2ff 0%, #d6e9ff 100%);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.notification-item.unread .notification-icon {
+  background: linear-gradient(135deg, #2b7cff 0%, #1761c7 100%);
+  box-shadow: 0 4px 12px rgba(43, 124, 255, 0.3);
+  animation: iconPulse 2s infinite;
+}
+
+@keyframes iconPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.notification-icon .icon {
+  width: 24px;
+  height: 24px;
+  color: #2b7cff;
+  transition: all 0.3s ease;
+}
+
+.notification-item.unread .notification-icon .icon {
+  color: #ffffff;
+}
+
+.notification-item:hover .notification-icon {
+  transform: rotate(-5deg) scale(1.05);
+}
+
+/* --- NỘI DUNG --- */
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-content h4 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: #1a1a1a;
+  font-weight: 600;
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.notification-item.unread .notification-content h4 {
+  color: #000;
+  font-weight: 700;
+}
+
+.notification-item:hover .notification-content h4 {
+  color: #2b7cff;
+}
+
+.notification-content p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-item.unread .notification-content p {
+  color: #333;
+  font-weight: 500;
+}
+
+.notification-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.notification-item.unread .notification-date {
+  background: rgba(43, 124, 255, 0.1);
+  color: #2b7cff;
+  font-weight: 600;
+}
+
+/* --- TRẠNG THÁI RỖNG / CHƯA ĐĂNG NHẬP --- */
+.empty {
+  text-align: center;
+  color: #666;
+  padding: 60px 40px;
+  font-size: 16px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 2px dashed rgba(43, 124, 255, 0.2);
+}
+
+.empty .icon {
+  width: 64px;
+  height: 64px;
+  color: #2b7cff;
+  opacity: 0.5;
+  margin-bottom: 16px;
+}
+
+/* --- HIỆU ỨNG --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .notifications-page {
+    padding: 20px;
+    margin: 10px;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(43, 124, 255, 0.1);
+  }
+
+  .notifications-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 16px;
+  }
+
+  .notifications-header h2 {
+    font-size: 24px;
+  }
+
+  .mark-read-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+  }
+
+  .notification-item {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .notification-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .notification-icon .icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .notification-content h4 {
+    font-size: 16px;
+  }
+
+  .notification-content p {
+    font-size: 13px;
+  }
+
+  .empty {
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notifications-page {
+    padding: 16px;
+    margin: 5px;
+  }
+
+  .notification-item:hover {
+    transform: translateX(4px);
+  }
+}
