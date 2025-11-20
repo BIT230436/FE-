@@ -212,7 +212,7 @@ export default function SupportRequestReviewModal({
                 }
                 onMouseOut={(e) => (e.target.style.backgroundColor = "#dc3545")}
               >
-                {loading ? "Đang xử lý..." : "❌ Từ chối"}
+                {loading ? "Đang xử lý..." : " Từ chối"}
               </button>
               <button
                 type="button"
@@ -225,7 +225,7 @@ export default function SupportRequestReviewModal({
                 }
                 onMouseOut={(e) => (e.target.style.backgroundColor = "#28a745")}
               >
-                {loading ? "Đang xử lý..." : "✅ Xác Nhận"}
+                {loading ? "Đang xử lý..." : " Xác Nhận"}
               </button>
             </>
           )}
