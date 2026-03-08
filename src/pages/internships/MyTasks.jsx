@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { updateTaskStatus } from "../../services/taskService";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "../../services/apiClient";
+import { useAuthStore } from "../../store/authStore";
 import "./MyTasks.css";
 
 export default function MyTasks() {
@@ -14,63 +15,8 @@ export default function MyTasks() {
   }, []);
 
   const getUserId = () => {
-    // ✅ Thử nhiều cách lấy userId
-
-    // Cách 1: Từ localStorage "auth-storage" (Zustand)
-    const authStorageStr = localStorage.getItem("auth-storage");
-    if (authStorageStr) {
-      try {
-        const authStorage = JSON.parse(authStorageStr);
-        console.log("Auth storage:", authStorage);
-
-        // Lấy từ state.user.id
-        if (
-          authStorage.state &&
-          authStorage.state.user &&
-          authStorage.state.user.id
-        ) {
-          const userId = authStorage.state.user.id;
-          console.log("Found userId from auth-storage:", userId);
-          return userId;
-        }
-      } catch (e) {
-        console.error("Error parsing auth-storage:", e);
-      }
-    }
-
-    // Cách 2: Từ localStorage "user"
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        console.log("User from localStorage:", user);
-
-        // Thử nhiều key có thể chứa userId
-        const userId = user.userId || user.id || user.user_id || user.USER_ID;
-        if (userId) {
-          console.log("Found userId:", userId);
-          return userId;
-        }
-      } catch (e) {
-        console.error("Error parsing user from localStorage:", e);
-      }
-    }
-
-    // Cách 3: Từ localStorage "userId" trực tiếp
-    const userIdDirect = localStorage.getItem("userId");
-    if (userIdDirect) {
-      console.log("Found userId directly:", userIdDirect);
-      return userIdDirect;
-    }
-
-    // Cách 4: Log tất cả localStorage để debug
-    console.log("All localStorage keys:", Object.keys(localStorage));
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      console.log(`localStorage[${key}]:`, localStorage.getItem(key));
-    }
-
-    return null;
+    const { user } = useAuthStore.getState();
+    return user?.id || null;
   };
 
   const loadTasks = async () => {
@@ -89,10 +35,9 @@ export default function MyTasks() {
 
       console.log("Loading tasks for userId:", userId);
 
-      // ✅ Gọi API với userId
-      const response = await axios.get(
-        `http://localhost:8090/api/tasks/my-tasks?userId=${userId}`
-      );
+      const response = await api.get(`/tasks/my-tasks`, {
+        params: { userId },
+      });
 
       console.log("Tasks response:", response.data);
 

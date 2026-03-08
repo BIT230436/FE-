@@ -122,6 +122,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["HR"],
     },
     {
+      label: "Tạo mã QR chấm công",
+      path: "/hr/qr-generator",
+      icon: "📷",
+      requiredRoles: ["HR", "ADMIN"],
+    },
+    {
       label: "Báo cáo chuyên cần",
       path: "/hr/attendance-report",
       icon: "📅",

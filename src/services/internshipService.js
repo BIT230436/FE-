@@ -1,49 +1,12 @@
 // src/services/internshipService.js
 import api from "./apiClient";
+import { useAuthStore } from "../store/authStore";
 
-// ✅ Lấy userId từ localStorage - PHẢI EXPORT
-export const getUserId = () => {
-  const authStorageStr = localStorage.getItem("auth-storage");
-  if (authStorageStr) {
-    try {
-      const authStorage = JSON.parse(authStorageStr);
-      if (authStorage.state && authStorage.state.user) {
-        return authStorage.state.user.id;
-      }
-    } catch (e) {
-      console.error("Error parsing auth-storage:", e);
-    }
-  }
+// ✅ Lấy userId từ auth store - PHẢI EXPORT
+export const getUserId = () => useAuthStore.getState().user?.id ?? null;
 
-  // Fallback: try "user" key
-  const userStr = localStorage.getItem("user");
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      return user.userId || user.id || user.user_id;
-    } catch (e) {
-      console.error("Error parsing user:", e);
-    }
-  }
-
-  return null;
-};
-
-// ✅ Lấy role của user - PHẢI EXPORT hoặc để trong file
-const getUserRole = () => {
-  const authStorageStr = localStorage.getItem("auth-storage");
-  if (authStorageStr) {
-    try {
-      const authStorage = JSON.parse(authStorageStr);
-      if (authStorage.state && authStorage.state.user) {
-        return authStorage.state.user.role;
-      }
-    } catch (e) {
-      console.error("Error parsing auth-storage:", e);
-    }
-  }
-  return null;
-};
+// ✅ Lấy role của user
+const getUserRole = () => useAuthStore.getState().user?.role ?? null;
 
 // ✅ Lấy danh sách thực tập sinh (ĐÃ CẬP NHẬT)
 export async function getInternships(filters = {}) {
@@ -114,7 +77,7 @@ export async function deleteInternship(id) {
 
 // Lấy thống kê thực tập sinh
 export async function getInternshipStats() {
-  const { data } = await api.get("/internships/stats");
+  const { data } = await api.get("/interns/stats");
   return data;
 }
 

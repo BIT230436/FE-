@@ -1,11 +1,14 @@
 import api from "./apiClient";
+import { useAuthStore } from "../store/authStore";
 
 /**
  * Lấy danh sách yêu cầu nghỉ phép của intern hiện tại
  * @param {string} email - Email của user (hoặc userId)
  */
 export async function getLeaveRequests(email) {
-  const { data } = await api.get(`/leave-requests?email=${email}`);
+  const { data } = await api.get(`/leave-requests/my-requests`, {
+    params: { email },
+  });
   return data;
 }
 
@@ -76,21 +79,7 @@ export async function getPendingLeaveRequests() {
  * @param {Object} data - { hrEmail } hoặc lấy từ localStorage
  */
 export async function approveLeaveRequest(requestId, data = {}) {
-  // Lấy email HR từ nhiều nguồn
-  let hrEmail = data.hrEmail || localStorage.getItem('userEmail');
-
-  // Nếu không có, thử parse từ auth-storage (Zustand)
-  if (!hrEmail) {
-    const authStorageStr = localStorage.getItem('auth-storage');
-    if (authStorageStr) {
-      try {
-        const authStorage = JSON.parse(authStorageStr);
-        hrEmail = authStorage.state?.user?.email;
-      } catch (e) {
-        console.error('Parse auth-storage failed:', e);
-      }
-    }
-  }
+  const hrEmail = data.hrEmail || useAuthStore.getState().user?.email;
 
   if (!hrEmail) {
     throw new Error('Không tìm thấy thông tin HR. Vui lòng đăng nhập lại.');
@@ -109,21 +98,7 @@ export async function approveLeaveRequest(requestId, data = {}) {
  * @param {Object} data - { note, hrEmail } - note là lý do từ chối (bắt buộc)
  */
 export async function rejectLeaveRequest(requestId, data) {
-  // Lấy email HR từ nhiều nguồn
-  let hrEmail = data.hrEmail || localStorage.getItem('userEmail');
-
-  // Nếu không có, thử parse từ auth-storage (Zustand)
-  if (!hrEmail) {
-    const authStorageStr = localStorage.getItem('auth-storage');
-    if (authStorageStr) {
-      try {
-        const authStorage = JSON.parse(authStorageStr);
-        hrEmail = authStorage.state?.user?.email;
-      } catch (e) {
-        console.error('Parse auth-storage failed:', e);
-      }
-    }
-  }
+  const hrEmail = data.hrEmail || useAuthStore.getState().user?.email;
 
   if (!hrEmail) {
     throw new Error('Không tìm thấy thông tin HR. Vui lòng đăng nhập lại.');

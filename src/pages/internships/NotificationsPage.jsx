@@ -48,7 +48,7 @@ export default function NotificationPage() {
   const loadUnreadCount = async () => {
     try {
       const response = await NotificationService.getUnreadCount();
-      setUnreadCount(response.data || 0);
+      setUnreadCount(response.data?.count ?? 0);
     } catch (error) {
       console.error("Error loading unread count:", error);
     }

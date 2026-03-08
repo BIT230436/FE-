@@ -19,6 +19,11 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // Khi gửi FormData, xóa Content-Type để browser tự set multipart/form-data với boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+
     // Log request (chỉ trong development)
     if (import.meta.env.DEV) {
       console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, {

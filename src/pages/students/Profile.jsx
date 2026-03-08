@@ -52,8 +52,7 @@ export default function Profile() {
       setAvatarUrl(imageUrl);
 
       const updatedUser = { ...user, avatar: imageUrl };
-      const currentStorage = localStorage.getItem('auth-storage');
-      const token = currentStorage ? JSON.parse(currentStorage).state.token : null;
+      const token = useAuthStore.getState().token;
       setAuth(updatedUser, token);
 
       setUploadingAvatar(false);
@@ -84,9 +83,7 @@ export default function Profile() {
       });
 
       // ✅ Get token for auth update
-      const token = localStorage.getItem('auth-storage')
-        ? JSON.parse(localStorage.getItem('auth-storage')).state.token
-        : null;
+      const token = useAuthStore.getState().token;
 
       // ✅ Cập nhật state local
       setProfile(editedProfile);

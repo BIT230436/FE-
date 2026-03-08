@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { DatePicker } from "antd";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AllowanceManagement.css";
 
@@ -91,7 +91,6 @@ export default function AllowanceManagement() {
 
   return (
     <div className="page-container">
-      <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h1 className="page-title">Quản lý Phụ cấp</h1>
         <button

@@ -4,7 +4,7 @@ import {
   acceptDocument,
 } from "../../services/documentService";
 import { useAuthStore } from "../../store/authStore";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./MyContract.css";
 
@@ -219,17 +219,6 @@ export default function MyContract() {
           </div>
         )}
       </div>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="colored"
-      />
     </div>
   );
 }

@@ -5,6 +5,8 @@ import "react-toastify/dist/ReactToastify.css";
 // Pages
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
 import Dashboard from "../pages/dashboard/Index";
 import InternshipList from "../pages/internships/InternshipList";
 import Users from "../pages/admin/Users";
@@ -27,6 +29,7 @@ import LeaveApprovalPage from "../pages/hr/LeaveApprovalPage";
 import Gps from "../pages/admin/Gps";
 import WorkSchedule from "../pages/hr/WorkSchedule";
 import Statistics from "../pages/statistics/Statistics";
+import QrGenerator from "../pages/QrGen/QrGenerator";
 
 // ✅ Thêm mới
 import NotificationsPage from "../pages/internships/NotificationsPage";
@@ -66,6 +69,8 @@ export default function AppRouter() {
         {/* 🌐 Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/oauth2/callback" element={<OAuthCallback />} />
         <Route path="/apply" element={<DocumentUpload />} />
 
@@ -312,6 +317,22 @@ export default function AppRouter() {
               }
             />
             <Route
+              path="/hr/qr-generator"
+              element={
+                <AccessGuard requiredRoles={["HR", "ADMIN"]}>
+                  <QrGenerator />
+                </AccessGuard>
+              }
+            />
+            <Route
+              path="/hr/work-schedule"
+              element={
+                <AccessGuard requiredRoles={["HR"]}>
+                  <WorkSchedule />
+                </AccessGuard>
+              }
+            />
+            <Route
               path="/statistics"
               element={
                 <AccessGuard requiredRoles={["HR", "ADMIN"]}>
@@ -320,14 +341,6 @@ export default function AppRouter() {
               }
             />
           </Route>
-          <Route
-            path="/hr/work-schedule"
-            element={
-              <AccessGuard requiredRoles={["HR"]}>
-                <WorkSchedule />
-              </AccessGuard>
-            }
-          />
         </Route>
         {/* 🚫 Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

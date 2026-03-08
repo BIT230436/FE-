@@ -104,11 +104,7 @@ export const createSupportRequest = async ({
       console.log(`  ${key}:`, value);
     }
 
-    const response = await api.post("/support-requests/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const response = await api.post("/support-requests/upload", formData);
 
     console.log("✅ Response:", response.data);
     return response.data;

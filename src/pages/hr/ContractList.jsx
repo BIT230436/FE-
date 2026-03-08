@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { getAllContracts } from "../../services/documentService";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import "./ContractList.css";
@@ -181,17 +181,6 @@ export default function AllContracts() {
           </>
         )}
       </div>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="colored"
-      />
     </div>
   );
 }

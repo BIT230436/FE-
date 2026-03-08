@@ -33,18 +33,17 @@ export default function Login() {
       }
       setAuth(response.user, response.token);
       // ✅ Lưu userId - QUAN TRỌNG!
-      if (response.userId || response.id || response.user_id) {
-        const userId = response.userId || response.id || response.user_id;
-        localStorage.setItem("userId", userId);
+      if (response.user?.id) {
+        localStorage.setItem("userId", response.user.id);
       }
 
-      // ✅ Lưu toàn bộ user object
+      // ✅ Lưu toàn bộ user object (dùng đúng path từ response)
       const userObject = {
-        userId: response.userId || response.id || response.user_id,
-        email: response.email,
-        fullname: response.fullname || response.name,
-        role: response.role,
-        // ... các field khác
+        userId: response.user?.id,
+        id: response.user?.id,
+        email: response.user?.email,
+        fullname: response.user?.fullName,
+        role: response.user?.role,
       };
 
       localStorage.setItem("user", JSON.stringify(userObject));
@@ -70,7 +69,9 @@ export default function Login() {
   }
 
   function loginWithGoogle() {
-    window.location.href = "http://localhost:8090/oauth2/authorization/google";
+    const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/api";
+    const serverBase = apiBase.replace(/\/api$/, "");
+    window.location.href = `${serverBase}/oauth2/authorization/google`;
   }
 
   if (!hasHydrated) {

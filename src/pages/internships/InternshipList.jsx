@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
 import "./InternshipList.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   getInternships,
@@ -111,7 +111,6 @@ export default function InternshipList() {
 
   return (
     <div className="page-container">
-      <ToastContainer position="top-right" autoClose={5000} />
 
       <div className="page-header">
         <h1 className="page-title">Danh sách Thực tập</h1>

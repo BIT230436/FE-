@@ -1,7 +1,6 @@
-DepartmentModal; // src/pages/hr/DepartmentManagement.jsx
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -180,7 +179,6 @@ export default function DepartmentManagement() {
 
   return (
     <div className="page-container">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="page-header">
         <div>

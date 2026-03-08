@@ -64,8 +64,7 @@ export default function GpsManagement() {
       }
 
       const script = document.createElement("script");
-      // TODO: Replace with your own Google Maps API key
-      const API_KEY = "AIzaSyBxoYilx1SVAovHvjI5QRoRifr958b4ur8"; // <-- Replace this
+      const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
       script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&v=weekly&loading=async`;
       script.async = true;
       script.defer = true;

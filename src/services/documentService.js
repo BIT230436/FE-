@@ -103,9 +103,7 @@ export async function uploadToCloud({ internProfileId, file, hrId }) {
   formData.append("internProfileId", internProfileId); // phải match với BE
   formData.append("hrId", hrId);
 
-  const { data } = await api.post("/documents/upload_cloud", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const { data } = await api.post("/documents/upload_cloud", formData);
   return data;
 }
 

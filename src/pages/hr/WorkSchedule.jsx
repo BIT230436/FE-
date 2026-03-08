@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { TimePicker } from "antd";
 import dayjs from "dayjs";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./WorkSchedule.css";
 import {
@@ -10,6 +10,7 @@ import {
   updateWorkSchedule,
   deleteWorkSchedule,
   getInternGroups,
+  getInterns,
 } from "../../services/workScheduleService";
 
 export default function WorkSchedulePage() {
@@ -34,8 +35,8 @@ export default function WorkSchedulePage() {
         getInternGroups(),
       ]);
 
-      setSchedules(schedulesRes.data || []);
-      setGroups(groupsRes.data || []);
+      setSchedules(Array.isArray(schedulesRes) ? schedulesRes : (schedulesRes?.data ?? []));
+      setGroups(Array.isArray(groupsRes) ? groupsRes : (groupsRes?.data ?? []));
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Không thể tải dữ liệu");
@@ -79,15 +80,6 @@ export default function WorkSchedulePage() {
 
   return (
     <div className="page-container">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        closeOnClick
-        draggable
-        pauseOnHover
-        theme="light"
-      />
 
       <div className="page-header">
         <h1 className="page-title">Thiết lập lịch làm việc</h1>
@@ -336,11 +328,13 @@ function ScheduleFormModal({ schedule, groups, onClose, onSubmit }) {
 
   async function loadInterns() {
     try {
-      // Mock data - thay bằng API thực tế
-      setInterns([
-        { id: 1, name: "Nguyễn Văn A", email: "a@example.com" },
-        { id: 2, name: "Trần Thị B", email: "b@example.com" },
-      ]);
+      const data = await getInterns();
+      const list = Array.isArray(data) ? data : (data?.data ?? []);
+      setInterns(list.map((intern) => ({
+        id: intern.id,
+        name: intern.fullName || intern.name,
+        email: intern.email,
+      })));
     } catch (error) {
       console.error("Error loading interns:", error);
     }

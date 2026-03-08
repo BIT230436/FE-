@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AttendancePage.css";
 import {
@@ -177,7 +177,6 @@ export default function AttendancePage() {
 
   return (
     <div className="page-container">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="page-header">
         <h1 className="page-title">Chấm công</h1>

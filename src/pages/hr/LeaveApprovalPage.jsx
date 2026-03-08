@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+dayjs.extend(isBetween);
 import { DatePicker } from "antd";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./LeaveApprovalPage.css";
 import { useAuthStore } from "../../store/authStore";
@@ -231,15 +233,6 @@ export default function HRLeaveApprovalPage() {
 
   return (
     <div className="page-container">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        closeOnClick
-        draggable
-        pauseOnHover
-        theme="light"
-      />
 
       <div className="page-header">
         <h1 className="page-title">Duyệt nghỉ phép</h1>

@@ -15,30 +15,35 @@ export default function DocQueue() {
 
   async function load() {
     setLoading(true);
-    // Chỉ lấy CV chờ duyệt, không lấy documents
-    const cvList = await getPendingCVs();
+    try {
+      // Chỉ lấy CV chờ duyệt, không lấy documents
+      const cvList = await getPendingCVs();
 
-    // Lọc chỉ lấy CV có status PENDING
-    const filteredCVs = cvList.filter((cv) => cv.status === "PENDING");
+      // Lọc chỉ lấy CV có status PENDING
+      const filteredCVs = (Array.isArray(cvList) ? cvList : []).filter((cv) => cv.status === "PENDING");
 
-    // Map CV thành format hiển thị
-    const combinedItems = filteredCVs.map((cv) => ({
-      id: cv.id,
-      type: "CV",
-      fileName: cv.fileName,
-      uploadedAt: cv.uploadedAt,
-      status: cv.status,
-      note: "",
-      userEmail: cv.userEmail,
-      isCV: true,
-      storagePath: cv.storagePath,
-      internName: cv.internName,
-      university: cv.university,
-      phone: cv.phone,
-    }));
+      // Map CV thành format hiển thị
+      const combinedItems = filteredCVs.map((cv) => ({
+        id: cv.id,
+        type: "CV",
+        fileName: cv.fileName,
+        uploadedAt: cv.uploadedAt,
+        status: cv.status,
+        note: "",
+        userEmail: cv.userEmail,
+        isCV: true,
+        storagePath: cv.storagePath,
+        internName: cv.internName,
+        university: cv.university,
+        phone: cv.phone,
+      }));
 
-    setItems(combinedItems);
-    setLoading(false);
+      setItems(combinedItems);
+    } catch (err) {
+      console.error("Failed to load CV queue:", err);
+    } finally {
+      setLoading(false);
+    }
   }
   useEffect(() => {
     load();

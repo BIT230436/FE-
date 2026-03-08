@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuthStore } from "../../store/authStore";
 import "./InternshipProgramList.css";
@@ -128,7 +128,7 @@ export default function InternshipProgramList() {
   };
 
   const filteredPrograms = programs.filter((program) => {
-    const nameMatch = program.programName
+    const nameMatch = (program.programName || '')
       .toLowerCase()
       .includes(nameFilter.toLowerCase());
 
@@ -154,7 +154,6 @@ export default function InternshipProgramList() {
 
   return (
     <div className="page-container">
-      <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h1 className="page-title">Chương trình Thực tập</h1>
         <button

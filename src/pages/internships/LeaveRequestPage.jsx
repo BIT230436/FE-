@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./LeaveRequestPage.css";
 import { useAuthStore } from "../../store/authStore";
@@ -173,7 +173,6 @@ export default function LeaveRequestPage() {
 
   return (
     <div className="page-container">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="page-header">
         <h1 className="page-title">Đăng ký nghỉ phép</h1>

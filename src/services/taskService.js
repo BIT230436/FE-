@@ -1,41 +1,18 @@
 // src/services/taskService.js
-import axios from "axios";
+import api from "./apiClient";
+import { useAuthStore } from "../store/authStore";
 
-const API_BASE_URL = "http://localhost:8090/api/tasks";
-
-// ✅ Helper function để lấy userId từ localStorage
+// ✅ Helper function để lấy userId từ store (Zustand)
 const getUserId = () => {
-  // Cách 1: Từ auth-storage (Zustand)
-  const authStorageStr = localStorage.getItem("auth-storage");
-  if (authStorageStr) {
-    try {
-      const authStorage = JSON.parse(authStorageStr);
-      if (authStorage.state && authStorage.state.user) {
-        return authStorage.state.user.id;
-      }
-    } catch (e) {
-      console.error("Error parsing auth-storage:", e);
-    }
-  }
-
-  // Cách 2: Từ localStorage "user"
-  const userStr = localStorage.getItem("user");
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      return user.userId || user.id || user.user_id;
-    } catch (e) {
-      console.error("Error parsing user:", e);
-    }
-  }
-
+  const { user } = useAuthStore.getState();
+  if (user?.id) return user.id;
   return null;
 };
 
 // ✅ Lấy danh sách công việc theo internId
 export async function getTasksByInternId(internId) {
   try {
-    const response = await axios.get(`${API_BASE_URL}/intern/${internId}`);
+    const response = await api.get(`/tasks/intern/${internId}`);
     return response.data;
   } catch (error) {
     console.error("Lỗi khi tải danh sách công việc:", error);
@@ -46,9 +23,9 @@ export async function getTasksByInternId(internId) {
 // ✅ Cập nhật trạng thái công việc
 export async function updateTaskStatus(taskId, newStatus) {
   try {
-    const response = await axios.put(
-      `${API_BASE_URL}/${taskId}/status?status=${newStatus}`
-    );
+    const response = await api.put(`/tasks/${taskId}/status`, null, {
+      params: { status: newStatus },
+    });
     return response.data;
   } catch (error) {
     console.error("Lỗi khi cập nhật trạng thái:", error);
@@ -66,9 +43,9 @@ export async function getAssignedTasks() {
     }
 
     console.log("Getting assigned tasks for mentor userId:", mentorUserId);
-    const response = await axios.get(
-      `${API_BASE_URL}/assigned?mentorUserId=${mentorUserId}`
-    );
+    const response = await api.get(`/tasks/assigned`, {
+      params: { mentorUserId },
+    });
 
     if (response.data.success) {
       return response.data.data;
@@ -123,7 +100,7 @@ export async function assignTask(taskData) {
     };
 
 
-    const response = await axios.post(`${API_BASE_URL}/assign`, dataWithMentor);
+    const response = await api.post(`/tasks/assign`, dataWithMentor);
 
     if (response.data.success) {
       return response.data;
@@ -142,7 +119,7 @@ export async function assignTask(taskData) {
 // 🎯 Cập nhật nhiệm vụ
 export async function updateTask(taskId, taskData) {
   try {
-    const response = await axios.put(`${API_BASE_URL}/${taskId}`, taskData);
+    const response = await api.put(`/tasks/${taskId}`, taskData);
     return response.data;
   } catch (error) {
     console.error("Lỗi khi cập nhật nhiệm vụ:", error);
@@ -153,7 +130,7 @@ export async function updateTask(taskId, taskData) {
 // 🎯 Xóa nhiệm vụ
 export async function deleteTask(taskId) {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/${taskId}`);
+    const response = await api.delete(`/tasks/${taskId}`);
     return response.data;
   } catch (error) {
     console.error("Lỗi khi xóa nhiệm vụ:", error);

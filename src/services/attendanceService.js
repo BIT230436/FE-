@@ -85,9 +85,9 @@ export async function getMyAttendanceRecords() {
   }
 }
 
-export async function getAllAttendanceRecords() {
+export async function getAllAttendanceRecords(filters = {}) {
   try {
-    const response = await api.get(`/attendance/records/all`);
+    const response = await api.get(`/attendance/report`, { params: filters });
     console.log("📋 All attendance records:", response.data);
     return response.data;
   } catch (error) {
