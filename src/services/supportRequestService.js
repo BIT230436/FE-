@@ -16,7 +16,8 @@ function getCurrentUserId() {
     throw new Error("Người dùng chưa đăng nhập. Vui lòng đăng nhập lại!");
   }
 
-  if (user.role !== "INTERN") {
+  const allowedRoles = ["INTERN", "USER"];
+  if (!allowedRoles.includes(user.role?.toUpperCase())) {
     throw new Error("Chỉ thực tập sinh mới có thể thực hiện thao tác này!");
   }
 

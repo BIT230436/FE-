@@ -43,11 +43,6 @@ export default function MyTasks() {
 
       if (response.data.success) {
         setTasks(response.data.data || []);
-        if (response.data.data && response.data.data.length > 0) {
-          toast.success(`Đã tải ${response.data.data.length} công việc`);
-        } else {
-          toast.info("Bạn chưa có công việc nào được giao");
-        }
       } else {
         toast.error(
           response.data.message || "Không thể tải danh sách công việc."

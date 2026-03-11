@@ -22,19 +22,19 @@ export const PERMISSION_GROUPS = {
 
 // Lấy tất cả permissions
 export async function getAllPermissions() {
-  const response = await api.get("/admin/permissions");
+  const response = await api.get("/permissions");
   return response.data;
 }
 
 // Lấy tất cả roles
 export async function getAllRoles() {
-  const response = await api.get("/admin/permissions/roles");
+  const response = await api.get("/permissions/roles");
   return response.data;
 }
 
 // Lấy permissions của một role
 export async function getRolePermissions(roleId) {
-  const response = await api.get(`/admin/permissions/role/${roleId}`);
+  const response = await api.get(`/permissions/role/${roleId}`);
   return response.data;
 }
 
@@ -70,7 +70,7 @@ export async function updateRolePermissions(roleName, permissions) {
     })
     .filter(Boolean);
 
-  const response = await api.put(`/admin/permissions/role/${role.id}`, {
+  const response = await api.put(`/permissions/role/${role.id}`, {
     permissionIds,
   });
   return response.data;

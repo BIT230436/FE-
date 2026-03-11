@@ -110,7 +110,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       requiredRoles: ["MENTOR"],
     },
     {
-      label: "Quản lý dự án",
+      label: "Quản lý Mentor",
       path: "/admin/mentors",
       icon: "👨‍🏫",
       requiredRoles: ["HR"],
