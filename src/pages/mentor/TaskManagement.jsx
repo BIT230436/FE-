@@ -245,24 +245,34 @@ const TaskManagement = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    try {
-      // Check for required fields before submitting
-      if (
-        !formData.title ||
-        !formData.description ||
-        !formData.due_date ||
-        !formData.internId
-      ) {
-        toast.error("Vui lòng điền đầy đủ thông tin");
-        return; // Don't proceed further if validation fails
-      }
+    if (
+      !formData.title ||
+      !formData.description ||
+      !formData.due_date ||
+      !formData.internId
+    ) {
+      toast.error("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
 
-      await handleSubmit(e);
-      // Only close the modal if submission was successful
+    try {
+      await assignTask(formData);
+      toast.success("Giao nhiệm vụ thành công!");
+      setFormData({
+        title: "",
+        description: "",
+        due_date: "",
+        priority: "",
+        internId: "",
+      });
+      setSelectedIntern(null);
+      loadTasks();
       handleCloseTaskModal();
     } catch (error) {
-      console.error("Error submitting task:", error);
-      // Error message is already shown in handleSubmit
+      console.error("Error assigning task:", error);
+      toast.error(
+        error.response?.data?.message || "Có lỗi xảy ra khi giao nhiệm vụ"
+      );
     }
   };
 

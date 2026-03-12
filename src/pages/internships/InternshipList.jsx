@@ -9,6 +9,7 @@ import {
   createInternship,
   updateInternship,
   getInternPrograms, // ✅ Thêm import
+  getUserId,
 } from "../../services/internshipService";
 import { getUsers } from "../../services/adminService";
 
@@ -364,6 +365,7 @@ export default function InternshipList() {
                 endDate: data.endDate
                   ? dayjs(data.endDate).format("YYYY-MM-DD")
                   : null,
+                mentorUserId: getUserId(),
               };
 
               await createInternship(payload);

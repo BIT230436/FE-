@@ -54,19 +54,8 @@ export default function LeaveRequestPage() {
 
       console.log("Response from API:", response);
 
-      let userRequests = Array.isArray(response.data)
-        ? response.data
-        : [];
+      const userRequests = Array.isArray(response) ? response : [];
 
-      const currentEmail = currentUser.email.toLowerCase();
-      userRequests = userRequests.filter(req => {
-        const internEmail = (req.internEmail || '').toLowerCase();
-        const match = internEmail === currentEmail;
-        console.log(`Checking request ${req.id}: ${req.internEmail} === ${currentUser.email}? ${match}`);
-        return match;
-      });
-
-      console.log("Final filtered requests:", userRequests);
       console.log("Total requests:", userRequests.length);
 
       setRequests(userRequests);

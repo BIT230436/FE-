@@ -46,19 +46,15 @@ export default function NewRequestModal({ onClose, onSuccess }) {
 
     setLoading(true);
     try {
-      const response = await createSupportRequest({
+      await createSupportRequest({
         type,
         description,
         priority, // ⭐ THÊM priority vào request
         attachment,
       });
-      if (response.success) {
-        toast.success(response.message || "Gửi yêu cầu thành công!");
-        onSuccess(); // Callback để load lại danh sách
-        onClose(); // Đóng modal
-      } else {
-        toast.error(response.message || "Gửi yêu cầu thất bại.");
-      }
+      toast.success("Gửi yêu cầu thành công!");
+      onSuccess(); // Callback để load lại danh sách
+      onClose(); // Đóng modal
     } catch (error) {
       toast.error(error.message || "Có lỗi xảy ra, vui lòng thử lại.");
     } finally {

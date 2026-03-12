@@ -390,8 +390,8 @@ function ScheduleFormModal({ schedule, groups, onClose, onSubmit }) {
 
     const data = {
       applyType,
-      groupId: applyType === "group" ? selectedGroup : null,
-      internId: applyType === "individual" ? selectedIntern : null,
+      groupId: applyType === "group" ? (selectedGroup ? Number(selectedGroup) : null) : null,
+      internId: applyType === "individual" ? (selectedIntern ? Number(selectedIntern) : null) : null,
       startTime: startTime.format("HH:mm"),
       endTime: endTime.format("HH:mm"),
       daysPerWeek,

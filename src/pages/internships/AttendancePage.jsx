@@ -37,10 +37,13 @@ export default function AttendancePage() {
 
     try {
       // Load thông tin chấm công hôm nay
-      const todayResponse = await getTodayAttendance();
-      console.log("Today response:", todayResponse);
+      let todayResponse = null;
+      try {
+        todayResponse = await getTodayAttendance();
+      } catch (e) {
+        console.warn("getTodayAttendance error:", e.message);
+      }
 
-      // Xử lý response wrapper
       if (todayResponse && todayResponse.data) {
         setTodayRecord(todayResponse.data);
       } else {
@@ -48,13 +51,13 @@ export default function AttendancePage() {
       }
 
       // Load lịch sử chấm công
-      const historyResponse = await getAttendanceHistory({
-        page: 0,
-        size: 10,
-      });
-      console.log("History response:", historyResponse);
+      let historyResponse = null;
+      try {
+        historyResponse = await getAttendanceHistory({ page: 0, size: 10 });
+      } catch (e) {
+        console.warn("getAttendanceHistory error:", e.message);
+      }
 
-      // Xử lý response wrapper
       if (historyResponse && historyResponse.data) {
         setHistory(
           Array.isArray(historyResponse.data) ? historyResponse.data : []
@@ -65,7 +68,6 @@ export default function AttendancePage() {
     } catch (error) {
       console.error("Error loading attendance data:", error);
       setError(error.message || "Không thể tải dữ liệu chấm công");
-      toast.error(error.message || "Không thể tải dữ liệu chấm công");
     } finally {
       setLoading(false);
     }
