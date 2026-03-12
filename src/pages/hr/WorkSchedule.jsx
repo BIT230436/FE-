@@ -331,9 +331,9 @@ function ScheduleFormModal({ schedule, groups, onClose, onSubmit }) {
       const data = await getInterns();
       const list = Array.isArray(data) ? data : (data?.data ?? []);
       setInterns(list.map((intern) => ({
-        id: intern.id,
-        name: intern.fullName || intern.name,
-        email: intern.email,
+        id: intern.intern_id || intern.id,
+        name: intern.student || intern.fullName || intern.name || intern.fullname,
+        email: intern.studentEmail || intern.email,
       })));
     } catch (error) {
       console.error("Error loading interns:", error);
@@ -388,10 +388,15 @@ function ScheduleFormModal({ schedule, groups, onClose, onSubmit }) {
       return;
     }
 
+    const selectedInternObj = applyType === "individual" && selectedIntern
+      ? interns.find((i) => String(i.id) === String(selectedIntern))
+      : null;
+
     const data = {
       applyType,
       groupId: applyType === "group" ? (selectedGroup ? Number(selectedGroup) : null) : null,
       internId: applyType === "individual" ? (selectedIntern ? Number(selectedIntern) : null) : null,
+      internName: selectedInternObj ? selectedInternObj.name : null,
       startTime: startTime.format("HH:mm"),
       endTime: endTime.format("HH:mm"),
       daysPerWeek,

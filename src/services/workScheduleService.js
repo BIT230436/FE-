@@ -67,10 +67,11 @@ export async function getInternGroups() {
 export async function getInterns(params = {}) {
   const queryParams = new URLSearchParams();
 
-  if (params.groupId) queryParams.append("groupId", params.groupId);
   if (params.status) queryParams.append("status", params.status);
+  // Lấy tất cả intern (không filter theo mentor) để HR chọn
+  queryParams.append("size", "1000");
 
-  const { data } = await api.get(`/interns?${queryParams.toString()}`);
+  const { data } = await api.get(`/intern-profiles?${queryParams.toString()}`);
   return data;
 }
 

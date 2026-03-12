@@ -99,16 +99,19 @@ export default function Statistics() {
       setLoading(true);
       try {
         const [completion, programs, timeline] = await Promise.all([
-          getInternCompletionStats(),
-          getProgramCompletionStats(filters),
-          getProgressOverTime(filters),
+          getInternCompletionStats().catch(() => null),
+          getProgramCompletionStats(filters).catch(() => []),
+          getProgressOverTime(filters).catch(() => []),
         ]);
 
         setCompletionStats(completion);
-        setProgramStats(programs);
-        setTimelineStats(timeline);
+        setProgramStats(programs || []);
+        setTimelineStats(timeline || []);
       } catch (error) {
         console.error("Error loading completion statistics:", error);
+        setCompletionStats(null);
+        setProgramStats([]);
+        setTimelineStats([]);
       } finally {
         setLoading(false);
       }
@@ -124,16 +127,19 @@ export default function Statistics() {
       setLoading(true);
       try {
         const [schools, majorsData, timeline] = await Promise.all([
-          getInternsBySchool(candidateFilters),
-          getInternsByMajor(candidateFilters),
-          getRecruitmentTimeline(candidateFilters),
+          getInternsBySchool(candidateFilters).catch(() => []),
+          getInternsByMajor(candidateFilters).catch(() => []),
+          getRecruitmentTimeline(candidateFilters).catch(() => []),
         ]);
 
-        setSchoolStats(schools);
-        setMajorStats(majorsData);
-        setRecruitmentTimeline(timeline);
+        setSchoolStats(schools || []);
+        setMajorStats(majorsData || []);
+        setRecruitmentTimeline(timeline || []);
       } catch (error) {
         console.error("Error loading candidate statistics:", error);
+        setSchoolStats([]);
+        setMajorStats([]);
+        setRecruitmentTimeline([]);
       } finally {
         setLoading(false);
       }
