@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { getInternships } from "../../services/internshipService";
+import { getProjectsByCurrentMentor } from "../../services/projectService";
+import { useAuthStore } from "../../store/authStore";
 import { toast } from "react-toastify";
 
 export default function InternSelectionModal({ onClose, onSelect }) {
@@ -8,6 +10,7 @@ export default function InternSelectionModal({ onClose, onSelect }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     const fetchInterns = async () => {
@@ -18,19 +21,50 @@ export default function InternSelectionModal({ onClose, onSelect }) {
       setError("");
 
       try {
-        const response = await getInternships({
-          q: searchQuery,
-          size: 100,
-          status: 'active' // ✅ Chỉ lấy intern đang active
-        });
+        let internData = [];
 
-        // ✅ Handle response format mới từ backend
-        const internData = response.data || response || [];
+        if (user?.role === "MENTOR") {
+          const projects = await getProjectsByCurrentMentor();
+          const flattened = (projects || []).flatMap((project) =>
+            (project.internNames || []).map((intern) => ({
+              intern_id: intern.id,
+              id: intern.id,
+              student: intern.fullName,
+              fullname: intern.fullName,
+              studentEmail: intern.email || "",
+              email: intern.email || "",
+              title: project.title,
+              programName: project.title,
+              programId: project.id,
+            }))
+          );
+
+          const normalizedQuery = searchQuery.trim().toLowerCase();
+          internData = normalizedQuery
+            ? flattened.filter(
+                (intern) =>
+                  intern.student?.toLowerCase().includes(normalizedQuery) ||
+                  intern.studentEmail?.toLowerCase().includes(normalizedQuery)
+              )
+            : flattened;
+        } else {
+          const response = await getInternships({
+            q: searchQuery,
+            size: 100,
+            status: "active",
+          });
+          internData = response.data || response || [];
+        }
+
         setInterns(internData);
 
         // ✅ Hiển thị thông báo nếu không có intern
         if (internData.length === 0 && !searchQuery) {
-          setError("Bạn chưa quản lý program nào hoặc chưa có thực tập sinh trong các program của bạn");
+          setError(
+            user?.role === "MENTOR"
+              ? "Bạn chưa có thực tập sinh nào trong các dự án đang quản lý"
+              : "Bạn chưa quản lý program nào hoặc chưa có thực tập sinh trong các program của bạn"
+          );
         }
 
       } catch (error) {
